@@ -1,0 +1,94 @@
+import { Controller } from "@hotwired/stimulus"
+import { DirectUpload } from '@rails/activestorage'
+
+// Trix Editor Controller
+// Handles rich text editing with Trix editor
+// stimulus-validator: system-controller
+export default class extends Controller<HTMLElement> {
+  static targets = ["input"]
+
+  declare readonly inputTarget: HTMLInputElement
+  declare readonly hasInputTarget: boolean
+
+  connect(): void {
+    this.setupEditor()
+  }
+
+  disconnect(): void {
+    this.cleanupEditor()
+  }
+
+  // Initialize editor
+  private setupEditor(): void {
+    // Add custom event listeners
+    this.element.addEventListener("trix-change", this.handleChange.bind(this))
+    this.element.addEventListener("trix-attachment-add", this.handleAttachmentAdd.bind(this))
+  }
+
+  // Clean up editor
+  private cleanupEditor(): void {
+    this.element.removeEventListener("trix-change", this.handleChange.bind(this))
+    this.element.removeEventListener("trix-attachment-add", this.handleAttachmentAdd.bind(this))
+  }
+
+  // Handle content changes
+  private handleChange(_event: Event): void {
+    // Custom logic when content changes
+  }
+
+  // Safe toast notification helper
+  private notify(message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info'): void {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, type)
+    } else {
+      console.error('[TrixEditor] showToast is not available:', message)
+    }
+  }
+
+  // Handle file attachments with Active Storage Direct Upload
+  private handleAttachmentAdd(event: any): void {
+    const { attachment } = event
+
+    if (!attachment.file) return
+
+    // File size validation (optional, e.g., 10MB limit)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (attachment.file.size > maxSize) {
+      this.notify(`File size must be less than ${maxSize / 1024 / 1024}MB`, 'error')
+      attachment.remove()
+      return
+    }
+
+    this.uploadFileAttachment(attachment)
+  }
+
+  // Upload file to Active Storage
+  private uploadFileAttachment(attachment: any): void {
+    const file = attachment.file
+    const form = this.element.closest('form')
+    const directUploadUrl = form?.dataset.directUploadUrl || '/rails/active_storage/direct_uploads'
+
+    const upload = new DirectUpload(file, directUploadUrl, {
+      directUploadWillStoreFileWithXHR: (xhr: XMLHttpRequest) => {
+        xhr.upload.addEventListener('progress', (event: ProgressEvent) => {
+          const progress = (event.loaded / event.total) * 100
+          attachment.setUploadProgress(progress)
+        })
+      }
+    })
+
+    upload.create((error: Error | null, blob: any) => {
+      if (error) {
+        console.error('Upload error:', error)
+        this.notify('File upload failed. Please try again.', 'error')
+        attachment.remove()
+      } else {
+        // Set attachment attributes with attachable_sgid and url for ActionText
+        attachment.setAttributes({
+          sgid: blob.attachable_sgid,
+          url: `/rails/active_storage/blobs/${blob.signed_id}/${blob.filename}`
+        })
+      }
+    })
+  }
+}

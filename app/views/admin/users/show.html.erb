@@ -1,0 +1,96 @@
+<% content_for :title, "User ##{@user.id}" %>
+
+<div class="container-xl">
+  <!-- Page Title -->
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">User Details</h1>
+    <%= link_to "Back to Users", admin_users_path, class: "btn-outline" %>
+  </div>
+
+  <!-- User Information -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 mb-6">
+    <div class="card-body">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-6">User Information</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID</label>
+          <p class="text-gray-900 dark:text-gray-100 font-mono">#<%= @user.id %></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+          <p class="text-gray-900 dark:text-gray-100"><%= @user.name %></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+          <p class="text-gray-900 dark:text-gray-100"><%= @user.email %></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verified</label>
+          <% if @user.verified %>
+            <span class="badge-success">Verified</span>
+          <% else %>
+            <span class="badge-warning">Unverified</span>
+          <% end %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created At</label>
+          <p class="text-gray-900 dark:text-gray-100"><%= @user.created_at.strftime('%Y-%m-%d %H:%M:%S') %></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Updated At</label>
+          <p class="text-gray-900 dark:text-gray-100"><%= @user.updated_at.strftime('%Y-%m-%d %H:%M:%S') %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessions Information -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-6">Active Sessions</h2>
+
+      <% if @user.sessions.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User Agent</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">IP Address</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <% @user.sessions.order(created_at: :desc).limit(10).each do |session| %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="font-mono text-sm text-gray-900 dark:text-gray-100">#<%= session.id %></span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900 dark:text-gray-100"><%= truncate(session.user_agent, length: 50) %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-gray-100"><%= session.ip_address %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <%= session.created_at.strftime('%Y-%m-%d %H:%M') %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <p class="text-gray-500 dark:text-gray-400">No active sessions.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

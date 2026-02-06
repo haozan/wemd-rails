@@ -1,0 +1,13 @@
+class <%= class_name %> < ApplicationRecord
+<% if belongs_to_associations.present? -%>
+<%= belongs_to_associations %>
+<% end -%>
+<% if serialized_attributes_declarations.present? -%>
+
+<%= serialized_attributes_declarations %>
+<% end -%>
+<% if model_validations.present? -%>
+
+<%= model_validations %>
+<% end -%>
+end

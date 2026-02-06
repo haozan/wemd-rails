@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+# Intercept 'test' command to use RSpec instead of Minitest
+if ARGV.first == 'test' || ARGV.first == 't'
+  exec 'bundle exec rspec'
+end
+
+APP_PATH = File.expand_path("../config/application", __dir__)
+require_relative "../config/boot"
+require "rails/commands"

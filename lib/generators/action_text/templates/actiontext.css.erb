@@ -1,0 +1,278 @@
+/*
+ * ActionText Tailwind Styles
+ * Provides styling for Trix editor and rich text content
+ */
+
+@layer components {
+  /* Trix Editor Container */
+  trix-editor {
+    @apply min-h-[200px] max-h-[600px] overflow-y-auto px-4 py-3;
+    background-color: hsl(var(--color-surface));
+    border: 1px solid hsl(var(--color-border));
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    color: hsl(var(--color-text-primary));
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  .dark trix-editor {
+    background-color: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-border));
+    color: hsl(var(--color-text-primary));
+  }
+
+  trix-editor:focus {
+    outline: none;
+    border-color: hsl(var(--color-primary));
+    border-top: 1px solid hsl(var(--color-primary));
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.1);
+  }
+
+  /* Trix Editor Toolbar */
+  trix-toolbar {
+    @apply sticky top-0 z-10 mb-0;
+    background-color: hsl(var(--color-surface-elevated));
+    border: 1px solid hsl(var(--color-border));
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+
+  /* Hide unwanted toolbar buttons */
+  trix-toolbar .trix-button--icon-decrease-nesting-level,
+  trix-toolbar .trix-button--icon-increase-nesting-level,
+  trix-toolbar .trix-button--icon-undo,
+  trix-toolbar .trix-button--icon-redo {
+    display: none;
+  }
+
+  /* Trix Editor Content Styling */
+  trix-editor h1 {
+    @apply text-3xl font-bold mb-4 mt-6;
+    color: hsl(var(--color-text-primary));
+  }
+
+  trix-editor h2 {
+    @apply text-2xl font-bold mb-3 mt-5;
+    color: hsl(var(--color-text-primary));
+  }
+
+  trix-editor h3 {
+    @apply text-xl font-semibold mb-2 mt-4;
+    color: hsl(var(--color-text-primary));
+  }
+
+  trix-editor p {
+    @apply mb-3;
+    color: hsl(var(--color-text-secondary));
+  }
+
+  trix-editor ul,
+  trix-editor ol {
+    @apply mb-3 pl-6;
+    color: hsl(var(--color-text-secondary));
+  }
+
+  trix-editor ul {
+    @apply list-disc;
+  }
+
+  trix-editor ol {
+    @apply list-decimal;
+  }
+
+  trix-editor li {
+    @apply mb-1;
+  }
+
+  trix-editor blockquote {
+    @apply border-l-4 pl-4 py-2 mb-3 italic;
+    border-color: hsl(var(--color-border));
+    color: hsl(var(--color-text-muted));
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark trix-editor blockquote {
+    border-color: hsl(var(--color-border));
+    background-color: hsl(var(--color-surface));
+  }
+
+  trix-editor pre {
+    @apply p-3 mb-3 overflow-x-auto rounded;
+    background-color: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+    font-family: var(--font-family-mono);
+    font-size: 0.875rem;
+  }
+
+  .dark trix-editor pre {
+    background-color: hsl(var(--color-surface));
+  }
+
+  trix-editor code {
+    @apply px-1.5 py-0.5 rounded;
+    background-color: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+    font-family: var(--font-family-mono);
+    font-size: 0.875rem;
+  }
+
+  .dark trix-editor code {
+    background-color: hsl(var(--color-surface));
+  }
+
+  trix-editor a {
+    color: hsl(var(--color-primary));
+    text-decoration: underline;
+  }
+
+  trix-editor a:hover {
+    color: hsl(var(--color-primary-dark));
+  }
+
+  trix-editor strong {
+    @apply font-bold;
+  }
+
+  trix-editor em {
+    @apply italic;
+  }
+
+  trix-editor del {
+    @apply line-through;
+  }
+
+  /* Trix Attachments */
+  trix-editor .attachment {
+    @apply mb-4 relative;
+  }
+
+  trix-editor .attachment__caption {
+    @apply text-sm text-center mt-2 px-2;
+    color: hsl(var(--color-text-muted));
+  }
+
+  trix-editor .attachment__name {
+    @apply font-medium;
+  }
+
+  trix-editor .attachment__size {
+    @apply text-xs ml-2;
+  }
+
+  trix-editor .attachment--preview {
+    @apply inline-block;
+  }
+
+  trix-editor .attachment__toolbar {
+    @apply absolute bottom-16 right-2 flex gap-1 opacity-0 transition-opacity;
+    background-color: hsl(var(--color-surface) / 0.9);
+    padding: 0.25rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+  }
+
+  trix-editor .attachment:hover .attachment__toolbar {
+    opacity: 1;
+  }
+
+  trix-editor .attachment__toolbar button {
+    @apply btn-sm btn-danger mr-2;
+  }
+
+  trix-editor .attachment__toolbar button:hover {
+    background-color: hsl(var(--color-primary));
+    color: white;
+  }
+
+  trix-editor figure {
+    @apply mb-4;
+  }
+
+  trix-editor figcaption {
+    @apply text-sm text-center mt-2;
+    color: hsl(var(--color-text-muted));
+  }
+
+  trix-editor img {
+    @apply max-w-full h-auto rounded;
+  }
+
+  /* Attachment progress bar */
+  trix-editor .attachment__progress {
+    @apply absolute inset-0 flex items-center justify-center;
+    background-color: hsl(var(--color-surface) / 0.8);
+    border-radius: var(--border-radius);
+  }
+
+  trix-editor .attachment__progress-bar {
+    width: 80%;
+    height: 4px;
+    background-color: hsl(var(--color-surface-elevated));
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  trix-editor .attachment__progress-value {
+    height: 100%;
+    background-color: hsl(var(--color-primary));
+    transition: width 0.3s;
+  }
+
+  /* Trix Toolbar Buttons */
+  trix-toolbar button {
+    @apply px-2 py-1 rounded transition-colors;
+    background-color: transparent;
+    border: none;
+    color: hsl(var(--color-text-secondary));
+  }
+
+  trix-toolbar button:hover {
+    background-color: hsl(var(--color-surface-elevated) / 0.5);
+    color: hsl(var(--color-text-primary));
+  }
+
+  trix-toolbar button.trix-active {
+    background-color: hsl(var(--color-primary) / 0.1);
+    color: hsl(var(--color-primary));
+  }
+
+  .dark trix-toolbar button:hover {
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  /* Trix Link Dialog */
+  trix-toolbar .trix-dialog {
+    background-color: hsl(var(--color-surface));
+    border: 1px solid hsl(var(--color-border));
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 0.75rem;
+  }
+
+  .dark trix-toolbar .trix-dialog {
+    background-color: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-border));
+  }
+
+  trix-toolbar .trix-dialog__link-fields {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  trix-toolbar .trix-dialog input[type="text"] {
+    @apply form-input;
+    flex: 1;
+    min-width: 250px;
+  }
+
+  trix-toolbar .trix-dialog .trix-button {
+    @apply btn-sm;
+  }
+
+  trix-toolbar .trix-dialog .trix-button.trix-button--dialog {
+    @apply btn-outline;
+  }
+}

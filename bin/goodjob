@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+APP_PATH = File.expand_path('../config/application', __dir__)
+require_relative '../config/boot'
+require APP_PATH
+
+Rails.application.initialize!
+
+Signal.trap('INT') { exit }
+Signal.trap('TERM') { exit }
+
+puts "Starting GoodJob worker..."
+puts "Environment: #{Rails.env}"
+puts "Database: #{Rails.configuration.database_configuration[Rails.env]['database']}"
+
+exec 'bundle', 'exec', 'good_job', 'start'

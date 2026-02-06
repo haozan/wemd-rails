@@ -1,0 +1,14 @@
+Description:
+    Installs ActionText with Tailwind CSS integration.
+    This command is redirected to our custom generator.
+
+Example:
+    bin/rails generate action_text:install
+
+    This will:
+        - Redirect to `rails generate action_text`
+        - Install ActionText with Tailwind CSS styling
+        - Create migration for ActionText tables
+        - Install Trix editor with TypeScript support
+        - Create Stimulus controller for Trix editor
+

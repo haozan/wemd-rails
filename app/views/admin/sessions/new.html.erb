@@ -1,0 +1,66 @@
+<% content_for :title, 'Log in' %>
+
+<div class="flex-1 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+  <div class="container-sm">
+    <div class="bg-gray-50 dark:bg-gray-900 shadow-2xl rounded-lg overflow-hidden">
+      <div class="p-8">
+        <!-- Header -->
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-50">Admin Login</h1>
+
+        <%= render 'shared/flash_messages' %>
+
+        <!-- First Login Hint -->
+        <% if @first_login %>
+          <div class="mb-4">
+            <div class="flex items-start p-4 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 text-yellow-800 dark:text-yellow-200">
+              <div class="flex-1">
+                <p class="font-semibold mb-2">First time login credentials:</p>
+                <p>Username: <span class="font-mono bg-yellow-100 dark:bg-yellow-800/50 px-2 py-1 rounded">admin</span></p>
+                <p>Password: <span class="font-mono bg-yellow-100 dark:bg-yellow-800/50 px-2 py-1 rounded">admin</span></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <%= form_tag admin_login_path do %>
+          <div class="space-y-4">
+            <!-- Username field -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Username
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <%= lucide_icon "user", class: "w-4 h-4 text-gray-400 dark:text-gray-500" %>
+                </div>
+                <%= text_field_tag :name, nil,
+                    placeholder: 'Enter your username',
+                    class: 'w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500', autofocus: true, autocomplete: "name" %>
+              </div>
+            </div>
+
+            <!-- Password field -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Password
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <%= lucide_icon "lock", class: "w-4 h-4 text-gray-400 dark:text-gray-500" %>
+                </div>
+                <%= password_field_tag :password, nil,
+                    placeholder: 'Enter your password',
+                    class: 'w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-50 rounded-lg focus:ring-blue-500 focus:border-blue-500', autocomplete: 'current-password' %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit button -->
+          <div class="mt-8">
+            <%= submit_tag 'Sign In', class: 'btn-primary w-full' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

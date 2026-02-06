@@ -1,0 +1,285 @@
+class StripePaymentService < ApplicationService
+  include Rails.application.routes.url_helpers
+  attr_reader :payment, :checkout_session
+
+  def initialize(payment, request = nil)
+    @payment = payment
+    @request = request
+  end
+
+  def call
+    create_checkout_session
+  end
+
+  # Create Checkout Session for Stripe
+  def create_checkout_session
+    # Check if payment is in valid state
+    unless payment.pending? || payment.failed? || payment.processing?
+      return { success: false, error: "Payment is not in a valid state (current status: #{payment.status})" }
+    end
+
+    begin
+      @checkout_session = Stripe::Checkout::Session.create(
+        line_items: build_line_items,
+        mode: payment_mode,
+        customer_email: payment.customer_email,
+        success_url: success_payment_url(payment, only_path: false),
+        cancel_url: failure_payment_url(payment, only_path: false),
+        metadata: build_metadata
+      )
+
+      # Update payment with checkout session ID
+      payment.update!(
+        stripe_checkout_session_id: @checkout_session.id,
+        status: 'processing'
+      )
+
+      { success: true, checkout_session: @checkout_session }
+    rescue Stripe::StripeError => e
+      payment.mark_as_failed!
+      { success: false, error: e.message }
+    end
+  end
+
+  # Process webhook events from Stripe
+  def self.process_webhook_event(event)
+    case event['type']
+    when 'checkout.session.completed'
+      handle_checkout_success(event['data']['object'])
+    when 'checkout.session.expired'
+      handle_checkout_expiration(event['data']['object'])
+    when 'payment_intent.succeeded'
+      handle_payment_success(event['data']['object'])
+    when 'payment_intent.payment_failed'
+      handle_payment_failure(event['data']['object'])
+    when 'payment_intent.canceled'
+      handle_payment_cancellation(event['data']['object'])
+    when 'invoice.payment_succeeded'
+      handle_invoice_payment_success(event['data']['object'])
+    when 'customer.subscription.created', 'customer.subscription.updated'
+      handle_subscription_update(event['data']['object'])
+    when 'customer.subscription.deleted'
+      handle_subscription_deleted(event['data']['object'])
+    else
+      Rails.logger.info "Unhandled event type: #{event['type']}"
+    end
+  end
+
+  # Sync payment status from Stripe (for development)
+  def self.sync_payment_status(payment)
+    return unless payment&.stripe_checkout_session_id&.present?
+    return if payment.paid?
+
+    begin
+      if payment.stripe_checkout_session_id.start_with?('cs_')
+        session = Stripe::Checkout::Session.retrieve(payment.stripe_checkout_session_id)
+        if session.payment_status == 'paid'
+          payment.mark_as_paid!
+          process_payment_paid(payment)
+          Rails.logger.info "Development: Synced payment #{payment.id} to paid status"
+        end
+      elsif payment.stripe_payment_intent_id.present?
+        payment_intent = Stripe::PaymentIntent.retrieve(payment.stripe_payment_intent_id)
+        if payment_intent.status == 'succeeded'
+          payment.mark_as_paid!
+          process_payment_paid(payment)
+          Rails.logger.info "Development: Synced payment #{payment.id} to paid status"
+        end
+      end
+    rescue Stripe::StripeError => e
+      Rails.logger.error "Development: Failed to sync payment #{payment.id}: #{e.message}"
+    end
+  end
+
+  private
+
+  # Build line items for Stripe checkout
+  # Payable MUST implement stripe_line_items method
+  #
+  # For one-time payments:
+  #   def stripe_line_items
+  #     [{
+  #       price_data: {
+  #         currency: 'usd',
+  #         product_data: { name: product_name },
+  #         unit_amount: (price * 100).to_i  # dollars to cents
+  #       },
+  #       quantity: 1
+  #     }]
+  #   end
+  #
+  # For subscriptions (MUST include recurring):
+  #   def stripe_line_items
+  #     [{
+  #       price_data: {
+  #         currency: 'usd',
+  #         product_data: { name: plan_name },
+  #         unit_amount: (plan_price * 100).to_i,
+  #         recurring: { interval: 'month' }  # REQUIRED for subscription mode
+  #       },
+  #       quantity: 1
+  #     }]
+  #   end
+  def build_line_items
+    line_items = payment.payable.stripe_line_items
+
+    # Add test card info to all line items in development
+    add_test_card_info_to_line_items(line_items)
+  end
+
+  # Add test card info to all line items in development
+  def add_test_card_info_to_line_items(line_items)
+    return line_items unless Rails.env.development?
+
+    line_items.map do |item|
+      if item[:price_data] && item[:price_data][:product_data]
+        product_data = item[:price_data][:product_data]
+
+        # Always add test card info in development (if not already added)
+        current_desc = product_data[:description].to_s
+        unless current_desc.include?('TEST CARDS')
+          test_info = "💳 TEST CARDS: 4242 4242 4242 4242 | Any future expiry & CVC"
+          product_data[:description] = current_desc.present? ? "#{current_desc} | #{test_info}" : test_info
+        end
+      end
+
+      item
+    end
+  end
+
+  # Determine payment mode (one-time vs subscription)
+  # Payable MUST implement stripe_mode method
+  # Returns: 'payment' (one-time) or 'subscription' (recurring)
+  def payment_mode
+    payment.payable.stripe_mode
+  end
+
+  # Standard metadata for Stripe records
+  # Contains all necessary info for tracking and customer support
+  # Rarely needs customization
+  def build_metadata
+    {
+      payment_id: payment.id,
+      payable_type: payment.payable_type,
+      payable_id: payment.payable_id,
+      customer_email: payment.customer_email,
+      customer_name: payment.customer_name
+    }
+  end
+
+  # Webhook handlers
+  def self.handle_checkout_success(checkout_session)
+    payment = Payment.find_by(stripe_checkout_session_id: checkout_session['id'])
+    return unless payment
+
+    payment.update!(stripe_payment_intent_id: checkout_session['payment_intent']) if checkout_session['payment_intent']
+    payment.mark_as_paid!
+    Rails.logger.info "Checkout session completed for payment #{payment.id}"
+
+    process_payment_paid(payment)
+  end
+
+  def self.handle_checkout_expiration(checkout_session)
+    payment = Payment.find_by(stripe_checkout_session_id: checkout_session['id'])
+    return unless payment
+
+    payment.mark_as_canceled!
+    Rails.logger.info "Checkout session expired for payment #{payment.id}"
+  end
+
+  def self.handle_payment_success(payment_intent)
+    payment = Payment.find_by(stripe_payment_intent_id: payment_intent['id'])
+    return unless payment
+
+    payment.mark_as_paid!
+    Rails.logger.info "Payment succeeded for payment #{payment.id}"
+
+    process_payment_paid(payment)
+  end
+
+  def self.handle_payment_failure(payment_intent)
+    payment = Payment.find_by(stripe_payment_intent_id: payment_intent['id'])
+    return unless payment
+
+    payment.mark_as_failed!
+    Rails.logger.info "Payment failed for payment #{payment.id}"
+  end
+
+  def self.handle_payment_cancellation(payment_intent)
+    payment = Payment.find_by(stripe_payment_intent_id: payment_intent['id'])
+    return unless payment
+
+    payment.mark_as_canceled!
+    Rails.logger.info "Payment canceled for payment #{payment.id}"
+  end
+
+  # Handle subscription invoice payments (recurring billing)
+  # CLACKY_NOTE: Only needed for subscription-based payments
+  # If you're using subscriptions, implement this to create payment records for each billing cycle
+  def self.handle_invoice_payment_success(invoice)
+    subscription_id = invoice['subscription']
+    return unless subscription_id
+
+    # CLACKY_TODO_SUBSCRIPTION: Implement subscription billing logic here
+    # subscription = Subscription.find_by(stripe_subscription_id: subscription_id)
+    # return unless subscription
+    #
+    # subscription.payments.create!(
+    #   amount: invoice['amount_paid'] / 100.0,
+    #   currency: invoice['currency'],
+    #   status: 'paid',
+    #   stripe_payment_intent_id: invoice['payment_intent'],
+    #   user: subscription.user,
+    #   metadata: { invoice_id: invoice['id'], billing_cycle: Time.at(invoice['created']).to_date }
+    # )
+
+    Rails.logger.info "Invoice payment succeeded for subscription #{subscription_id}"
+  end
+
+  # CLACKY_NOTE: Only needed for subscription-based payments
+  def self.handle_subscription_update(subscription)
+    # CLACKY_TODO_SUBSCRIPTION: Sync subscription status from Stripe
+    # sub = Subscription.find_by(stripe_subscription_id: subscription['id'])
+    # sub&.update!(
+    #   status: subscription['status'],
+    #   current_period_end: Time.at(subscription['current_period_end'])
+    # )
+
+    Rails.logger.info "Subscription updated: #{subscription['id']}"
+  end
+
+  # CLACKY_NOTE: Only needed for subscription-based payments
+  def self.handle_subscription_deleted(subscription)
+    # CLACKY_TODO_SUBSCRIPTION: Handle subscription cancellation
+    # sub = Subscription.find_by(stripe_subscription_id: subscription['id'])
+    # sub&.update!(status: 'canceled')
+
+    Rails.logger.info "Subscription deleted: #{subscription['id']}"
+  end
+
+  # ⚠️ CRITICAL: process_payment_paid is the ONLY place to update business data after payment
+  # ❌ NEVER update business logic in controller's create action
+  # ❌ NEVER add credits/items/access before payment is confirmed
+  # ✅ ALWAYS implement business logic in process_payment_paid method below
+  #
+  # Example implementation:
+  # def self.process_payment_paid(payment)
+  #   case payment.payable_type
+  #   when 'Order'
+  #     order = payment.payable
+  #     order.update!(status: 'paid')
+  #     order.user.increment!(:credits, order.quantity)
+  #     OrderMailer.confirmation(order).deliver_later
+  #   when 'Enrollment'
+  #     payment.payable.update!(status: 'active')
+  #     EnrollmentMailer.welcome(payment.payable).deliver_later
+  #   when 'Subscription'
+  #     payment.payable.activate!
+  #   end
+  # end
+  def self.process_payment_paid(payment)
+    Rails.logger.info "Payment #{payment.id} confirmed as paid for #{payment.payable_type} ##{payment.payable_id}"
+
+    # CLACKY_TODO: Add your post-payment business logic here
+  end
+end

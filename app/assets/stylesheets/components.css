@@ -1,0 +1,811 @@
+/*
+ * DESIGN SYSTEM COMPONENTS
+ *
+ * This file contains all pre-built UI components.
+ * These components use CSS variables defined in application.css
+ *
+ * ⚠️ RULES FOR AI:
+ * 1. DO NOT modify this file - it's READ-ONLY
+ * 2. DO NOT create new button/card/form variants - use existing ones
+ * 3. For custom components, add them to application.css in the "Custom Components" section
+ * 4. Read COMPONENTS.md for available component class names
+ */
+
+@layer components {
+
+  /* ==========================================================================
+     BUTTONS
+     ========================================================================== */
+
+  .btn {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    border-radius: var(--border-radius);
+    font-family: var(--font-family-sans);
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    border: none;
+    outline: none;
+  }
+
+  /* Button disabled state */
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Button loading state */
+  .btn.loading {
+    cursor: wait;
+    pointer-events: none;
+    position: relative;
+  }
+
+  /* Button focus styles */
+  .btn:focus-visible {
+    outline: 2px solid hsl(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  /* Button active state - lower specificity allows Tailwind utility override */
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-primary));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-primary:hover {
+    background-color: hsl(var(--color-primary-dark));
+    box-shadow: var(--shadow);
+  }
+
+  .btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.3);
+  }
+
+  .btn-primary:disabled {
+    background-color: hsl(var(--color-primary) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .btn-secondary,
+  .btn-info {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-secondary));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-secondary:hover,
+  .btn-info:hover {
+    background-color: hsl(var(--color-secondary-dark));
+    box-shadow: var(--shadow);
+  }
+
+  .btn-secondary:focus,
+  .btn-info:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-secondary) / 0.3);
+  }
+
+  .btn-secondary:disabled,
+  .btn-info:disabled {
+    background-color: hsl(var(--color-secondary) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .btn-neutral {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-neutral));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-neutral:hover {
+    background-color: hsl(var(--color-neutral));
+    box-shadow: var(--shadow);
+  }
+
+  .btn-neutral:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-neutral) / 0.3);
+  }
+
+  .btn-neutral:disabled {
+    background-color: hsl(var(--color-neutral) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .btn-success {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-success));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-success:hover {
+    opacity: 0.9;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-success:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-success) / 0.3);
+  }
+
+  .btn-success:disabled {
+    background-color: hsl(var(--color-success) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+    opacity: 0.5 !important;
+  }
+
+  .btn-warning {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-warning));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-warning:hover {
+    opacity: 0.9;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-warning:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-warning) / 0.3);
+  }
+
+  .btn-warning:disabled {
+    background-color: hsl(var(--color-warning) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+    opacity: 0.5 !important;
+  }
+
+  .btn-danger,
+  .btn-error {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-danger));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-danger:hover,
+  .btn-error:hover {
+    opacity: 0.9;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-danger:focus,
+  .btn-error:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-danger) / 0.3);
+  }
+
+  .btn-danger:disabled,
+  .btn-error:disabled {
+    background-color: hsl(var(--color-danger) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+    opacity: 0.5 !important;
+  }
+
+  .btn-accent {
+    @apply btn px-4 py-2 text-sm text-white;
+    background-color: hsl(var(--color-secondary));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-accent:hover {
+    background-color: hsl(var(--color-secondary-dark));
+    box-shadow: var(--shadow);
+  }
+
+  .btn-accent:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-secondary) / 0.3);
+  }
+
+  .btn-accent:disabled {
+    background-color: hsl(var(--color-secondary) / 0.5) !important;
+    color: hsl(0 0% 100% / 0.7);
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .btn-ghost,
+  .btn-default,
+  .btn-light {
+    @apply btn px-4 py-2 text-sm text-secondary;
+    background-color: transparent;
+    border: 1px solid hsl(var(--color-border));
+  }
+
+  .btn-ghost:hover,
+  .btn-default:hover,
+  .btn-light:hover {
+    background-color: hsl(var(--color-surface-elevated));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-ghost:focus,
+  .btn-default:focus,
+  .btn-light:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-text-secondary) / 0.3);
+  }
+
+  .btn-ghost:disabled,
+  .btn-default:disabled,
+  .btn-light:disabled {
+    border-color: hsl(var(--color-border) / 0.5);
+    opacity: 0.5;
+    background-color: transparent !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .dark .btn-ghost,
+  .dark .btn-default,
+  .dark .btn-light {
+    border-color: hsl(var(--color-border));
+  }
+
+  .dark .btn-ghost:hover,
+  .dark .btn-default:hover,
+  .dark .btn-light:hover {
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  /* Disabled state overrides hover */
+  .dark .btn-ghost:disabled,
+  .dark .btn-default:disabled,
+  .dark .btn-light:disabled {
+    border-color: hsl(var(--color-border) / 0.3);
+    background-color: transparent !important;
+  }
+
+  .btn-outline {
+    @apply btn px-4 py-2 text-sm;
+    background-color: transparent;
+    border: 1px solid hsl(var(--color-border));
+    color: hsl(var(--color-text-primary));
+  }
+
+  .btn-outline:hover {
+    background-color: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-text-secondary));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-outline:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-text-secondary) / 0.3);
+  }
+
+  .btn-outline:disabled {
+    border-color: hsl(var(--color-border) / 0.5) !important;
+    color: hsl(var(--color-text-muted));
+    background-color: transparent !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .dark .btn-outline {
+    border-color: hsl(var(--color-border));
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .dark .btn-outline:hover {
+    background-color: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-text-primary));
+  }
+
+  .btn-outline-primary {
+    @apply btn px-4 py-2 text-sm;
+    background-color: transparent;
+    border: 1px solid hsl(var(--color-primary));
+    color: hsl(var(--color-primary));
+  }
+
+  .btn-outline-primary:hover {
+    background-color: hsl(var(--color-primary-light) / 0.1);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-outline-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.3);
+  }
+
+  .btn-outline-primary:disabled {
+    border-color: hsl(var(--color-primary) / 0.3) !important;
+    color: hsl(var(--color-primary) / 0.3);
+    background-color: transparent !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  .btn-xs {
+    @apply text-xs px-2 py-1;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .btn-sm {
+    @apply text-sm px-3 py-1.5;
+    border-radius: var(--border-radius);
+  }
+
+  .btn-md {
+    @apply text-sm px-4 py-2;
+    border-radius: var(--border-radius);
+  }
+
+  .btn-lg {
+    @apply text-base px-6 py-3;
+    border-radius: var(--border-radius-lg);
+  }
+
+  .btn-xl {
+    @apply text-lg px-8 py-4;
+    border-radius: var(--border-radius-xl);
+  }
+
+  /* ==========================================================================
+     CARDS
+     ========================================================================== */
+
+  .card {
+    @apply px-4 py-4 my-4;
+    background-color: hsl(var(--color-surface));
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid hsl(var(--color-surface-elevated));
+  }
+
+  .dark .card {
+    background-color: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-border));
+  }
+
+  .card-elevated {
+    @apply card;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-flat {
+    @apply card;
+    box-shadow: none;
+    border: 0;
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .card-flat {
+    background-color: hsl(var(--color-surface));
+  }
+
+  .card-header {
+    @apply px-6 py-4;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid hsl(var(--color-surface-elevated));
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .card-header {
+    border-bottom-color: hsl(var(--color-border));
+    background-color: hsl(var(--color-surface));
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+
+  .card-footer {
+    @apply px-6 py-4;
+    border-top: 1px solid hsl(var(--color-surface-elevated));
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .card-footer {
+    border-top-color: hsl(var(--color-border));
+    background-color: hsl(var(--color-surface));
+  }
+
+  /* ==========================================================================
+     ALERTS
+     ========================================================================== */
+
+  .alert {
+    @apply p-4 text-sm font-medium;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid;
+  }
+
+  .alert a {
+    text-decoration: underline;
+  }
+
+  .alert-success {
+    @apply alert;
+    background-color: hsl(var(--color-success-bg));
+    border-color: hsl(var(--color-success));
+    color: hsl(0 0% 15%);
+  }
+
+  .dark .alert-success {
+    background-color: hsl(var(--color-success) / 0.2);
+    border-color: hsl(var(--color-success));
+    color: hsl(var(--color-success));
+  }
+
+  .alert-warning {
+    @apply alert;
+    background-color: hsl(var(--color-warning-bg));
+    border-color: hsl(var(--color-warning));
+    color: hsl(0 0% 15%);
+  }
+
+  .dark .alert-warning {
+    background-color: hsl(var(--color-warning) / 0.2);
+    border-color: hsl(var(--color-warning));
+    color: hsl(var(--color-warning));
+  }
+
+  .alert-danger {
+    @apply alert;
+    background-color: hsl(var(--color-danger-bg));
+    border-color: hsl(var(--color-danger));
+    color: hsl(0 0% 15%);
+  }
+
+  .dark .alert-danger {
+    background-color: hsl(var(--color-danger) / 0.2);
+    border-color: hsl(var(--color-danger));
+    color: hsl(var(--color-danger));
+  }
+
+  .alert-info {
+    @apply alert;
+    background-color: hsl(var(--color-info-bg));
+    border-color: hsl(var(--color-info));
+    color: hsl(0 0% 15%);
+  }
+
+  .dark .alert-info {
+    background-color: hsl(var(--color-info) / 0.2);
+    border-color: hsl(var(--color-info));
+    color: hsl(var(--color-info));
+  }
+
+  /* ==========================================================================
+     BADGES
+     ========================================================================== */
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium;
+    border-radius: 9999px; /* full */
+  }
+
+  .badge-primary {
+    @apply badge;
+    background-color: hsl(var(--color-primary));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-primary {
+    background-color: hsl(var(--color-primary));
+    color: hsl(var(--color-surface));
+  }
+
+  .badge-secondary {
+    @apply badge;
+    background-color: hsl(var(--color-secondary));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-secondary {
+    background-color: hsl(var(--color-secondary));
+    color: hsl(var(--color-surface));
+  }
+
+  .badge-success {
+    @apply badge;
+    background-color: hsl(var(--color-success));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-success {
+    background-color: hsl(var(--color-success));
+    color: hsl(var(--color-surface));
+  }
+
+  .badge-warning {
+    @apply badge;
+    background-color: hsl(var(--color-warning));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-warning {
+    background-color: hsl(var(--color-warning));
+    color: hsl(var(--color-surface));
+  }
+
+  .badge-danger {
+    @apply badge;
+    background-color: hsl(var(--color-danger));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-danger {
+    background-color: hsl(var(--color-danger));
+    color: hsl(var(--color-surface));
+  }
+
+  .badge-neutral {
+    @apply badge;
+    background-color: hsl(var(--color-neutral));
+    color: hsl(var(--color-surface));
+  }
+
+  .dark .badge-neutral {
+    background-color: hsl(var(--color-neutral));
+    color: hsl(var(--color-surface));
+  }
+
+  /* ==========================================================================
+     FORMS
+     ========================================================================== */
+
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200;
+    border: 1px solid hsl(var(--color-surface-elevated));
+    border-radius: var(--border-radius);
+    background-color: hsl(var(--color-surface));
+    color: hsl(var(--color-text-primary));
+  }
+
+  .form-input::placeholder {
+    color: hsl(var(--color-neutral));
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: hsl(var(--color-primary));
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.1);
+  }
+
+  .dark .form-input {
+    border-color: hsl(var(--color-border));
+    background-color: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .form-input::placeholder {
+    color: hsl(var(--color-text-muted));
+  }
+
+  .form-textarea {
+    @apply form-input resize-y;
+  }
+
+  .form-select {
+    @apply form-input cursor-pointer;
+    min-width: 150px;
+    min-height: 2.5rem;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium mb-1;
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .form-label {
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .form-error {
+    @apply text-sm mt-1;
+    color: hsl(var(--color-danger));
+  }
+
+  .form-help {
+    @apply text-sm mt-1;
+    color: hsl(var(--color-neutral));
+  }
+
+  .form-file {
+    @apply w-full px-3 py-2 transition-colors duration-200;
+    border: 1px solid hsl(var(--color-surface-elevated));
+    border-radius: var(--border-radius);
+    background-color: hsl(var(--color-surface));
+    color: hsl(var(--color-text-primary));
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+
+  .form-file::file-selector-button {
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: calc(var(--border-radius) - 2px);
+    background: hsl(var(--color-primary) / 0.1);
+    color: hsl(var(--color-primary));
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .form-file::file-selector-button:hover {
+    background: hsl(var(--color-primary) / 0.2);
+  }
+
+  .form-file:focus {
+    outline: none;
+    border-color: hsl(var(--color-primary));
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.1);
+  }
+
+  .dark .form-file {
+    border-color: hsl(var(--color-border));
+    background-color: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .form-file::file-selector-button {
+    background: hsl(var(--color-primary) / 0.15);
+    color: hsl(var(--color-primary-light));
+  }
+
+  .dark .form-file::file-selector-button:hover {
+    background: hsl(var(--color-primary) / 0.25);
+  }
+
+  /* Form field error state - red border */
+  .field-error {
+    border-color: hsl(var(--color-danger)) !important;
+  }
+
+  .field-error:focus {
+    border-color: hsl(var(--color-danger)) !important;
+    box-shadow: 0 0 0 3px hsl(var(--color-danger) / 0.1) !important;
+  }
+
+  /* ==========================================================================
+     TABLES
+     ========================================================================== */
+
+  .table {
+    @apply w-full text-sm text-left;
+    color: hsl(var(--color-neutral));
+  }
+
+  .table-header {
+    @apply text-xs uppercase;
+    color: hsl(var(--color-text-primary));
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .table-header {
+    color: hsl(var(--color-text-secondary));
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .table-row {
+    background-color: hsl(var(--color-surface));
+    border-bottom: 1px solid hsl(var(--color-surface-elevated));
+  }
+
+  .table-row:hover {
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .table-row {
+    background-color: hsl(var(--color-surface-elevated));
+    border-bottom-color: hsl(var(--color-border));
+  }
+
+  .dark .table-row:hover {
+    background-color: hsl(var(--color-surface));
+  }
+
+  .table-cell {
+    @apply px-6 py-4;
+  }
+
+  .table-header-cell {
+    @apply table-cell font-medium;
+  }
+
+  /* ==========================================================================
+     UTILITIES
+     ========================================================================== */
+
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2;
+    border-color: hsl(var(--color-surface-elevated));
+    border-top-color: hsl(var(--color-primary));
+  }
+
+  .skeleton {
+    @apply animate-pulse;
+    background-color: hsl(var(--color-surface-elevated));
+    border-radius: var(--border-radius);
+  }
+
+  .dark .skeleton {
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
+  .field_with_errors {
+    @apply inline-block w-full;
+  }
+
+  .field_with_errors input,
+  .field_with_errors textarea,
+  .field_with_errors select {
+    border-color: hsl(var(--color-danger)) !important;
+  }
+
+  .field_with_errors input:focus,
+  .field_with_errors textarea:focus,
+  .field_with_errors select:focus {
+    box-shadow: 0 0 0 3px hsl(var(--color-danger) / 0.1) !important;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .transition-default {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none;
+  }
+
+  .focus-ring:focus {
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.3);
+  }
+
+  /* ==========================================================================
+     CONTAINERS
+     ========================================================================== */
+
+  .container-sm {
+    @apply w-full max-w-2xl mx-auto px-4 sm:px-6;
+  }
+
+  .container-md {
+    @apply w-full max-w-4xl mx-auto px-4 sm:px-6;
+  }
+
+  .container-lg {
+    @apply w-full max-w-6xl mx-auto px-4 sm:px-6;
+  }
+
+  .container-xl {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6;
+  }
+
+} /* End of @layer components */

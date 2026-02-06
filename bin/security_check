@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require 'json'
+
+# path to your application root.
+APP_ROOT = File.expand_path('..', __dir__)
+
+def system!(*args)
+  system(*args) || abort("\n== Command #{args} failed ==")
+end
+
+def run_command(*args)
+  output = `#{args.join(' ')} 2>&1`
+  success = $?.success?
+  [success, output]
+end
+
+def check_bundler_audit_installed
+  system('gem list -i bundler-audit', out: File::NULL, err: File::NULL)
+end
+
+FileUtils.chdir APP_ROOT do
+  puts '== Security Check =='
+  puts ''
+
+  vulnerabilities_found = false
+
+  # 1. Check Ruby gems with bundle-audit
+  puts '💎 Checking Ruby gem vulnerabilities...'
+
+  unless check_bundler_audit_installed
+    puts '⚠️  bundler-audit not installed, installing...'
+    system! 'gem install bundler-audit'
+    puts ''
+  end
+
+  # Update advisory database
+  puts '📥 Updating security advisory database...'
+  success, output = run_command('bundle-audit update')
+  if success
+    puts '✅ Advisory database updated'
+  else
+    puts '⚠️  Failed to update advisory database'
+    puts output
+  end
+  puts ''
+
+  # Run bundle-audit check
+  puts '🔍 Scanning gems for known vulnerabilities...'
+  success, output = run_command('bundle-audit check')
+
+  if success
+    puts '✅ No gem vulnerabilities found'
+  else
+    puts '❌ Found gem vulnerabilities:'
+    puts ''
+    puts output
+    puts ''
+    vulnerabilities_found = true
+  end
+  puts ''
+
+  # 2. Check npm packages
+  puts '📦 Checking npm package vulnerabilities...'
+  success, output = run_command('npm audit --json')
+
+  begin
+    audit_data = JSON.parse(output)
+
+    # npm audit returns JSON with vulnerabilities info
+    if audit_data['metadata'] && audit_data['metadata']['vulnerabilities']
+      total = audit_data['metadata']['vulnerabilities']['total'] || 0
+
+      if total == 0
+        puts '✅ No npm vulnerabilities found'
+      else
+        puts "❌ Found #{total} npm vulnerabilities:"
+        puts ''
+
+        # Show summary by severity
+        vulnerabilities = audit_data['metadata']['vulnerabilities']
+        ['critical', 'high', 'moderate', 'low', 'info'].each do |severity|
+          count = vulnerabilities[severity] || 0
+          next if count == 0
+
+          emoji = case severity
+                  when 'critical' then '🔴'
+                  when 'high' then '🟠'
+                  when 'moderate' then '🟡'
+                  when 'low' then '🔵'
+                  else '⚪'
+                  end
+
+          puts "   #{emoji} #{severity.capitalize}: #{count}"
+        end
+
+        puts ''
+        puts '   Run "npm audit" for detailed information'
+        puts '   Run "npm audit fix" to attempt automatic fixes'
+        puts ''
+
+        vulnerabilities_found = true
+      end
+    else
+      puts '✅ No npm vulnerabilities found'
+    end
+  rescue JSON::ParserError
+    # Fallback if JSON parsing fails
+    if output.include?('found 0 vulnerabilities')
+      puts '✅ No npm vulnerabilities found'
+    else
+      puts '❌ npm audit check failed or found issues:'
+      puts output
+      vulnerabilities_found = true
+    end
+  end
+  puts ''
+
+  # 3. Final summary
+  if vulnerabilities_found
+    puts '❌ ========================================'
+    puts '   Security vulnerabilities detected!'
+    puts ''
+    puts '   Recommended actions:'
+    puts '   - Review vulnerabilities above'
+    puts '   - Update affected dependencies'
+    puts '   - For gems: bundle update <gem-name>'
+    puts '   - For npm: npm audit fix (or manually update)'
+    puts '========================================'
+    exit 1
+  else
+    puts '🎉 ========================================'
+    puts '   ✅ All security checks passed!'
+    puts '   No known vulnerabilities found.'
+    puts '========================================'
+  end
+end

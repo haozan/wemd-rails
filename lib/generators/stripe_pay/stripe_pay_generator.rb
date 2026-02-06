@@ -1,0 +1,365 @@
+class StripePayGenerator < Rails::Generators::Base
+  source_root File.expand_path('templates', __dir__)
+
+  desc "Generate Stripe payment integration with polymorphic Payment model"
+
+  class_option :auth, type: :boolean, default: false,
+               desc: "Add user association to payments (requires User model)"
+
+  def check_user_model
+    return unless options[:auth]
+
+    unless File.exist?("app/models/user.rb")
+      say "Error: User model not found.", :red
+      say "Please ensure app/models/user.rb exists before using --auth option.", :yellow
+      say "You can generate it with: rails generate authentication", :blue
+      exit(1)
+    end
+  end
+
+  def generate_migration
+    if options[:auth]
+      # With auth: user reference + minimal customer info
+      fields = "payable:references:index user:references amount:decimal currency:string status:string stripe_payment_intent_id:string stripe_checkout_session_id:string payment_method:string metadata:jsonb"
+    else
+      # Without auth: need customer email for Stripe
+      fields = "payable:references:index amount:decimal currency:string status:string stripe_payment_intent_id:string stripe_checkout_session_id:string payment_method:string customer_email:string metadata:jsonb"
+    end
+
+    generate "migration", "CreatePayments #{fields}"
+
+    # Post-process the generated migration to add polymorphic option and defaults
+    migration_file = Dir.glob("db/migrate/*_create_payments.rb").last
+    if migration_file
+      content = File.read(migration_file)
+      updated_content = content.gsub(
+        /t\.references :payable/,
+        't.references :payable, polymorphic: true, null: false'
+      ).gsub(
+        /t\.string :currency/,
+        't.string :currency, default: "usd"'
+      ).gsub(
+        /t\.string :status/,
+        't.string :status, default: "pending"'
+      ).gsub(
+        /add_index :payments, :payable/,
+        '# Polymorphic index is automatically created by t.references'
+      )
+      File.write(migration_file, updated_content)
+    end
+  end
+
+  def generate_model
+    @auth = options[:auth]
+    template "payment.rb.erb", "app/models/payment.rb"
+  end
+
+  def add_user_association
+    return unless options[:auth]
+
+    user_model_path = "app/models/user.rb"
+    return unless File.exist?(user_model_path)
+
+    user_content = File.read(user_model_path)
+
+    # Check if has_many :payments already exists
+    if user_content.include?("has_many :payments")
+      say "User model already has has_many :payments, skipping...", :yellow
+      return
+    end
+
+    # Insert has_many :payments after has_many :sessions
+    if user_content.match(/has_many :sessions.*\n/)
+      updated_content = user_content.sub(
+        /(has_many :sessions.*\n)/,
+        "\\1  has_many :payments, dependent: :destroy\n"
+      )
+      File.write(user_model_path, updated_content)
+      say "Added has_many :payments to User model (after has_many :sessions)", :green
+    else
+      say "Warning: Could not find 'has_many :sessions' in User model", :yellow
+      say "Please manually add 'has_many :payments' to your User model", :yellow
+    end
+  end
+
+  def generate_controller
+    @auth = options[:auth]
+    template "payments_controller.rb.erb", "app/controllers/payments_controller.rb"
+  end
+
+  def generate_service
+    @auth = options[:auth]
+    template "stripe_payment_service.rb.erb", "app/services/stripe_payment_service.rb"
+  end
+
+  def generate_views
+    @auth = options[:auth]
+    # Only generate turbo stream for Stripe redirect
+    template "views/pay.turbo_stream.erb", "app/views/payments/pay.turbo_stream.erb"
+  end
+
+  def generate_initializer
+    template "stripe.rb.erb", "config/initializers/stripe.rb"
+  end
+
+  def add_routes
+    route_content = <<~ROUTES
+      resources :payments, only: [] do
+        member do
+          get :pay
+          post :pay
+          get :success
+          get :failure
+        end
+      end
+      post '/webhooks/stripe', to: 'payments#webhook'
+    ROUTES
+
+    route route_content
+  end
+
+  def add_admin_routes
+    route "resources :payments, only: [:index, :show]", namespace: :admin
+  end
+
+  def generate_admin_controller
+    @auth = options[:auth]
+    template "admin_payments_controller.rb.erb", "app/controllers/admin/payments_controller.rb"
+  end
+
+  def generate_admin_views
+    @auth = options[:auth]
+    template "admin_views/index.html.erb", "app/views/admin/payments/index.html.erb"
+    template "admin_views/show.html.erb", "app/views/admin/payments/show.html.erb"
+  end
+
+  def generate_tests
+    @auth = options[:auth]
+    template "spec/requests/payment_integration_spec.rb.erb", "spec/requests/payment_integration_spec.rb"
+  end
+
+  def update_sidebar
+    sidebar_path = "app/views/shared/admin/_sidebar.html.erb"
+    if File.exist?(sidebar_path)
+      sidebar_content = File.read(sidebar_path)
+
+      # Check if menu item already exists
+      generated_comment = "<!-- Generated by stripe_pay: payments -->"
+      if sidebar_content.include?(generated_comment)
+        say "Sidebar already contains payments menu item, skipping...", :yellow
+        return
+      end
+
+      # Add menu item to the end of the file
+      menu_item = <<~MENU_ITEM
+
+        #{generated_comment}
+        <li>
+          <%= link_to admin_payments_path,
+              class: "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-700 dark:hover:bg-blue-900 dark:hover:text-blue-300 rounded-lg transition-colors \#{'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' if current_path.include?('/admin/payments')}" do %>
+            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+              <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+            </svg>
+            Payments
+          <% end %>
+        </li>
+      MENU_ITEM
+
+      updated_content = sidebar_content + menu_item
+      File.write(sidebar_path, updated_content)
+      say "Updated admin sidebar with Payments menu item", :green
+    else
+      say "Warning: Admin sidebar file not found. Please manually add menu item for Payments", :yellow
+    end
+  end
+
+  def add_to_application_yml
+    stripe_config = <<~STRIPE
+
+      # Stripe Configuration
+      STRIPE_PUBLISHABLE_KEY: <%= ENV["CLACKY_STRIPE_PUBLISHABLE_KEY"] %>
+      STRIPE_SECRET_KEY: <%= ENV["CLACKY_STRIPE_SECRET_KEY"] %>
+      STRIPE_WEBHOOK_SECRET: <%= ENV["CLACKY_STRIPE_WEBHOOK_SECRET"] %>
+    STRIPE
+
+    # Update application.yml.example
+    add_stripe_config_to_file("config/application.yml.example", stripe_config)
+
+    # Update application.yml if it exists
+    add_stripe_config_to_file("config/application.yml", stripe_config)
+  end
+
+  def add_stripe_gem
+    gemfile_path = "Gemfile"
+    return unless File.exist?(gemfile_path)
+
+    gemfile_content = File.read(gemfile_path)
+    stripe_comment = "# Generated by stripe_pay: stripe gem"
+
+    # Check if stripe gem already added by this generator
+    if gemfile_content.include?(stripe_comment)
+      say "Stripe gem already added by generator, skipping...", :yellow
+      return
+    end
+
+    # Check if stripe gem already exists (manually added)
+    if gemfile_content.match(/gem\s+['"]stripe['"]/)
+      say "Stripe gem already exists in Gemfile, skipping...", :yellow
+      return
+    end
+
+    # Add stripe gem before the first group or at the end of main gems
+    stripe_gem_line = "\n#{stripe_comment}\ngem \"stripe\", \"~> 12.0\""
+
+    if gemfile_content.include?("group :")
+      # Insert before first group
+      updated_content = gemfile_content.sub(/\ngroup\s+:/, "#{stripe_gem_line}\n\ngroup :")
+    else
+      # Append to end of file
+      updated_content = gemfile_content + stripe_gem_line
+    end
+
+    File.write(gemfile_path, updated_content)
+    say "Added Stripe gem to Gemfile", :green
+  end
+
+  def display_next_steps
+    say "\n" + "="*70, :green
+    say "Stripe Payment Generator completed!", :green
+    say "="*70, :green
+    say "\nNext steps:", :yellow
+    say "1. Setup: bundle install && rails db:migrate && touch tmp/restart.txt", :cyan
+    say "\n2. Configure Stripe keys in config/application.yml", :cyan
+    say "\n" + "="*70, :red
+    say "⚠️  IMPORTANT: Complete these steps!", :red
+    say "="*70, :red
+    say "\nGenerated files:", :yellow
+    say "  ✓ app/views/payments/pay.turbo_stream.erb - Stripe redirect handler", :green
+    say "  ✓ spec/requests/payment_integration_spec.rb - Validates payable interface", :green
+    say "\nYou MUST create:", :yellow
+    say "  ✗ app/views/payments/success.html.erb - Required for Stripe callback", :red
+    say "\n" + "="*70, :red
+    say "⚠️  CRITICAL: Payment Flow Rules", :red
+    say "="*70, :red
+    say "\n1. Controller#create: Create order with status: 'pending'", :yellow
+    say "   └─> Create payment record", :white
+    say "   └─> Redirect to Stripe checkout", :white
+    say "   └─> ❌ DO NOT add credits/items here!", :red
+    say "\n2. User pays on Stripe", :yellow
+    say "\n3. Webhook → process_payment_paid", :yellow
+    say "   └─> Update order status to 'paid'", :white
+    say "   └─> ✅ Add credits/items HERE (after payment confirmed)", :green
+    say "   └─> Send confirmation emails", :white
+    say "\n" + "="*70, :yellow
+    say "📖 Two Payment Patterns", :yellow
+    say "="*70, :yellow
+    say "\nPayment works with ANY business model via polymorphic association.", :cyan
+    say "\n" + "-"*70, :yellow
+    say "Pattern 1️⃣: One-time Product Purchase", :yellow
+    say "-"*70, :yellow
+    say "Use case: Buy a product once (e.g., e-book, course)", :green
+    say "\n# 1. Create Order model", :cyan
+    say "rails g model Order user:references total:decimal status:string", :white
+    say "\n# 2. Add payment association & REQUIRED methods in Order model:", :cyan
+    say "has_one :payment, as: :payable, dependent: :destroy", :white
+    say "\n# REQUIRED: All 5 methods must be implemented", :yellow
+    say "def customer_name; user.name; end", :white
+    say "def customer_email; user.email; end", :white
+    say "def payment_description; \"Order #\#{id}\"; end", :white
+    say "def stripe_mode; 'payment'; end  # 'payment' or 'subscription'", :white
+    say "def stripe_line_items", :white
+    say "  [{", :white
+    say "    price_data: {", :white
+    say "      currency: 'usd',", :white
+    say "      product_data: { name: payment_description },", :white
+    say "      unit_amount: (total * 100).to_i  # dollars to cents", :white
+    say "    },", :white
+    say "    quantity: 1", :white
+    say "  }]", :white
+    say "end", :white
+    say "\n# 3. In OrdersController#create:", :cyan
+    say "@order = Order.create!(user: current_user, total: 99.00, status: 'pending')", :white
+    say "@payment = @order.create_payment!(amount: @order.total, user: current_user)", :white
+    say "redirect_to pay_payment_path(@payment), data: { turbo_method: :post }", :white
+    say "\n⚠️  CRITICAL: Do NOT add business logic here (e.g., add credits/items)!", :red
+    say "Business logic MUST be in StripePaymentService.process_payment_paid", :red
+    say "\n# 4. Implement post-payment logic in StripePaymentService:", :cyan
+    say "def self.process_payment_paid(payment)", :white
+    say "  case payment.payable_type", :white
+    say "  when 'Order'", :white
+    say "    order = payment.payable", :white
+    say "    order.update!(status: 'paid')", :white
+    say "    # Add purchased items/credits ONLY here after payment confirmed", :white
+    say "    order.user.increment!(:credits, order.quantity)", :white
+    say "  end", :white
+    say "end", :white
+    say "\n# 5. View: <%= button_to 'Buy Now', orders_path, method: :post %>", :cyan
+    say "\n" + "-"*70, :yellow
+    say "Pattern 2️⃣: Auto-renewing Subscription (Monthly Billing)", :yellow
+    say "-"*70, :yellow
+    say "Use case: Stripe automatically charges user monthly", :green
+    say "⚠️  Requires Stripe Subscription API + webhook handling", :yellow
+    say "\n# 1. Create models", :cyan
+    say "rails g model SubscriptionPlan name:string price_cents:integer credits:integer", :white
+    say "rails g model UserSubscription user:references subscription_plan:references \\", :white
+    say "  status:string started_at:datetime expires_at:datetime credits_used:integer \\", :white
+    say "  stripe_subscription_id:string", :white
+    say "\n# 2. Add in UserSubscription model:", :cyan
+    say "has_one :payment, as: :payable, dependent: :destroy", :white
+    say "\n# REQUIRED: All 5 methods must be implemented", :yellow
+    say "def customer_name; user.name; end", :white
+    say "def customer_email; user.email; end", :white
+    say "def payment_description; \"\#{subscription_plan.name} - Monthly Subscription\"; end", :white
+    say "def stripe_mode; 'subscription'; end  # ⚠️ Auto-renewing!", :white
+    say "def stripe_line_items", :white
+    say "  [{", :white
+    say "    price_data: {", :white
+    say "      currency: 'usd',", :white
+    say "      product_data: { name: subscription_plan.name },", :white
+    say "      unit_amount: (subscription_plan.price_cents).to_i,", :white
+    say "      recurring: { interval: 'month' }  # REQUIRED for subscription mode", :white
+    say "    },", :white
+    say "    quantity: 1", :white
+    say "  }]", :white
+    say "end", :white
+    say "\n# 3. In SubscriptionsController#new (checkout preview):", :cyan
+    say "@plan = SubscriptionPlan.find(params[:plan_id])", :white
+    say "@subscription = current_user.user_subscriptions.create!(", :white
+    say "  subscription_plan: @plan, status: 'pending',", :white
+    say "  started_at: Time.current, expires_at: 1.month.from_now", :white
+    say ")", :white
+    say "@payment = @subscription.create_payment!(amount: @plan.price_cents / 100.0, user: current_user)", :white
+    say "\n# 4. In SubscriptionsController#create:", :cyan
+    say "@subscription = current_user.user_subscriptions.find_by(status: 'pending')", :white
+    say "redirect_to pay_payment_path(@subscription.payment), data: { turbo_method: :post }", :white
+    say "\n# 5. View: <%= button_to 'Subscribe Monthly', subscriptions_path(plan: @plan.id), method: :post %>", :cyan
+    say "\n# 6. Stripe products/prices created automatically via stripe_line_items", :cyan
+    say "\n# 7. For subscriptions - implement webhook handlers (search CLACKY_TODO_SUBSCRIPTION):", :cyan
+    say "# • handle_invoice_payment_success - process monthly billing", :white
+    say "# • handle_subscription_update - sync subscription status", :white
+    say "# • handle_subscription_deleted - handle cancellation", :white
+    say "="*70, :green
+  end
+
+  def create_restart_marker
+    FileUtils.touch('tmp/need_restart')
+  end
+
+  private
+
+  def add_stripe_config_to_file(file_path, stripe_config)
+    if File.exist?(file_path)
+      content = File.read(file_path)
+
+      unless content.include?("STRIPE_PUBLISHABLE_KEY")
+        File.write(file_path, content + stripe_config)
+        say "Added Stripe configuration to #{File.basename(file_path)}", :green
+      else
+        say "Stripe configuration already exists in #{File.basename(file_path)}", :yellow
+      end
+    else
+      say "#{File.basename(file_path)} not found, skipping...", :yellow
+    end
+  end
+end

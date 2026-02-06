@@ -1,0 +1,44 @@
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller<HTMLElement> {
+  static targets = [
+    // Add your targets here, e.g.:
+    // "messageInput", "messagesContainer", "sendButton"
+  ]
+
+  static values = {
+    // Add your values here, e.g.:
+    // roomId: String,
+    // userId: String
+  }
+
+  // Declare your targets and values
+  // declare readonly messageInputTarget: HTMLInputElement
+  // declare readonly messagesContainerTarget: HTMLElement
+  // declare readonly roomIdValue: string
+
+  connect(): void {
+    console.log("<%= class_name.camelize %> connected")
+  }
+
+  disconnect(): void {
+    console.log("<%= class_name.camelize %> disconnected")
+  }
+
+  // Add your action methods here
+  // Example:
+  // click(): void {
+  //   console.log("Button clicked")
+  // }
+
+  // FORMS: Turbo + Turbo Streams handle everything automatically
+  // - Forms submit via AJAX (Turbo Drive)
+  // - Server responds with format.turbo_stream
+  // - Turbo Streams update DOM automatically
+  // - NO manual form handling needed in Stimulus
+  //
+  // Use Stimulus for:
+  // - UI interactions (toggle, show/hide)
+  // - Input validation/formatting
+  // - Dynamic form fields
+}

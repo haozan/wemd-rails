@@ -1,0 +1,10 @@
+class <%= class_name %>Controller < <%= parent_controller_class %>
+  <%- if requires_authentication? -%>
+  before_action :authenticate_user!
+  <%- end -%>
+
+<%= controller_actions -%>
+
+  private
+  # Write your private methods here
+end

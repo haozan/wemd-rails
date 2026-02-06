@@ -1,0 +1,26 @@
+<div class="container-sm flex items-center justify-center flex-1 py-12">
+  <div class="card w-full">
+    <div class="card-body">
+      <h1 class="text-3xl font-bold text-center text-primary mb-8">Send Invitation</h1>
+
+      <%= form_with model: @user, url: invitation_path, local: true, class: "space-y-6" do |form| %>
+        <div>
+          <%= form.label :email do %>
+            Email Address
+          <% end %>
+          <%= form.email_field :email, required: true, autofocus: true, autocomplete: "email", placeholder: "Enter email address" %>
+          <div class="form-help">
+            An invitation will be sent to this email address
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <%= form.submit "Send an invitation", class: "btn-primary w-full btn-lg" %>
+        </div>
+      <% end %>
+
+      <div class="text-center mt-8">
+        <%= link_to "Back", root_path, class: "text-primary hover:text-primary-dark underline font-medium transition-colors" %>
+      </div>
+  </div>
+</div>

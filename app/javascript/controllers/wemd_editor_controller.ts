@@ -1,0 +1,509 @@
+import { Controller } from "@hotwired/stimulus"
+import { parseMarkdown, applyTheme } from "../lib/markdown_parser"
+import juice from 'juice'
+
+export default class extends Controller<HTMLElement> {
+  static targets = [
+    "form",
+    "titleInput",
+    "editor",
+    "preview",
+    "themeSelect",
+    "saveButton"
+  ]
+
+  static values = {
+    themes: Array
+  }
+
+  // Declare target types
+  declare readonly formTarget: HTMLFormElement
+  declare readonly titleInputTarget: HTMLInputElement
+  declare readonly editorTarget: HTMLTextAreaElement
+  declare readonly previewTarget: HTMLElement
+  declare readonly themeSelectTarget: HTMLSelectElement
+  declare readonly saveButtonTarget: HTMLButtonElement
+  
+  // Declare value types
+  declare themesValue: Array<{ id: number; name: string; css: string }>
+
+  private debounceTimer: number | null = null
+
+  connect(): void {
+    console.log("WeMD Editor connected")
+    // 初始化时渲染一次预览
+    this.updatePreview()
+    
+    // 添加自动保存提示
+    this.setupAutoSave()
+    
+    // 恢复深色模式偏好设置
+    this.restoreDarkModePreference()
+  }
+
+  disconnect(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+    }
+  }
+
+  /**
+   * 简化 KaTeX 公式以提高微信兼容性
+   * 策略：提取 annotation 中的原始 LaTeX 代码，用简单样式包裹
+   */
+  private simplifyKatexForWechat(html: string): string {
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    
+    const katexElements = tempDiv.querySelectorAll('.katex')
+    
+    katexElements.forEach(katex => {
+      const annotation = katex.querySelector('annotation[encoding="application/x-tex"]')
+      if (annotation) {
+        const latex = annotation.textContent || ''
+        const isDisplay = katex.classList.contains('katex-display')
+        
+        if (isDisplay) {
+          // 块级公式：使用带边框的容器
+          const container = document.createElement('div')
+          container.style.cssText = `
+            background: #f5f5f5;
+            border-left: 3px solid #42b983;
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            color: #2c3e50;
+          `
+          container.textContent = latex
+          katex.replaceWith(container)
+        } else {
+          // 行内公式：使用简单的 code 标签
+          const code = document.createElement('code')
+          code.style.cssText = `
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e83e8c;
+          `
+          code.textContent = latex
+          katex.replaceWith(code)
+        }
+      }
+    })
+    
+    return tempDiv.innerHTML
+  }
+
+  /**
+   * 更新预览（防抖处理）
+   */
+  updatePreview(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+    }
+
+    this.debounceTimer = window.setTimeout(() => {
+      this.renderPreview()
+    }, 300)
+  }
+
+  /**
+   * 渲染 Markdown 预览
+   */
+  private renderPreview(): void {
+    const markdown = this.editorTarget.value
+    const html = parseMarkdown(markdown)
+    
+    // 获取选中的主题 CSS
+    const themeId = this.themeSelectTarget.value
+    if (themeId) {
+      // 从 window.THEME_DATA 中获取主题 CSS
+      const themeData = this.getThemeData(themeId)
+      const themeStyles = themeData?.css || ''
+      
+      // 更新页面上的 style 标签（用于复制到微信等功能）
+      const styleElement = document.getElementById('theme-styles')
+      if (styleElement && themeStyles) {
+        styleElement.textContent = themeStyles
+      }
+      
+      this.previewTarget.innerHTML = applyTheme(html, themeStyles)
+    } else {
+      this.previewTarget.innerHTML = `<div id="wemd">${html}</div>`
+    }
+
+    // 触发代码高亮和其他渲染后处理
+    this.postRenderHooks()
+  }
+
+  /**
+   * 从 themesValue 获取主题数据
+   */
+  private getThemeData(themeId: string): { id: number; name: string; css: string } | undefined {
+    if (!this.themesValue || this.themesValue.length === 0) return undefined
+    return this.themesValue.find((theme: any) => String(theme.id) === String(themeId))
+  }
+
+  /**
+   * 渲染后处理（Mermaid 图表等）
+   */
+  private postRenderHooks(): void {
+    // 如果有 Mermaid 图表，初始化它们
+    // stimulus-validator: disable-next-line
+    const mermaidBlocks = this.previewTarget.querySelectorAll('.mermaid')
+    if (mermaidBlocks.length > 0 && window.mermaid) {
+      window.mermaid.init(undefined, mermaidBlocks as NodeListOf<HTMLElement>)
+    }
+  }
+
+  /**
+   * 工具栏操作：插入加粗
+   */
+  insertBold(): void {
+    this.wrapSelection('**', '**', '加粗文本')
+  }
+
+  /**
+   * 工具栏操作：插入斜体
+   */
+  insertItalic(): void {
+    this.wrapSelection('*', '*', '斜体文本')
+  }
+
+  /**
+   * 工具栏操作：插入标题
+   */
+  insertHeading(): void {
+    this.insertAtCursor('## ', '二级标题')
+  }
+
+  /**
+   * 工具栏操作：插入链接
+   */
+  insertLink(): void {
+    this.wrapSelection('[', '](https://example.com)', '链接文本')
+  }
+
+  /**
+   * 工具栏操作：插入图片（触发上传）
+   */
+  insertImage(): void {
+    // 触发图片上传对话框
+    const uploadEvent = new CustomEvent('trigger-image-upload', { bubbles: true })
+    this.element.dispatchEvent(uploadEvent)
+  }
+
+  /**
+   * 处理图片上传成功事件
+   */
+  handleImageUploaded(event: CustomEvent): void {
+    const { url, filename } = event.detail
+    const altText = filename.replace(/\.[^/.]+$/, '') // Remove extension
+    this.insertAtCursor(`![${altText}](${url})`, '')
+  }
+
+  /**
+   * 工具栏操作：插入代码块
+   */
+  insertCode(): void {
+    this.insertAtCursor('\n```javascript\n', 'console.log("Hello World")\n```\n')
+  }
+
+  /**
+   * 工具栏操作：插入数学公式块
+   */
+  insertMath(): void {
+    this.insertAtCursor('$$\n', 'f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi) e^{2\\pi i \\xi x} d\\xi\n$$\n')
+  }
+
+  /**
+   * 工具栏操作：插入行内数学公式
+   */
+  insertInlineMath(): void {
+    this.wrapSelection('$', '$', 'E=mc^2')
+  }
+
+  /**
+   * 工具栏操作：插入 Mermaid 图表
+   */
+  insertChart(): void {
+    this.insertAtCursor('```mermaid\n', 'graph TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    B -->|No| D[End]\n```\n')
+  }
+
+  /**
+   * 工具栏操作：插入列表
+   */
+  insertList(): void {
+    this.insertAtCursor('- ', '列表项')
+  }
+
+  /**
+   * 工具栏操作：插入引用
+   */
+  insertQuote(): void {
+    this.insertAtCursor('> ', '引用内容')
+  }
+
+  /**
+   * 复制到微信公众号（应用深色模式算法 + 内联样式）
+   */
+  async copyToWechat(): Promise<void> {
+    try {
+      const markdown = this.editorTarget.value
+      const html = parseMarkdown(markdown)
+      
+      // 获取主题 CSS（从更新后的 style 标签）
+      const themeStyles = document.getElementById('theme-styles')?.textContent || ''
+      const styledHtml = applyTheme(html, themeStyles)
+      
+      // 使用 juice 库将 CSS 转为内联样式
+      let finalHtml = juice(styledHtml)
+      
+      // 处理 KaTeX 公式：将复杂的 KaTeX HTML 转为 LaTeX 源代码
+      if (finalHtml.includes('class="katex"')) {
+        finalHtml = this.simplifyKatexForWechat(finalHtml)
+      }
+      
+      // 清理 HTML
+      finalHtml = finalHtml.trim().replace(/<style[^>]*>\s*<\/style>/gi, '')
+      
+      // 复制到剪贴板
+      await this.copyHtmlToClipboard(finalHtml)
+      
+      if (typeof showToast === 'function') {
+        showToast('✅ 已复制到剪贴板！可直接粘贴到微信公众号编辑器', 'success')
+      }
+    } catch (error) {
+      console.error('复制失败:', error)
+      if (typeof showToast === 'function') {
+        showToast('❌ 复制失败，请重试', 'error')
+      }
+    }
+  }
+
+  /**
+   * 切换深色模式预览
+   */
+  async toggleDarkMode(event: Event): Promise<void> {
+    const isDark = this.previewTarget.classList.toggle('dark')
+    
+    // 更新按钮图标
+    const button = event.currentTarget as HTMLButtonElement
+    const icon = button.querySelector('svg')
+    if (icon) {
+      // 切换 moon/sun 图标 (通过重新渲染)
+      const iconName = isDark ? 'sun' : 'moon'
+      // 简单实现：更新 aria-label 来指示当前状态
+      button.setAttribute('aria-label', isDark ? '切换到亮色模式' : '切换到深色模式')
+    }
+    
+    // 保存偏好设置到 localStorage
+    localStorage.setItem('wemd-dark-mode', isDark ? 'true' : 'false')
+    
+    // 重新初始化 Mermaid 图表以适应主题变化
+    if (window.mermaid) {
+      const mermaidTheme = isDark ? 'dark' : 'default'
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: mermaidTheme,
+        themeVariables: this.getMermaidThemeVariables(isDark),
+        securityLevel: 'loose',
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+      })
+      
+      // 重新渲染所有 mermaid 图表
+      const mermaidElements = this.previewTarget.querySelectorAll<HTMLElement>('.mermaid')
+      if (mermaidElements.length > 0 && window.mermaid.run) {
+        // 清除现有渲染
+        mermaidElements.forEach(el => {
+          el.removeAttribute('data-processed')
+        })
+        // 重新渲染
+        await window.mermaid.run({ nodes: mermaidElements as any as NodeListOf<HTMLElement> })
+      }
+    }
+  }
+  
+  /**
+   * 获取 Mermaid 主题变量
+   */
+  private getMermaidThemeVariables(isDark: boolean): Record<string, string> {
+    if (isDark) {
+      return {
+        primaryColor: 'hsl(148, 80%, 50%)',
+        primaryTextColor: 'hsl(0, 0%, 95%)',
+        primaryBorderColor: 'hsl(148, 80%, 45%)',
+        lineColor: 'hsl(0, 0%, 80%)',
+        sectionBkgColor: 'hsl(0, 0%, 12%)',
+        altSectionBkgColor: 'hsl(0, 0%, 20%)',
+        tertiaryColor: 'hsl(0, 0%, 20%)'
+      }
+    } else {
+      return {
+        primaryColor: 'hsl(148, 80%, 50%)',
+        primaryTextColor: 'hsl(210, 24%, 16%)',
+        primaryBorderColor: 'hsl(148, 80%, 45%)',
+        lineColor: 'hsl(215, 16%, 47%)',
+        sectionBkgColor: 'hsl(210, 17%, 98%)',
+        altSectionBkgColor: 'hsl(220, 13%, 91%)'
+      }
+    }
+  }
+  
+  /**
+   * 恢复深色模式偏好设置
+   */
+  private restoreDarkModePreference(): void {
+    const savedDarkMode = localStorage.getItem('wemd-dark-mode')
+    if (savedDarkMode === 'true') {
+      this.previewTarget.classList.add('dark')
+      // 更新按钮状态 (只在 edit 视图中存在)
+      // stimulus-validator: disable-next-line
+      const darkModeButton = this.element.querySelector('[data-action*="toggleDarkMode"]') as HTMLButtonElement
+      if (darkModeButton) {
+        darkModeButton.setAttribute('aria-label', '切换到亮色模式')
+      }
+    }
+  }
+
+  /**
+   * 工具方法：在光标位置插入文本
+   */
+  private insertAtCursor(before: string, placeholder: string): void {
+    const editor = this.editorTarget
+    const start = editor.selectionStart
+    const end = editor.selectionEnd
+    const text = editor.value
+
+    const newText = text.substring(0, start) + before + placeholder + text.substring(end)
+    editor.value = newText
+    
+    // 设置新的光标位置
+    const newCursorPos = start + before.length + placeholder.length
+    editor.setSelectionRange(newCursorPos, newCursorPos)
+    editor.focus()
+
+    // 触发预览更新
+    this.updatePreview()
+  }
+
+  /**
+   * 工具方法：包裹选中文本
+   */
+  private wrapSelection(before: string, after: string, placeholder: string): void {
+    const editor = this.editorTarget
+    const start = editor.selectionStart
+    const end = editor.selectionEnd
+    const text = editor.value
+    const selectedText = text.substring(start, end)
+
+    const replacement = before + (selectedText || placeholder) + after
+    const newText = text.substring(0, start) + replacement + text.substring(end)
+    editor.value = newText
+    
+    // 选中新插入的内容
+    if (selectedText) {
+      editor.setSelectionRange(start, start + replacement.length)
+    } else {
+      editor.setSelectionRange(start + before.length, start + before.length + placeholder.length)
+    }
+    editor.focus()
+
+    // 触发预览更新
+    this.updatePreview()
+  }
+
+  /**
+   * 复制 HTML 到剪贴板（保留样式）
+   * 使用多种方法以提高浏览器兼容性
+   */
+  private async copyHtmlToClipboard(html: string): Promise<void> {
+    // 方法 1: 使用 DOM 选择方法（最佳兼容性，保留格式）
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    tempDiv.style.position = 'fixed'
+    tempDiv.style.left = '-9999px'
+    tempDiv.style.top = '0'
+    tempDiv.style.opacity = '0'
+    tempDiv.style.pointerEvents = 'none'
+    document.body.appendChild(tempDiv)
+    
+    const selection = window.getSelection()
+    const range = document.createRange()
+    
+    try {
+      range.selectNodeContents(tempDiv)
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      
+      const successful = document.execCommand('copy')
+      
+      if (successful) {
+        selection?.removeAllRanges()
+        document.body.removeChild(tempDiv)
+        return
+      }
+    } catch (error) {
+      console.warn('DOM selection method failed:', error)
+    }
+    
+    // 清理第一次尝试的元素
+    selection?.removeAllRanges()
+    if (document.body.contains(tempDiv)) {
+      document.body.removeChild(tempDiv)
+    }
+    
+    // 方法 2: 使用 Clipboard API 作为备选
+    const plainText = tempDiv.innerText || tempDiv.textContent || ''
+    
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        const clipboardItem = new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plainText], { type: 'text/plain' })
+        })
+        await navigator.clipboard.write([clipboardItem])
+        return
+      }
+    } catch (error) {
+      console.warn('Clipboard API also failed:', error)
+      throw new Error('所有复制方法都失败了')
+    }
+  }
+
+  /**
+   * 设置自动保存（检测未保存更改）
+   */
+  private setupAutoSave(): void {
+    let originalContent = this.editorTarget.value
+    
+    this.editorTarget.addEventListener('input', () => {
+      if (this.editorTarget.value !== originalContent) {
+        this.saveButtonTarget.classList.add('animate-pulse')
+      } else {
+        this.saveButtonTarget.classList.remove('animate-pulse')
+      }
+    })
+
+    // 表单提交后重置标记
+    this.formTarget.addEventListener('turbo:submit-end', () => {
+      originalContent = this.editorTarget.value
+      this.saveButtonTarget.classList.remove('animate-pulse')
+    })
+  }
+}
+
+// 扩展 Window 类型以支持 mermaid
+declare global {
+  interface Window {
+    mermaid?: {
+      init: (config?: any, nodes?: string | HTMLElement | NodeListOf<HTMLElement>) => Promise<void>
+      initialize: (config: any) => void
+      run?: (config?: any) => Promise<void>
+    }
+  }
+}

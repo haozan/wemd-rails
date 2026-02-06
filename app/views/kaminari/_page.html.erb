@@ -1,0 +1,9 @@
+<% if page.current? %>
+  <span class="px-3 py-2 bg-blue-600 text-gray-50 rounded" aria-label="Current page, Page <%= page %>"><%= page %></span>
+<% else %>
+  <%= link_to page, url, {
+    rel: page.rel,
+    class: "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors",
+    "aria-label": "Page #{page}"
+  } %>
+<% end %>

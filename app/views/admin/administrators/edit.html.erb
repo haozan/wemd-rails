@@ -1,0 +1,68 @@
+<% content_for :title, "Edit Administrator" %>
+
+<div class="container-md">
+  <!-- Page Title -->
+  <div class="flex items-center space-x-4 mb-6">
+    <%= link_to admin_administrators_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Administrators
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Edit Administrator</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @administrator], local: true, class: "space-y-6" do |form| %>
+        <!-- Name -->
+        <div class="form-group">
+          <%= form.label :name %>
+          <%= form.text_field :name, placeholder: "Enter name..." %>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <%= form.label :password, "New Password (leave blank to keep current)" %>
+          <%= form.password_field :password, placeholder: "Enter new password..." %>
+        </div>
+
+        <!-- Password Confirmation -->
+        <div class="form-group">
+          <%= form.label :password_confirmation %>
+          <%= form.password_field :password_confirmation, placeholder: "Confirm new password..." %>
+        </div>
+
+        <!-- Role (only for super admins) -->
+        <% if current_admin.can_manage_administrators? %>
+          <div class="form-group">
+            <%= form.label :role %>
+            <%= form.select :role, Administrator.role_options, { selected: @administrator.role } %>
+          </div>
+        <% end %>
+
+        <!-- Metadata -->
+        <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Created At</label>
+              <p class="text-sm text-gray-900 dark:text-gray-100"><%= @administrator.created_at.strftime("%B %d, %Y at %H:%M") %></p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Updated</label>
+              <p class="text-sm text-gray-900 dark:text-gray-100"><%= @administrator.updated_at.strftime("%B %d, %Y at %H:%M") %></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_administrators_path, class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "Update Administrator", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

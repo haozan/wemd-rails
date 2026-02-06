@@ -1,0 +1,77 @@
+class PaymentsController < ApplicationController
+<% if @auth -%>
+  before_action :authenticate_user!, except: [:webhook]
+<% end -%>
+  before_action :set_payment, only: [:pay, :success, :failure]
+  skip_before_action :verify_authenticity_token, only: [:webhook], raise: false
+
+  def pay
+    # Initialize Stripe payment for this payment record
+    stripe_service = StripePaymentService.new(@payment, request)
+    result = stripe_service.call
+
+    if result[:success]
+      @checkout_url = result[:checkout_session].url
+      # Render turbo stream to redirect to Stripe checkout
+      render formats: [:turbo_stream]
+    else
+      flash[:alert] = "Payment initialization failed: #{result[:error]}"
+      redirect_to root_path
+    end
+  end
+
+  def success
+    # In development mode, sync payment status from Stripe
+    # since webhooks might not be properly configured
+    if @payment.processing?
+      StripePaymentService.sync_payment_status(@payment)
+<% if @auth -%>
+      # Reload current_user to get fresh data (credits etc.) after payment processing
+      current_user&.reload
+<% end -%>
+    end
+
+    unless @payment.paid?
+      redirect_to root_path, alert: 'Payment was not paid. Please try again.'
+      return
+    end
+  end
+
+  def failure
+    redirect_to root_path, alert: 'Payment was canceled or failed. Please try again.'
+  end
+
+  # Stripe webhook endpoint
+  def webhook
+    payload = request.body.read
+    sig_header = request.env['HTTP_STRIPE_SIGNATURE']
+    endpoint_secret = Rails.application.config.stripe[:webhook_secret]
+
+    begin
+      event = Stripe::Webhook.construct_event(payload, sig_header, endpoint_secret)
+      StripePaymentService.process_webhook_event(event)
+      render json: { status: 'success' }
+    rescue JSON::ParserError => e
+      render json: { error: 'Invalid payload' }, status: 400
+    rescue Stripe::SignatureVerificationError => e
+      render json: { error: 'Invalid signature' }, status: 400
+    end
+  end
+
+  private
+
+  def set_payment
+<% if @auth -%>
+    # Find payment and optionally verify user owns it
+    @payment = Payment.find(params[:id])
+
+    unless @payment.user == current_user || @payment.payable.try(:user) == current_user
+      redirect_to root_path, alert: 'Access denied'
+    end
+<% else -%>
+    # CLACKY_TODO: Add authorization check if needed
+    # Example: verify @payment.customer_email matches session email
+    @payment = Payment.find(params[:id])
+<% end -%>
+  end
+end

@@ -1,0 +1,18 @@
+<% flash.each do |key, value| %>
+  <%
+    is_tips = key.to_sym == :tips
+    toast_type = case key.to_sym
+                 when :notice, :success then 'success'
+                 when :alert, :error, :danger then 'error'
+                 when :warning then 'warning'
+                 when :tips then 'warning'
+                 else 'info'
+                 end
+    duration = is_tips ? 0 : 3000 # tips don't auto-close
+  %>
+  <div data-controller="flash"
+       data-flash-message-value="<%= h(value) %>"
+       data-flash-type-value="<%= toast_type %>"
+       data-flash-position-value="top-center"
+       data-flash-duration-value="<%= duration %>"></div>
+<% end %>

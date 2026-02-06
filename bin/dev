@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Change to script's parent directory (backend/)
+Dir.chdir(File.expand_path('..', __dir__))
+
+# Clean up stale server PID
+pid_file = 'tmp/pids/server.pid'
+if File.exist?(pid_file)
+  pid_content = File.read(pid_file).strip
+  pid = pid_content.to_i
+
+  # Only attempt to kill if PID is valid (positive integer)
+  if pid > 0
+    begin
+      Process.kill(0, pid)
+      puts "Detected previous server, shutting down..."
+      Process.kill('TERM', pid)
+      sleep 1
+    rescue Errno::ESRCH, Errno::EPERM
+      # Process doesn't exist or no permission
+    end
+  else
+    puts "Cleaning up stale server files..."
+  end
+
+  File.delete(pid_file) if File.exist?(pid_file)
+end
+
+# Clean up restart marker
+restart_marker = 'tmp/need_restart'
+if File.exist?(restart_marker)
+  File.delete(restart_marker)
+  puts "Cleared restart marker"
+end
+
+# Install foreman if needed
+unless system('gem list --installed --exact --silent foreman')
+  puts "Installing foreman..."
+  system('gem install foreman') || exit(1)
+end
+
+# Load EnvChecker for centralized port detection
+require_relative '../lib/env_checker'
+
+# Get port using centralized logic (handles submodule detection, application.yml, env vars)
+app_port = EnvChecker.get_app_port
+ENV['APP_PORT'] = app_port
+ENV['PORT'] ||= app_port
+
+puts "Starting server on port #{ENV['PORT']}"
+
+# Execute foreman
+exec 'foreman', 'start', '-f', 'Procfile.dev', *ARGV

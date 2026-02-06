@@ -1,0 +1,18 @@
+# This project uses LOCAL DISK storage for all environments (including production)
+# DO NOT enable cloud storage services unless explicitly required
+
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+storage_bucket:
+  service: S3
+  endpoint: <%= ENV.fetch("STORAGE_BUCKET_ENDPOINT", "") %>
+  access_key_id: <%= ENV.fetch("STORAGE_BUCKET_ACCESS_KEY_ID", "") %>
+  secret_access_key: <%= ENV.fetch("STORAGE_BUCKET_SECRET_ACCESS_KEY", "") %>
+  region: <%= ENV.fetch("STORAGE_BUCKET_REGION", "") %>
+  bucket: <%= ENV.fetch("STORAGE_BUCKET_NAME", "") %>

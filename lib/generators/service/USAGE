@@ -1,0 +1,14 @@
+Description:
+    Generate a service class with basic structure and RSpec test.
+
+Example:
+    bin/rails generate service EmailSender
+
+    This will create:
+        Service:  app/services/email_sender_service.rb
+        Test:     spec/services/email_sender_service_spec.rb
+
+Features:
+    - Automatically handles 'Service' suffix
+    - Creates service class inheriting from ApplicationService
+    - Generates basic test that verifies initialization and call

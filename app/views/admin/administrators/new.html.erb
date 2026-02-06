@@ -1,0 +1,53 @@
+<% content_for :title, "New Administrator" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_administrators_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Administrators
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Create New Administrator</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @administrator], local: true, class: "space-y-6" do |form| %>
+        <!-- Name -->
+        <div class="form-group">
+          <%= form.label :name %>
+          <%= form.text_field :name, placeholder: "Enter name..." %>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <%= form.label :password %>
+          <%= form.password_field :password, placeholder: "Enter password..." %>
+        </div>
+
+        <!-- Password Confirmation -->
+        <div class="form-group">
+          <%= form.label :password_confirmation %>
+          <%= form.password_field :password_confirmation, placeholder: "Confirm password..." %>
+        </div>
+
+        <!-- Role (only for super admins) -->
+        <% if current_admin.can_manage_administrators? %>
+          <div class="form-group">
+            <%= form.label :role %>
+            <%= form.select :role, Administrator.role_options, { selected: @administrator.role || 'admin' } %>
+          </div>
+        <% end %>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_administrators_path, class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "Create Administrator", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

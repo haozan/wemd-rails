@@ -1,0 +1,150 @@
+Description:
+    Generates Stripe payment integration with polymorphic Payment model.
+    One Payment model works with ANY business model (Order, Subscription, etc.)
+
+Usage:
+    rails g stripe_pay
+    rails g stripe_pay --auth  # Add user association
+
+Setup:
+    1. bundle install && rails db:migrate && touch tmp/restart.txt
+    2. Configure Stripe keys in config/application.yml
+    3. Create app/views/payments/success.html.erb (required for callback)
+
+Payment Flow (CRITICAL - Follow This Order):
+    
+    1. Controller#create: Create order with status: 'pending'
+       └─> Create payment record
+       └─> Redirect to Stripe checkout
+       
+    2. User completes payment on Stripe
+    
+    3. Stripe webhook → process_payment_paid (or success page sync in dev)
+       └─> Update order status to 'paid'
+       └─> ✅ Add credits/items/access HERE (ONLY after payment confirmed)
+       └─> Send confirmation emails
+    
+    ⚠️ CRITICAL RULES:
+    - Controller creates order with status: 'pending'
+    - DO NOT grant access/credits in controller
+    - Business logic ONLY in process_payment_paid
+
+Payable Interface (ALL REQUIRED):
+
+Your business model MUST implement these 5 methods:
+
+    has_one :payment, as: :payable, dependent: :destroy
+
+    def customer_name        # String
+    def customer_email       # String (valid email)
+    def payment_description  # String
+    def stripe_mode          # 'payment' or 'subscription'
+    def stripe_line_items    # Array (see examples below)
+
+Example 1: One-time Payment (Order)
+
+    rails g model Order user:references total:decimal status:string
+
+    class Order < ApplicationRecord
+      belongs_to :user
+      has_one :payment, as: :payable, dependent: :destroy
+
+      def customer_name; user.name; end
+      def customer_email; user.email; end
+      def payment_description; "Order ##{id}"; end
+      def stripe_mode; 'payment'; end
+      def stripe_line_items
+        [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: payment_description },
+            unit_amount: (total * 100).to_i  # dollars to cents
+          },
+          quantity: 1
+        }]
+      end
+    end
+
+    # Controller
+    def create
+      @order = current_user.orders.create!(order_params.merge(status: 'pending'))
+      @payment = @order.create_payment!(amount: @order.total, user: current_user)
+      redirect_to pay_payment_path(@payment), data: { turbo_method: :post }
+    end
+    
+    # ⚠️ CRITICAL: Do NOT update business logic here (e.g., add credits, mark as completed)
+    # Business logic MUST be in StripePaymentService.process_payment_paid
+    # which is called ONLY after payment is confirmed
+
+Example 2: Subscription (Recurring)
+
+    rails g model Subscription user:references plan_name:string plan_price:decimal stripe_subscription_id:string
+
+    class Subscription < ApplicationRecord
+      belongs_to :user
+      has_many :payments, as: :payable
+
+      def customer_name; user.name; end
+      def customer_email; user.email; end
+      def payment_description; "#{plan_name} Subscription"; end
+      def stripe_mode; 'subscription'; end
+      def stripe_line_items
+        [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: plan_name },
+            unit_amount: (plan_price * 100).to_i,
+            recurring: { interval: 'month' }  # REQUIRED for subscription
+          },
+          quantity: 1
+        }]
+      end
+    end
+
+    # Controller
+    def create
+      @sub = current_user.subscriptions.create!(subscription_params)
+      @payment = @sub.payments.create!(amount: @sub.plan_price, user: current_user)
+      redirect_to pay_payment_path(@payment), data: { turbo_method: :post }
+    end
+
+Business Logic After Payment:
+
+    ⚠️ CRITICAL: Implement business logic in StripePaymentService.process_payment_paid
+    This method is called ONLY after payment is confirmed as paid.
+
+    # In app/services/stripe_payment_service.rb
+    def self.process_payment_paid(payment)
+      case payment.payable_type
+      when 'Order'
+        order = payment.payable
+        order.update!(status: 'paid')
+        # Add purchased credits/items to user ONLY here
+        order.user.increment!(:credits, order.quantity)
+        OrderMailer.confirmation(order).deliver_later
+      end
+    end
+
+    ⚠️ NEVER update business data in controller's create action!
+    Create order with status: 'pending', then update ONLY in process_payment_paid.
+
+Subscription Webhooks (if using stripe_mode: 'subscription'):
+
+    Search for CLACKY_TODO_SUBSCRIPTION in stripe_payment_service.rb and implement:
+    - handle_invoice_payment_success (monthly billing)
+    - handle_subscription_update (status sync)
+    - handle_subscription_deleted (cancellation)
+
+    Tests will enforce these are implemented when subscription mode is detected.
+
+Validation:
+
+    Run 'rake test' to validate payable interface automatically
+    Missing/incorrect methods will cause clear test failures
+
+Notes:
+
+    - Subscription mode MUST include 'recurring: { interval: ... }' in stripe_line_items
+    - One-time: has_one :payment
+    - Subscription: has_many :payments (for recurring billing)
+    - Test card: 4242 4242 4242 4242 (shown in development)

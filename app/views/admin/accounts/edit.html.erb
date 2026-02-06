@@ -1,0 +1,111 @@
+<% content_for :title do %>
+  Account Settings
+<% end %>
+
+<!-- Breadcrumb -->
+<div class="container-xl">
+  <div class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+    <ol class="flex space-x-2">
+      <li><%= link_to "Dashboard", admin_root_path, class: "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" %></li>
+      <li class="text-gray-400 dark:text-gray-500">/</li>
+      <li>Account Settings</li>
+    </ol>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Personal Information Card -->
+    <div class="lg:col-span-2">
+      <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        <div class="card-body">
+          <h2 class="text-2xl font-semibold mb-6 flex items-center text-gray-900 dark:text-gray-100">
+            <%= lucide_icon "user", class: "w-6 h-6 mr-2" %>
+            Personal Information
+          </h2>
+
+          <%= form_with model: current_admin, url: admin_account_path, class: "space-y-6" do |f| %>
+            <!-- Name Field -->
+            <div class="form-group">
+              <%= f.label :name %>
+              <%= f.text_field :name, placeholder: "Enter your full name" %>
+            </div>
+
+            <!-- Current Password Field -->
+            <div class="form-group">
+              <%= f.label :current_password, "Current Password" %>
+              <%= f.password_field :current_password, placeholder: "Enter current password" %>
+              <p class="form-help">Required for security verification</p>
+            </div>
+
+            <!-- New Password Field -->
+            <div class="form-group">
+              <%= f.label :password, "New Password (leave blank to keep current)" %>
+              <%= f.password_field :password, placeholder: "Enter new password (optional)" %>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="form-group">
+              <%= f.label :password_confirmation %>
+              <%= f.password_field :password_confirmation, placeholder: "Confirm your new password" %>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-4">
+              <%= link_to admin_root_path, class: "btn-ghost" do %>
+                <%= lucide_icon "x", class: "w-4 h-4 mr-2" %>
+                Cancel
+              <% end %>
+              <%= f.submit "Update Account", class: "btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Information Card -->
+    <div>
+      <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        <div class="card-body">
+          <h2 class="text-xl font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+            <%= lucide_icon "lock", class: "w-5 h-5 mr-2" %>
+            Security
+          </h2>
+
+          <div class="space-y-4">
+            <!-- Account Status -->
+            <div class="flex items-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
+              <div class="flex-shrink-0">
+                <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-green-800 dark:text-green-300">Account Active</p>
+                <p class="text-xs text-green-600 dark:text-green-400">Your account is active and secure</p>
+              </div>
+            </div>
+
+            <!-- Last Login -->
+            <div class="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div class="flex-shrink-0">
+                <%= lucide_icon "eye", class: "w-6 h-6 text-blue-600" %>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-blue-800 dark:text-blue-300">Last Login</p>
+                <p class="text-xs text-blue-600 dark:text-blue-400">Today at <%= Time.current.strftime("%H:%M") %></p>
+              </div>
+            </div>
+
+            <!-- Security Tip -->
+            <div class="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div class="flex-shrink-0">
+                <%= lucide_icon "alert-triangle", class: "w-6 h-6 text-yellow-600" %>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Security Reminder</p>
+                <p class="text-xs text-yellow-600 dark:text-yellow-400">Update your password regularly</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

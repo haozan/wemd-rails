@@ -1,0 +1,522 @@
+/*
+ * AI MUST READ - AVAILABLE COMPONENTS (DO NOT RECREATE THESE)
+ *
+ * Buttons: .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-danger, .btn-ghost, .btn-outline, .btn-outline-primary
+ *          Sizes: .btn-xs, .btn-sm, .btn-md, .btn-lg, .btn-xl
+ * Cards: .card, .card-elevated, .card-flat + .card-header, .card-body, .card-footer
+ * Alerts: .alert-success, .alert-warning, .alert-danger, .alert-info
+ * Badges: .badge-primary, .badge-secondary, .badge-success, .badge-warning, .badge-danger, .badge-neutral
+ * Forms: .form-input, .form-textarea, .form-select, .form-label, .form-error, .form-help
+ * Enhanced Forms: Tom Select (searchable select), Flatpickr (date/time picker)
+ * Tables: .table, .table-header, .table-row, .table-cell, .table-header-cell
+ * Containers: .container-sm (login), .container-md (forms), .container-lg (detail), .container-xl (lists)
+ * Utils: .loading-spinner, .skeleton, .text-balance, .transition-default, .focus-ring
+ *
+ * All components defined in components.css - READ ONLY, DO NOT MODIFY
+ * Custom components go in "CUSTOM COMPONENTS" section at bottom of this file
+ */
+/* Import design system components - DO NOT MODIFY components.css */
+@import "components";
+
+/* Import third-party CSS libraries */
+@import "tom-select/dist/css/tom-select.css";
+@import "flatpickr/dist/flatpickr.css";
+@import "katex/dist/katex.css"; /* KaTeX for math formulas */
+@import "vendors"; /* Custom themes for third-party libraries */
+
+@tailwind base;
+@tailwind components;
+@layer components {
+
+  /*
+   * Design System Variables
+   *
+   * Usage:
+   * - Text: text-primary/secondary/muted
+   * - Surface: surface/surface-elevated
+   * - Brand: primary/secondary
+   * - Status: success/warning/danger/info
+   *
+   * NEVER use direct colors: text-white, bg-white, text-black, bg-black, etc.
+   * Use semantic variables only for maintainability and theme consistency.
+   */
+  :root {
+    /* WeMD UI 主题变量 - 默认浅色主题 */
+    /* 参考自 WeMD index.css 的设计系统 */
+
+    /* Background Colors - 背景色系统 */
+    --color-surface: 210 17% 98%;         /* #f8f9fa - 页面背景 */
+    --color-surface-elevated: 0 0% 100%;  /* #ffffff - 卡片背景 */
+    --color-surface-secondary: 214 32% 97%;  /* #f6f8fb - 次级背景 */
+    --color-surface-tertiary: 214 32% 96%;   /* #eef2f6 - 三级背景 */
+    --color-surface-card-muted: 210 40% 96%; /* #f1f5f9 - 卡片弱化背景 */
+    --color-surface-hover: 142 76% 95%;      /* #e6f5eb - 悬停背景 */
+
+    /* Text Colors - 文字色系统 */
+    --color-text-primary: 222 47% 11%;    /* #0f172a - 主要文字 */
+    --color-text-secondary: 215 19% 35%;  /* #334155 - 次要文字 */
+    --color-text-tertiary: 215 14% 47%;   /* #64748b - 三级文字 */
+
+    /* Border Colors - 边框色系统 */
+    --color-border: 220 13% 91%;          /* #e2e8f0 - 默认边框 */
+    --color-border-light: 220 13% 91%;    /* #e2e8f0- 浅色边框 */
+
+    /* Brand Colors - 品牌色（微信绿）*/
+    --color-primary: 148 90% 40%;      /* #07c160 - 微信绿主色 */
+    --color-primary-light: 148 85% 50%;  /* 浅色变体 */
+    --color-primary-dark: 148 95% 35%;   /* 深色变体 */
+    --color-primary-gradient: linear-gradient(135deg, hsl(148 90% 40%) 0%, hsl(148 95% 35%) 100%);
+
+    --color-secondary: 148 70% 55%;      /* 辅助色 */
+    --color-secondary-light: 148 60% 70%;
+    --color-secondary-dark: 148 80% 45%;
+
+    /*  Neutral color - use only in special cases, avoid for text */
+    --color-neutral: 0 0% 64%;
+
+    --color-success: 142 76% 36%;      /* #10b981 - 绿色 */
+    --color-warning: 38 92% 50%;       /* #f59e0b - 黄色 */
+    --color-danger: 0 84% 60%;         /* #ef4444 - 红色 */
+    --color-info: 188 94% 42%;         /* #0ea5e9 - 蓝色 */
+
+    --color-success-bg: 138 76% 97%;
+    --color-warning-bg: 48 100% 96%;
+    --color-danger-bg: 0 93% 97%;
+    --color-info-bg: 204 100% 97%;
+
+    --font-family-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+
+    --border-radius-sm: 8px;
+    --border-radius: 12px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 24px;
+
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+    /* WeMD UI 特定变量 */
+    --spacing-unit: 8px;
+    --spacing-xs: calc(var(--spacing-unit) * 0.5);  /* 4px */
+    --spacing-sm: var(--spacing-unit);              /* 8px */
+    --spacing-md: calc(var(--spacing-unit) * 2);    /* 16px */
+    --spacing-lg: calc(var(--spacing-unit) * 3);    /* 24px */
+    --spacing-xl: calc(var(--spacing-unit) * 4);    /* 32px */
+    --spacing-xxl: calc(var(--spacing-unit) * 5);   /* 40px */
+
+    --radius-pill: 999px;
+
+    /* Glass morphism 效果 */
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --glass-blur: blur(20px);
+
+    /* 边框宽度 */
+    --border-width: 1px;
+  }
+
+  /*
+   * Dark Mode - Comprehensive optimization for contrast and visual effects
+   * Follows WCAG AA standards with minimum 4.5:1 text contrast ratio
+   */
+  .dark {
+    /* WeMD UI 主题变量 - 暗色主题（参考 VS Code 配色）*/
+
+    /* Background Colors - 暗色背景系统 */
+    --color-surface: 0 0% 12%;           /* #1e1e1e - 页面背景 */
+    --color-surface-elevated: 0 0% 15%;  /* #252526 - 卡片背景 */
+    --color-surface-secondary: 0 0% 18%; /* #2d2d30 - 次级背景 */
+    --color-surface-tertiary: 0 0% 20%;  /* #333333 - 三级背景 */
+    --color-surface-card-muted: 0 0% 16%; /* #2a2a2b - 卡片弱化背景 */
+    --color-surface-hover: 120 15% 17%;   /* #2a3a2e - 悬停背景 */
+
+    /* Text Colors - 暗色文字系统 */
+    --color-text-primary: 0 0% 83%;    /* #d4d4d4 - 主要文字 */
+    --color-text-secondary: 0 0% 62%;  /* #9d9d9d - 次要文字 */
+    --color-text-tertiary: 0 0% 42%;   /* #6a6a6a - 三级文字 */
+
+    /* Border Colors - 暗色边框系统 */
+    --color-border: 0 0% 24%;          /* #3c3c3c - 默认边框 */
+    --color-border-light: 0 0% 25%;    /* #404040 - 浅色边框 */
+
+    /* Brand Colors - 品牌色（保持微信绿）*/
+    --color-primary: 148 80% 50%;      /* 暗色模式下的微信绿 */
+    --color-primary-light: 148 75% 60%; /* 浅色变体 */
+    --color-primary-dark: 148 85% 45%; /* 深色变体 */
+    --color-primary-gradient: linear-gradient(135deg, hsl(148 80% 50%) 0%, hsl(148 85% 45%) 100%);
+
+    --color-secondary: 148 65% 60%;    /* 辅助色 */
+    --color-secondary-light: 148 60% 70%;
+    --color-secondary-dark: 148 70% 50%;
+
+    /* Status colors optimization for dark mode - brighter and more saturated */
+    --color-success: 145 80% 50%;      /* Brighter green */
+    --color-warning: 45 95% 60%;       /* Brighter yellow */
+    --color-danger: 0 85% 65%;         /* Brighter red */
+    --color-info: 200 95% 55%;         /* Brighter blue */
+
+    /* Status background colors - semi-transparent for dark mode */
+    --color-success-bg: 145 80% 50% / 0.15; /* Semi-transparent green background */
+    --color-warning-bg: 45 95% 60% / 0.15;  /* Semi-transparent yellow background */
+    --color-danger-bg: 0 85% 65% / 0.15;    /* Semi-transparent red background */
+    --color-info-bg: 200 95% 55% / 0.15;    /* Semi-transparent blue background */
+
+    /* Neutral color adjustment for dark mode */
+    --color-neutral: 0 0% 70%;         /* Brighter neutral for dark backgrounds */
+
+    /* Shadows for dark mode - softer to avoid being too heavy */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+    --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.7);
+
+    /* WeMD 暗色模式 UI 变量 */
+    --glass-bg: rgba(37, 37, 38, 0.95);
+    --glass-border: rgba(60, 60, 60, 0.6);
+    --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --glass-blur: blur(20px);
+  }
+
+  /* Add your custom components here */
+
+  /* WeMD 编辑器布局样式 */
+  .wemd-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: hsl(var(--color-surface));
+  }
+
+  /* 确保 form 能正确传递高度 */
+  .wemd-container > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .wemd-header {
+    flex-shrink: 0;
+    padding: 0.75rem 1.5rem;
+    background: hsl(var(--color-surface-elevated));
+    border-bottom: var(--border-width) solid hsl(var(--color-border));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .wemd-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    padding: 1.5rem 2rem;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .wemd-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+    gap: 1.5rem;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .wemd-editor-pane,
+  .wemd-preview-pane {
+    height: 100%;
+    min-height: 0;
+    border-radius: var(--border-radius-xl);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--border-width) solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* WeMD 按钮样式 */
+  .wemd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: var(--border-width) solid transparent;
+  }
+
+  .wemd-btn-primary {
+    background: hsl(var(--color-primary));
+    color: white;
+  }
+
+  .wemd-btn-primary:hover {
+    background: hsl(var(--color-primary-dark));
+  }
+
+  .wemd-btn-secondary {
+    background: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+    border-color: hsl(var(--color-border));
+  }
+
+  .wemd-btn-secondary:hover {
+    background: hsl(var(--color-surface));
+  }
+
+  /* WeMD 输入框样式 */
+  .wemd-input {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: var(--border-width) solid hsl(var(--color-border));
+    background: hsl(var(--color-surface));
+    color: hsl(var(--color-text-primary));
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .wemd-input:focus {
+    outline: none;
+    border-color: hsl(var(--color-primary));
+    box-shadow: 0 0 0 3px hsl(var(--color-primary) / 0.1);
+  }
+
+  /* Scrollbar styling */
+  .wemd-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .wemd-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .wemd-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+
+  .wemd-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* ========================================
+     WeMD Markdown 编辑器样式
+     来自 WeMD MarkdownEditor.css
+     ======================================== */
+  .wemd-editor-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  .wemd-toolbar {
+    padding: 12px 16px;
+    border-bottom: var(--border-width) solid hsl(var(--color-border-light));
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .wemd-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--border-radius-sm);
+    border: none;
+    background: transparent;
+    color: hsl(var(--color-text-secondary));
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .wemd-tool-btn:hover {
+    background: hsl(var(--color-surface-hover));
+    color: hsl(var(--color-primary));
+  }
+
+  .wemd-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: hsl(var(--color-border));
+    margin: 0 4px;
+  }
+
+  .wemd-editor-textarea {
+    flex: 1;
+    width: 100%;
+    padding: 24px;
+    border: none;
+    background: hsl(var(--color-surface-elevated));
+    color: hsl(var(--color-text-primary));
+    font-family: var(--font-family-mono);
+    font-size: 15px;
+    line-height: 1.75;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* ========================================
+     WeMD Markdown 预览样式
+     来自 WeMD MarkdownPreview.css
+     ======================================== */
+  .wemd-preview-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: hsl(var(--color-surface-secondary));
+  }
+
+  .wemd-preview-header {
+    padding: 12px 16px;
+    border-bottom: var(--border-width) solid hsl(var(--color-border-light));
+    background: hsl(var(--color-surface-elevated));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .wemd-preview-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: hsl(var(--color-text-secondary));
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+
+  .wemd-preview-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 24px 0;
+  }
+
+  /* 预览内容区域 - 微信风格卡片 */
+  .wemd-preview-content #wemd {
+    width: 402px;
+    max-width: 100%;
+    flex-shrink: 0;
+    margin: 0 auto;
+    background: hsl(var(--color-surface-elevated));
+    padding: 24px 20px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    min-height: calc(100% - 48px);
+  }
+
+  /* 确保斜体样式生效 */
+  .wemd-preview-content #wemd em {
+    font-style: italic !important;
+    font-synthesis: style;
+  }
+
+  /* 强制图片自适应，修复浏览器存储模式下图片过大的问题 */
+  .wemd-preview-content #wemd img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 10px auto;
+  }
+
+  /* 针对整个预览容器启用字体合成 */
+  .wemd-preview-content #wemd {
+    font-synthesis: style weight;
+  }
+
+  /* ========================================
+     深色模式 - WeMD 编辑器和预览样式
+     来自 WeMD MarkdownEditor.css & MarkdownPreview.css
+     ======================================== */
+  .dark .wemd-toolbar {
+    background: rgba(37, 37, 38, 0.8);
+  }
+
+  .dark .wemd-editor-textarea {
+    background: hsl(var(--color-surface));
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .wemd-editor-textarea::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .wemd-editor-textarea::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* 深色模式 - 预览容器背景（接近微信深色模式）*/
+  .dark .wemd-preview-pane,
+  .dark .wemd-preview-content {
+    background: #0f1113;
+  }
+
+  .dark .wemd-preview-content #wemd {
+    background: #0f1113;
+    box-shadow: none;
+  }
+
+  /* 响应式布局 */
+  @media (max-width: 768px) {
+    .wemd-workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .wemd-preview-content {
+      padding: 16px;
+    }
+
+    .wemd-preview-content #wemd {
+      width: 100%;
+      padding: 24px 20px;
+    }
+  }
+
+} /* End of @layer components */
+
+@tailwind utilities;

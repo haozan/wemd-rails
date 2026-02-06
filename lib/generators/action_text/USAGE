@@ -1,0 +1,12 @@
+Description:
+    Installs ActionText with Tailwind CSS integration for this project.
+    This generator replaces the default rails action_text:install.
+
+Example:
+    bin/rails generate action_text
+
+    This will create:
+        Migration: db/migrate/[timestamp]_create_action_text_tables.rb
+        Partial: app/views/active_storage/blobs/_blob.html.erb
+        CSS: Add Trix editor Tailwind styles
+        JS: Install and configure Trix editor with TypeScript

@@ -1,0 +1,56 @@
+<% content_for :title, "Edit Theme" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_themes_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Themes
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Edit Theme</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @theme], local: true, class: "space-y-6" do |form| %>
+        <!-- Name -->
+        <div class="form-group">
+          <%= form.label :name %>
+          <%= form.text_field :name, placeholder: "Enter name..." %>
+        </div>
+
+        <!-- Css -->
+        <div class="form-group">
+          <%= form.label :css, "Theme CSS (使用 #wemd 选择器作为作用域)" %>
+          <%= form.text_area :css, rows: 20, placeholder: "#wemd { ... }", class: "font-mono text-sm" %>
+          <p class="text-sm text-gray-500 mt-2">提示：所有样式应该在 #wemd 选择器下，以避免影响其他页面样式</p>
+        </div>
+
+        <!-- Is builtin -->
+        <div class="form-group">
+          <label class="flex items-center cursor-pointer">
+            <%= form.check_box :is_builtin,
+                  class: "mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700" %>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Is builtin</span>
+          </label>
+        </div>
+
+        <!-- User -->
+        <div class="form-group">
+          <%= form.label :user_id, "User" %>
+          <%= form.select :user_id,
+              options_for_select([['Select User', '']] + User.all.map { |item| [item.name, item.id] }, @theme.user_id) %>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_theme_path(@theme.id), class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "Update Theme", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,124 @@
+<!-- WeMD 编辑器页面 -->
+<div class="wemd-container" 
+     data-controller="wemd-editor image-upload"
+     data-wemd-editor-themes-value="<%= @themes.to_json(only: [:id, :name, :css]) %>"
+     data-action="trigger-image-upload@window->image-upload#selectFile image-upload:uploaded->wemd-editor#handleImageUploaded">
+  <%= form_with model: @document, class: "h-full", data: { wemd_editor_target: "form", turbo: false } do |f| %>
+    
+    <!-- Header -->
+    <header class="wemd-header">
+      <div class="flex items-center gap-4">
+        <%= link_to documents_path, class: "text-muted-foreground hover:text-foreground transition-colors" do %>
+          <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+        <% end %>
+        
+        <div class="flex-1">
+          <%= f.text_field :title, 
+              placeholder: "无标题文档", 
+              class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
+              data: { wemd_editor_target: "titleInput" } %>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Theme Selector -->
+          <%= f.select :theme_id,
+              options_from_collection_for_select(@themes, :id, :name, @document.theme_id),
+              { prompt: "选择主题" },
+              class: "btn-secondary",
+              data: { wemd_editor_target: "themeSelect", action: "change->wemd-editor#updatePreview" } %>
+
+          <!-- Save Button -->
+          <%= f.submit "保存", class: "btn-primary", data: { wemd_editor_target: "saveButton" } %>
+
+          <!-- Copy to WeChat Button -->
+          <button type="button" 
+                  class="btn-primary bg-[#07c160] hover:bg-[#06ad56]"
+                  data-action="click->wemd-editor#copyToWechat">
+            <%= lucide_icon "copy", class: "w-5 h-5 mr-2" %>
+            复制到微信
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="wemd-main">
+      <div class="wemd-workspace">
+        <!-- Editor Pane -->
+        <div class="wemd-editor-pane">
+          <div class="wemd-toolbar">
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertBold" title="加粗">
+              <%= lucide_icon "bold", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertItalic" title="斜体">
+              <%= lucide_icon "italic", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertHeading" title="标题">
+              <%= lucide_icon "heading", class: "w-4 h-4" %>
+            </button>
+            <div class="wemd-toolbar-divider"></div>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertLink" title="链接">
+              <%= lucide_icon "link", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertImage" title="图片">
+              <%= lucide_icon "image", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertCode" title="代码块">
+              <%= lucide_icon "code", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertMath" title="数学公式">
+              <%= lucide_icon "sigma", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertChart" title="Mermaid 图表">
+              <%= lucide_icon "bar-chart-3", class: "w-4 h-4" %>
+            </button>
+            <div class="wemd-toolbar-divider"></div>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertList" title="列表">
+              <%= lucide_icon "list", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertQuote" title="引用">
+              <%= lucide_icon "quote", class: "w-4 h-4" %>
+            </button>
+          </div>
+
+          <%= f.text_area :content,
+              class: "wemd-editor-textarea",
+              placeholder: "开始编写您的 Markdown 文档...",
+              data: { 
+                wemd_editor_target: "editor",
+                action: "input->wemd-editor#updatePreview"
+              } %>
+        </div>
+
+        <!-- Preview Pane -->
+        <div class="wemd-preview-pane">
+          <div class="wemd-preview-header">
+            <h3 class="text-sm font-semibold text-muted-foreground">实时预览</h3>
+            <button type="button"
+                    class="text-xs text-muted-foreground hover:text-foreground"
+                    data-action="click->wemd-editor#toggleDarkMode">
+              <%= lucide_icon "moon", class: "w-4 h-4" %>
+            </button>
+          </div>
+          
+          <div class="wemd-preview-content" data-wemd-editor-target="preview">
+            <!-- Markdown 预览内容将通过 JS 渲染到这里 -->
+          </div>
+        </div>
+      </div>
+    </main>
+  <% end %>
+
+  <!-- Hidden file input for image upload -->
+  <input type="file" 
+         accept="image/*" 
+         class="hidden" 
+         data-image-upload-target="fileInput"
+         data-action="change->image-upload#handleFileSelect" />
+</div>
+
+<!-- 加载必要的 CSS -->
+<style id="theme-styles">
+  <%= raw @theme.css if @theme %>
+</style>

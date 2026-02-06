@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="turbo-cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="cleartype" content="on">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <title>
+    <%- if content_for?(:title) %>
+      <%= yield(:title) + ' | ' + Rails.application.config.x.appname + ' Admin' %>
+    <%- else %>
+      <%= Rails.application.config.x.appname + ' Admin' %>
+    <%- end %>
+    </title>
+    <%= csrf_meta_tags %>
+    <%= action_cable_meta_tag %>
+    <%= content_for?(:head) ? yield(:head) : '' %>
+    <%= stylesheet_link_tag 'admin', media: 'all' %>
+    <!-- Load error handler early to catch all errors -->
+    <%= javascript_include_tag 'error_handler' if Rails.env.development? %>
+    <%= javascript_include_tag 'admin', type: "module" %>
+    <%= favicon_link_tag asset_path("app-favicon.svg") unless Rails.env.test? %>
+    <!-- stimulus-validator: allow-script -->
+    <script>
+      (function() {
+        const isDarkKey = 'admin-isdark';
+        const savedIsDark = JSON.parse(localStorage.getItem(isDarkKey) || 'false');
+        if (savedIsDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="flex flex-col min-h-screen <%= body_class %>">
+    <%- if @full_render %>
+      <%= yield %>
+    <%- else %>
+      <div class="flex h-screen bg-gray-100 dark:bg-gray-900" data-controller="dropdown" data-dropdown-close-on-click-outside-value="false">
+        <!-- Sidebar for desktop -->
+        <aside class="hidden lg:flex lg:flex-shrink-0">
+          <div class="flex flex-col w-80">
+            <div class="flex flex-col flex-grow dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-5 pb-4 overflow-y-auto">
+              <!-- Sidebar Header -->
+              <div class="flex items-center flex-shrink-0 px-4">
+                <%= link_to admin_root_path, class: "flex items-center gap-3" do %>
+                  <div class="w-10 h-10 bg-blue-600 text-gray-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                  </div>
+                  <span class="text-xl font-bold text-gray-900 dark:text-gray-50">Admin Dashboard</span>
+                <% end %>
+              </div>
+
+              <div class="mt-5">
+                <%= render 'shared/admin/navigation' %>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Mobile sidebar -->
+        <div class="lg:hidden">
+          <div data-dropdown-target="menu" class="hidden fixed inset-0 flex z-40" id="mobile-sidebar">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" data-action="click->dropdown#close"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-gray-50 dark:bg-gray-800">
+              <div class="absolute top-0 right-0 -mr-12 pt-2">
+                <button type="button"
+                        class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                        data-action="click->dropdown#close">
+                  <span class="sr-only">Close sidebar</span>
+                  <svg class="h-6 w-6 text-gray-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <!-- Mobile sidebar content - same as desktop -->
+              <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                <!-- Same content as desktop sidebar -->
+                <div class="flex items-center flex-shrink-0 px-4 mb-4">
+                  <%= link_to admin_root_path, class: "flex items-center gap-3" do %>
+                    <div class="w-10 h-10 bg-blue-600 text-gray-50 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                      </svg>
+                    </div>
+                    <span class="text-xl font-bold text-gray-900 dark:text-gray-50">Admin Dashboard</span>
+                  <% end %>
+                </div>
+                <%= render 'shared/admin/navigation' %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col w-0 flex-1 overflow-hidden">
+          <%= render 'shared/admin/header' %>
+
+          <main class="flex-1 relative overflow-y-auto focus:outline-none">
+            <div class="py-6">
+              <%= render 'shared/flash_messages' %>
+              <%= yield %>
+            </div>
+          </main>
+        </div>
+      </div>
+
+    <%- end %>
+
+    <% if Rails.env.development? %>
+      <div id="system-monitor-stream"
+           data-controller="system-monitor"
+           data-system-monitor-signed-name-value="<%= Turbo::StreamsChannel.signed_stream_name("system_monitor") %>"
+           data-turbo-permanent>
+      </div>
+    <% end %>
+  </body>
+</html>

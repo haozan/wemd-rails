@@ -1,0 +1,487 @@
+/*
+ * THIRD-PARTY LIBRARY CUSTOM THEMES
+ *
+ * This file contains custom styling for third-party UI libraries
+ * to match our design system variables
+ *
+ * Libraries included:
+ * - Tom Select (searchable select dropdown)
+ * - Flatpickr (date/time picker)
+ */
+
+@layer components {
+
+  /* ============================================================================
+     TOM SELECT CUSTOM THEME - Matches Design System
+     ============================================================================ */
+
+  /* Tom Select specific: dropdown arrow for single select */
+  .ts-wrapper.single .ts-control,
+  .ts-wrapper.single.input-active .ts-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+
+  /* Dropdown arrow for dark mode */
+  .dark .ts-wrapper.single .ts-control,
+  .dark .ts-wrapper.single.input-active .ts-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+
+  /* Keep dark background when not active and after selection */
+  .dark .ts-wrapper .ts-control {
+    background-color: hsl(var(--color-surface-elevated)) !important;
+  }
+
+  /* Dropdown */
+  .ts-dropdown {
+    border: 1.5px solid hsl(var(--color-border));
+    border-radius: var(--border-radius);
+    background: hsl(var(--color-surface));
+    box-shadow: var(--shadow-md);
+    margin-top: 0.25rem;
+    z-index: 1000;
+  }
+
+  /* Options */
+  .ts-dropdown .option {
+    padding: 0.5rem 0.75rem;
+    color: hsl(var(--color-text-primary));
+    cursor: pointer;
+    transition: background-color 0.15s;
+    border-radius: 0.375rem;
+    margin: 0.125rem 0.25rem;
+    min-height: 2.5rem;
+  }
+
+  .ts-dropdown .option:hover,
+  .ts-dropdown .option.active {
+    background-color: hsl(var(--color-primary) / 0.1);
+    color: hsl(var(--color-primary));
+  }
+
+  .ts-dropdown .option.selected {
+    background-color: hsl(var(--color-primary));
+    color: white;
+  }
+
+  /* First and last option extra spacing */
+  .ts-dropdown .option:first-child {
+    margin-top: 0.25rem;
+  }
+
+  .ts-dropdown .option:last-child {
+    margin-bottom: 0.25rem;
+  }
+
+  /* Option group headers */
+  .ts-dropdown .optgroup-header {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: hsl(var(--color-text-muted));
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  /* Fix multi-select padding when items are selected */
+  .ts-wrapper.multi.has-items .ts-control {
+    padding: 0.375rem 0.75rem;
+  }
+
+  /* Multi-select items (tags) */
+  .ts-wrapper.multi .ts-control > div {
+    background: hsl(var(--color-primary) / 0.1);
+    color: hsl(var(--color-primary));
+    border: 1px solid hsl(var(--color-primary) / 0.3);
+    border-radius: 0.375rem;
+    padding: 0.125rem 0.375rem;
+    margin: 0.125rem;
+    font-size: 0.875rem;
+  }
+
+  .ts-wrapper.multi .ts-control > div .remove {
+    border-left: 1px solid hsl(var(--color-primary) / 0.3);
+    margin-left: 0.375rem;
+    padding-left: 0.375rem;
+  }
+
+  .ts-wrapper.multi .ts-control > div .remove:hover {
+    color: hsl(var(--color-danger));
+  }
+
+  /* Search input inside dropdown */
+  .ts-dropdown .ts-dropdown-content {
+    max-height: 300px;
+  }
+
+  /* No results message */
+  .ts-dropdown .no-results {
+    padding: 0.75rem;
+    text-align: center;
+    color: hsl(var(--color-text-muted));
+    font-size: 0.875rem;
+  }
+
+  /* Loading indicator */
+  .ts-wrapper .spinner {
+    border-color: hsl(var(--color-primary) / 0.3);
+    border-top-color: hsl(var(--color-primary));
+  }
+
+  /* Dropdown dark mode */
+  .dark .ts-dropdown {
+    background: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-border));
+  }
+
+  .dark .ts-dropdown .optgroup-header {
+    background: hsl(var(--color-surface));
+  }
+
+  /* ============================================================================
+     FLATPICKR COLOR THEME - Only override colors to match design system
+     ============================================================================ */
+
+  .flatpickr-calendar {
+    background: hsl(var(--color-surface));
+    border-color: hsl(var(--color-border));
+    box-shadow: var(--shadow-lg);
+  }
+
+  .flatpickr-months {
+    background: hsl(var(--color-primary));
+  }
+
+  .flatpickr-current-month {
+    color: white;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: hsl(var(--color-primary));
+    color: white;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+    background: hsl(var(--color-primary-dark));
+  }
+
+  .flatpickr-current-month .numInputWrapper input {
+    color: white;
+  }
+
+  .flatpickr-months .flatpickr-prev-month,
+  .flatpickr-months .flatpickr-next-month {
+    color: white;
+    fill: white;
+  }
+
+  span.flatpickr-weekday {
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .flatpickr-day {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .flatpickr-day:hover {
+    background: hsl(var(--color-primary) / 0.1);
+    border-color: hsl(var(--color-primary) / 0.1);
+  }
+
+  .flatpickr-day.today {
+    border-color: hsl(var(--color-primary));
+    color: hsl(var(--color-primary));
+  }
+
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+    background: hsl(var(--color-primary));
+    border-color: hsl(var(--color-primary));
+    color: white;
+  }
+
+  .flatpickr-day.selected:hover,
+  .flatpickr-day.startRange:hover,
+  .flatpickr-day.endRange:hover {
+    background: hsl(var(--color-primary-dark));
+    border-color: hsl(var(--color-primary-dark));
+  }
+
+  .flatpickr-day.inRange {
+    background: hsl(var(--color-primary) / 0.15);
+    border-color: hsl(var(--color-primary) / 0.15);
+  }
+
+  .flatpickr-day.flatpickr-disabled,
+  .flatpickr-day.prevMonthDay,
+  .flatpickr-day.nextMonthDay {
+    color: hsl(var(--color-text-muted));
+  }
+
+  .flatpickr-time {
+    border-top-color: hsl(var(--color-border));
+  }
+
+  .flatpickr-time input {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .flatpickr-time input:hover,
+  .flatpickr-time input:focus {
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  .flatpickr-time .flatpickr-time-separator {
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .flatpickr-time .flatpickr-am-pm {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .flatpickr-time .flatpickr-am-pm:hover {
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  /* Dark mode */
+  .dark .flatpickr-calendar {
+    background: hsl(var(--color-surface-elevated));
+    border-color: hsl(var(--color-border));
+  }
+
+  .dark .flatpickr-months {
+    background: hsl(var(--color-primary));
+  }
+
+  .dark span.flatpickr-weekday {
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .dark .flatpickr-day {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .flatpickr-day:hover {
+    background: hsl(var(--color-primary) / 0.2);
+  }
+
+  .dark .flatpickr-day.flatpickr-disabled,
+  .dark .flatpickr-day.prevMonthDay,
+  .dark .flatpickr-day.nextMonthDay {
+    color: hsl(var(--color-text-muted));
+    opacity: 0.3;
+  }
+
+  .dark .flatpickr-time input:hover,
+  .dark .flatpickr-time input:focus {
+    background: hsl(var(--color-primary) / 0.1);
+  }
+
+  .dark .flatpickr-time .flatpickr-am-pm:hover {
+    background: hsl(var(--color-primary) / 0.1);
+  }
+
+  /* ============================================================================
+     WEMD EDITOR STYLES
+     ============================================================================ */
+
+  /* WeMD Toolbar */
+  .wemd-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: hsl(var(--color-surface));
+    border-bottom: var(--border-width) solid hsl(var(--color-border));
+    flex-shrink: 0;
+  }
+
+  .wemd-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0.375rem;
+    border-radius: var(--border-radius-sm);
+    border: none;
+    background: transparent;
+    color: hsl(var(--color-text-secondary));
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .wemd-tool-btn:hover {
+    background: hsl(var(--color-primary) / 0.1);
+    color: hsl(var(--color-primary));
+  }
+
+  .wemd-tool-btn:active {
+    transform: scale(0.95);
+  }
+
+  .wemd-tool-btn:focus {
+    outline: 2px solid hsl(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  .wemd-tool-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .wemd-tool-btn svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .wemd-toolbar-divider {
+    width: 1px;
+    height: 1.25rem;
+    background: hsl(var(--color-border));
+    margin: 0 0.25rem;
+  }
+
+  /* WeMD Editor Textarea */
+  .wemd-editor-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    padding: 1.5rem;
+    border: none;
+    background: transparent;
+    color: hsl(var(--color-text-primary));
+    font-family: var(--font-family-mono);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+  }
+
+  .wemd-editor-textarea::placeholder {
+    color: hsl(var(--color-text-muted));
+  }
+
+  /* WeMD Editor Textarea Scrollbar */
+  .wemd-editor-textarea {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--color-border)) transparent;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-thumb {
+    background: hsl(var(--color-border));
+    border-radius: 3px;
+  }
+
+  .wemd-editor-textarea::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--color-text-muted));
+  }
+
+  /* WeMD Preview Header */
+  .wemd-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: hsl(var(--color-surface));
+    border-bottom: var(--border-width) solid hsl(var(--color-border));
+    flex-shrink: 0;
+  }
+
+  /* WeMD Preview Content */
+  .wemd-preview-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  /* WeMD Preview Content Scrollbar */
+  .wemd-preview-content {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--color-border)) transparent;
+  }
+
+  .wemd-preview-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .wemd-preview-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .wemd-preview-content::-webkit-scrollbar-thumb {
+    background: hsl(var(--color-border));
+    border-radius: 3px;
+  }
+
+  .wemd-preview-content::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--color-text-muted));
+  }
+
+  /* WeMD Dark Mode Adaptations */
+  .dark .wemd-toolbar,
+  .dark .wemd-preview-header {
+    background: hsl(var(--color-surface));
+    border-bottom-color: hsl(var(--color-border));
+  }
+
+  .dark .wemd-tool-btn {
+    color: hsl(var(--color-text-secondary));
+  }
+
+  .dark .wemd-tool-btn:hover {
+    background: hsl(var(--color-primary) / 0.15);
+    color: hsl(var(--color-primary-light));
+  }
+
+  .dark .wemd-toolbar-divider {
+    background: hsl(var(--color-border));
+  }
+
+  .dark .wemd-editor-textarea {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .dark .wemd-editor-textarea::placeholder {
+    color: hsl(var(--color-text-muted));
+  }
+
+  .dark .wemd-preview-content {
+    background: hsl(var(--color-surface-elevated));
+  }
+
+  .dark .wemd-tool-btn:focus {
+    outline-color: hsl(var(--color-primary-light));
+  }
+
+  .dark .wemd-editor-textarea::-webkit-scrollbar-thumb,
+  .dark .wemd-preview-content::-webkit-scrollbar-thumb {
+    background: hsl(var(--color-border));
+  }
+
+  .dark .wemd-editor-textarea::-webkit-scrollbar-thumb:hover,
+  .dark .wemd-preview-content::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--color-text-muted));
+  }
+
+}

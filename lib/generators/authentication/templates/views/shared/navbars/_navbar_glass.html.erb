@@ -1,0 +1,103 @@
+<!-- Glass Navbar - Modern frosted glass effect with backdrop blur -->
+<!--
+STYLE VARIANTS - Uncomment or modify classes below to customize:
+
+Glass Effect:
+- Strong blur (default): backdrop-blur-md bg-surface-elevated/80
+- Light blur: backdrop-blur-sm bg-surface-elevated/70
+- Heavy blur: backdrop-blur-lg bg-surface-elevated/90
+- Custom: backdrop-blur-xl bg-white/60 dark:bg-gray-900/60
+
+Border:
+- Subtle (default): border-b border-border/50
+- Strong: border-b border-border
+- No border: remove "border-b"
+- Glow: border-b border-white/20 shadow-[0_1px_0_0_rgba(255,255,255,0.1)]
+
+Shadow:
+- Subtle (default): shadow-sm
+- Medium: shadow-md
+- None: remove shadow class
+
+Position:
+- Static (default): no position class
+- Sticky: sticky top-0 z-50
+- Fixed: fixed top-0 left-0 right-0 z-50
+
+Size:
+- Compact: h-14
+- Normal (default): h-16
+- Large: h-20
+-->
+<!-- DO NOT modify data-controller, data-action, or data-dropdown-target attributes -->
+
+<div data-controller="dropdown" data-dropdown-close-on-click-outside-value="false">
+  <nav class="sticky top-0 z-50 backdrop-blur-md bg-surface-elevated/70 border-b border-border/50 shadow-sm">
+    <div class="container-xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Logo -->
+        <div class="flex items-center">
+          <%= link_to Rails.application.config.x.appname, root_path, class: "text-xl font-bold text-primary" %>
+        </div>
+
+        <!-- Desktop navigation -->
+        <div class="hidden md:flex items-center space-x-6">
+          <%= render 'shared/nav_links' %>
+        </div>
+
+        <!-- Desktop auth -->
+        <div class="hidden md:flex items-center space-x-4">
+          <% if current_user %>
+            <%= render 'shared/user_dropdown' %>
+          <% else %>
+            <%= link_to "Sign In", sign_in_path, class: "btn-ghost btn-sm" %>
+            <%= link_to "Get Started", sign_up_path, class: "btn-primary btn-sm" %>
+          <% end %>
+        </div>
+
+        <!-- Mobile hamburger - DO NOT REMOVE -->
+        <button type="button"
+                data-action="click->dropdown#toggle"
+                class="md:hidden p-2 text-secondary hover:bg-surface rounded-lg transition-colors">
+          <%= lucide_icon "menu", class: "w-6 h-6" %>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile drawer - DO NOT REMOVE this structure -->
+  <div data-dropdown-target="menu" class="hidden fixed inset-0 z-[100] md:hidden">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-black/50" data-action="click->dropdown#close"></div>
+
+    <!-- Drawer content - Glass effect -->
+    <div class="fixed right-0 top-0 h-full w-64 backdrop-blur-xl bg-surface-elevated/95 shadow-xl overflow-y-auto">
+      <div class="p-4">
+        <!-- Close button -->
+        <button type="button"
+                data-action="click->dropdown#close"
+                class="mb-4 p-2 hover:bg-surface rounded-lg transition-colors">
+          <%= lucide_icon "x", class: "w-6 h-6" %>
+        </button>
+
+        <!-- Mobile navigation -->
+        <div class="mb-6 flex flex-col space-y-1">
+          <%= render 'shared/nav_links' %>
+        </div>
+
+        <!-- Mobile user menu -->
+        <div class="border-t border-gray-300 dark:border-gray-700 pt-4">
+          <% if current_user %>
+            <%= render 'shared/user_dropdown' %>
+          <% else %>
+            <div class="flex flex-col space-y-2">
+              <%= link_to "Sign In", sign_in_path, class: "btn-ghost btn-md w-full" %>
+              <%= link_to "Get Started", sign_up_path, class: "btn-primary btn-md w-full" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

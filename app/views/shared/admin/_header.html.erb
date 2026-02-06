@@ -1,0 +1,68 @@
+<div class="dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700">
+  <div class="container-xl">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center">
+        <!-- Mobile menu button -->
+        <div>
+          <button type="button"
+                  class="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
+                  data-action="click->dropdown#toggle">
+            <%= lucide_icon "menu", class: "w-6 h-6" %>
+          </button>
+        </div>
+
+        <!-- Search area -->
+        <div class="hidden sm:block ml-4">
+          <% if content_for?(:search) %>
+            <%= yield(:search) %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <!-- Theme toggle -->
+        <div data-controller="theme" data-theme-storage-key-value="admin-isdark">
+          <button type="button"
+                  class="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  data-action="click->theme#toggle">
+            <!-- Sun icon (light mode) -->
+            <%= lucide_icon "sun", class: "w-5 h-5", "data-theme-target": "lightIcon" %>
+            <!-- Moon icon (dark mode) -->
+            <%= lucide_icon "moon", class: "w-5 h-5 hidden", "data-theme-target": "darkIcon" %>
+          </button>
+        </div>
+
+        <!-- User dropdown -->
+        <div data-controller="dropdown" class="relative">
+          <button type="button"
+                  class="flex items-center p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  data-action="click->dropdown#toggle">
+            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+              <%= image_tag asset_path('admin-user.svg'), alt: current_admin&.name, class: "w-8 h-8 rounded-full" unless Rails.env.test? %>
+            </div>
+          </button>
+
+          <div data-dropdown-target="menu" class="hidden absolute right-0 mt-2 w-52 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+            <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+              <p class="font-medium text-gray-900 dark:text-gray-100"><%= current_admin&.name %></p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+            </div>
+            <div class="py-1">
+              <%= link_to edit_admin_account_path, class: "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" do %>
+                <%= lucide_icon "user", class: "w-4 h-4 mr-3" %>
+                Account Settings
+              <% end %>
+
+              <%= form_with url: admin_logout_path, method: :delete, local: true, class: "w-full" do |form| %>
+                <%= form.button type: "submit", class: "flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left" do %>
+                  <%= lucide_icon "log-out", class: "w-4 h-4 mr-3" %>
+                  Logout
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <%= link_to documents_path, class: "btn-outline" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+        返回列表
+      <% end %>
+      
+      <%= link_to edit_document_path(@document), class: "btn-primary" do %>
+        <%= lucide_icon "edit", class: "w-4 h-4 mr-2" %>
+        编辑文档
+      <% end %>
+    </div>
+
+    <!-- Document Title -->
+    <h1 class="text-4xl font-bold text-foreground mb-4">
+      <%= @document.title.presence || "无标题文档" %>
+    </h1>
+
+    <!-- Meta Info -->
+    <div class="flex items-center gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b border-border">
+      <span>创建于 <%= l(@document.created_at, format: :long) %></span>
+      <span>•</span>
+      <span>更新于 <%= l(@document.updated_at, format: :long) %></span>
+      <% if @document.theme %>
+        <span>•</span>
+        <span class="badge badge-secondary"><%= @document.theme.name %></span>
+      <% end %>
+    </div>
+
+    <!-- Rendered Content -->
+    <style>
+      <%= raw @theme.css %>
+    </style>
+    
+    <div id="wemd" class="prose max-w-none" data-controller="markdown-renderer" data-markdown-renderer-content-value="<%= @document.content.to_json %>">
+      <p class='text-muted-foreground'>加载中...</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,204 @@
+require 'rails_helper'
+
+RSpec.describe "<%= plural_name.humanize %>", type: :request do
+<%- if requires_authentication? -%>
+
+  let(:user) { last_or_create(:user) }
+    <%- if is_api_controller? -%>
+  before { api_sign_in_as(user) }
+    <%- else -%>
+  before { sign_in_as(user) }
+    <%- end -%>
+  <%- else -%>
+
+  # Uncomment this if controller need authentication
+  # let(:user) { last_or_create(:user) }
+    <%- if is_api_controller? -%>
+  # before { api_sign_in_as(user) }
+    <%- else -%>
+  # before { sign_in_as(user) }
+    <%- end -%>
+  <%- end -%>
+<%- if selected_actions.include?('index') -%>
+
+  describe "GET /<%= plural_name %>" do
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= plural_route_path %>
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      get <%= plural_route_path %>
+      expect(response).to be_success_with_view_check('index')
+      <%- end -%>
+    end
+  end
+<%- end -%>
+<%- if selected_actions.include?('show') -%>
+
+  <%- if single_resource? -%>
+  describe "GET /<%= singular_name %>" do
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= singular_route_path %>
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      get <%= singular_route_path %>
+      expect(response).to be_success_with_view_check('show')
+      <%- end -%>
+    end
+  end
+    <%- else -%>
+  describe "GET /<%= plural_name %>/:id" do
+    <%- if requires_authentication? -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>, user: user) }
+    <%- else -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>) }
+    <%- end -%>
+
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= singular_route_path %>(<%= singular_name %>_record)
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      get <%= singular_route_path %>(<%= singular_name %>_record)
+      expect(response).to be_success_with_view_check('show')
+      <%- end -%>
+    end
+  end
+    <%- end -%>
+<%- end -%>
+<%- if selected_actions.include?('new') -%>
+
+  describe "GET /<%= single_resource? ? singular_name : plural_name %>/new" do
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= new_route_path %>
+      expect(response).to have_http_status(:success)
+      <%- else -%>
+      get <%= new_route_path %>
+      expect(response).to be_success_with_view_check('new')
+      <%- end -%>
+    end
+  end
+<%- end -%>
+<%- if selected_actions.include?('edit') -%>
+
+  <%- if single_resource? -%>
+  describe "GET /<%= singular_name %>/edit" do
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= edit_route_path %>
+      expect(response).to have_http_status(:success)
+      <%- else -%>
+      get <%= edit_route_path %>
+      expect(response).to be_success_with_view_check('edit')
+      <%- end -%>
+    end
+  end
+    <%- else -%>
+  describe "GET /<%= plural_name %>/:id/edit" do
+    <%- if requires_authentication? -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>, user: user) }
+    <%- else -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>) }
+    <%- end -%>
+
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= edit_route_path %>(<%= singular_name %>_record)
+      expect(response).to have_http_status(:success)
+      <%- else -%>
+      get <%= edit_route_path %>(<%= singular_name %>_record)
+      expect(response).to be_success_with_view_check('edit')
+      <%- end -%>
+    end
+  end
+    <%- end -%>
+<%- end -%>
+<%- if crud_actions_to_generate.include?('create') -%>
+
+  <%- if single_resource? -%>
+  describe "POST /<%= singular_name %>" do
+    it "creates the <%= singular_name %>" do
+      <%- if is_api_controller? -%>
+      post <%= singular_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      post <%= singular_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }
+      expect(response).to be_success_with_view_check
+      <%- end -%>
+    end
+  end
+  <%- else -%>
+  describe "POST /<%= plural_name %>" do
+    it "creates a new <%= singular_name %>" do
+      <%- if is_api_controller? -%>
+      post <%= plural_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      post <%= plural_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }
+      expect(response).to be_success_with_view_check
+      <%- end -%>
+    end
+  end
+  <%- end -%>
+<%- end -%>
+<%- if crud_actions_to_generate.include?('update') -%>
+
+  <%- if single_resource? -%>
+  describe "PATCH /<%= singular_name %>" do
+    it "updates the <%= singular_name %>" do
+      <%- if is_api_controller? -%>
+      patch <%= singular_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      patch <%= singular_route_path %>, params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }
+      expect(response).to be_success_with_view_check
+      <%- end -%>
+    end
+  end
+  <%- else -%>
+
+  describe "PATCH /<%= plural_name %>/:id" do
+    <%- if requires_authentication? -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>, user: user) }
+    <%- else -%>
+    let(:<%= singular_name %>_record) { create(:<%= singular_name %>) }
+    <%- end -%>
+
+    it "updates the <%= singular_name %>" do
+      <%- if is_api_controller? -%>
+      patch <%= singular_route_path %>(<%= singular_name %>_record), params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      patch <%= singular_route_path %>(<%= singular_name %>_record), params: { <%= singular_name %>: attributes_for(:<%= singular_name %>) }
+      expect(response).to be_success_with_view_check
+      <%- end -%>
+    end
+  end
+  <%- end -%>
+<%- end -%>
+<%- non_crud_actions.each do |action| -%>
+
+  describe "GET /<%= single_resource? ? singular_name : plural_name %>/<%= action %>" do
+    it "returns http success" do
+      <%- if is_api_controller? -%>
+      get <%= action %>_<%= route_path_prefix %><%= single_resource? ? singular_name : plural_name %>_path
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to match(/json/)
+      <%- else -%>
+      get <%= action %>_<%= route_path_prefix %><%= single_resource? ? singular_name : plural_name %>_path
+      expect(response).to be_success_with_view_check('<%= action %>')
+      <%- end -%>
+    end
+  end
+
+  <%- end -%>
+end

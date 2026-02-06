@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require_relative '../lib/asset_helper'
+
+APP_ROOT = File.expand_path('..', __dir__)
+
+FileUtils.chdir APP_ROOT do
+  puts '🏗️  Pre-Deployment Build Validation'
+  puts '====================================='
+  puts ''
+
+  # 1. Bundle check
+  puts '💎 Checking bundle dependencies...'
+  unless system('bundle check', out: File::NULL, err: File::NULL)
+    abort "\n❌ Bundle check failed!\n\n   Run: bundle install\n"
+  end
+  puts '✅ Bundle dependencies satisfied'
+  puts ''
+
+  # 2. NPM dependencies
+  puts '📦 Checking npm dependencies...'
+  unless File.exist?('node_modules')
+    abort "\n❌ node_modules not found!\n\n   Run: npm install\n"
+  end
+  puts '✅ NPM dependencies installed'
+  puts ''
+
+  # 3. Lint (TypeScript + ESLint)
+  puts '🔍 Running lint checks (TypeScript + ESLint)...'
+  unless system('npm run lint', out: File::NULL, err: File::NULL)
+    puts ''
+    puts `npm run lint 2>&1`
+    abort "\n❌ Lint check failed!\n"
+  end
+  puts '✅ Lint checks passed'
+  puts ''
+
+  # 4. Asset compilation status
+  puts '🎨 Checking asset compilation status...'
+  if AssetHelper.needs_compilation?
+    abort "\n❌ Assets need compilation!\n\n   Run: npm run build\n   Then re-run: bin/build_check\n"
+  end
+  puts '✅ Assets are up to date'
+  puts ''
+
+  # Success
+  puts '🎉 ========================================'
+  puts '   ✅ All build checks passed!'
+  puts '   Ready for deployment.'
+  puts '========================================'
+end

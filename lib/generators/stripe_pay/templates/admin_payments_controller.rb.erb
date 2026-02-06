@@ -1,0 +1,58 @@
+module Admin
+  class PaymentsController < BaseController
+    before_action :set_payment, only: [:show]
+
+    def index
+      @payments = Payment.includes(:payable<% if @auth %>, :user<% end %>)
+                         .order(created_at: :desc)
+                         .page(params[:page])
+
+      # Filter by status
+      @payments = @payments.where(status: params[:status]) if params[:status].present?
+
+      # Filter by payable type
+      @payments = @payments.where(payable_type: params[:payable_type]) if params[:payable_type].present?
+
+      # Search by ID
+      if params[:q].present?
+        @payments = @payments.where("payments.id::text LIKE ?", "%#{params[:q]}%")
+      end
+
+      # Calculate statistics
+      calculate_statistics
+    end
+
+    def show
+      # View-only - payments should not be manually modified
+    end
+
+    private
+
+    def set_payment
+      @payment = Payment.find(params[:id])
+    end
+
+    def calculate_statistics
+      paid_payments = Payment.where(status: 'paid')
+
+      # Yesterday's revenue
+      @yesterday_revenue = paid_payments.where(created_at: 1.day.ago.beginning_of_day..1.day.ago.end_of_day).sum(:amount)
+
+      # This month's revenue
+      @this_month_revenue = paid_payments.where('created_at >= ?', Time.current.beginning_of_month).sum(:amount)
+      @this_month_count = paid_payments.where('created_at >= ?', Time.current.beginning_of_month).count
+
+      # Projected 6-month revenue based on current month's pace
+      days_passed = Time.current.day
+      days_in_month = Time.current.end_of_month.day
+      @projected_6month_revenue = if days_passed > 0
+        (@this_month_revenue / days_passed * days_in_month * 6).round(2)
+      else
+        0
+      end
+
+      # Total revenue from all paid payments
+      @total_revenue = paid_payments.sum(:amount)
+    end
+  end
+end
