@@ -114,11 +114,17 @@ module ViewOverridesHelper
     begin
       # Try to render the requested icon
       super(icon_name, **options)
-    rescue => e
+    rescue StandardError => e
       # If icon not found, show default icon
-      if e.message.include?('Unknown icon')
-        Rails.logger.warn("Missing lucide icon: #{icon_name}, using fallback: #{default_icon}")
-        super(default_icon, **options)
+      if e.message.include?('Unknown icon') || e.message.include?('undefined method')
+        Rails.logger.warn("Missing lucide icon: #{icon_name}, error: #{e.message}, using fallback: #{default_icon}")
+        begin
+          super(default_icon, **options)
+        rescue => fallback_error
+          # If even fallback fails, return empty string to avoid breaking the page
+          Rails.logger.error("Lucide icon system failure: #{fallback_error.message}")
+          ''.html_safe
+        end
       else
         raise
       end

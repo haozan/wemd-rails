@@ -613,6 +613,21 @@
     border-radius: 0 !important;
   }
 
+  /* 主题选择器样式优化 */
+  select.btn-secondary {
+    /* 已移除 - 使用新的 flex 布局方案 */
+  }
+
+  /* 主题选择器内部样式 - 确保文字可见 */
+  .btn-secondary select {
+    color: white !important;
+  }
+
+  .btn-secondary select option {
+    color: black !important;
+    background-color: white !important;
+  }
+
 } /* End of @layer components */
 
 @tailwind utilities;

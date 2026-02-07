@@ -17,6 +17,7 @@ import hljs from 'highlight.js'
 import markdownItMultiquote from './markdown-plugins/markdown-it-multiquote'
 import markdownItTableContainer from './markdown-plugins/markdown-it-table-container'
 import markdownItMath from './markdown-plugins/markdown-it-math'
+import markdownItHeadingWrapper from './markdown-plugins/markdown-it-heading-wrapper'
 
 /**
  * 创建 Markdown 解析器实例
@@ -77,6 +78,7 @@ export function createMarkdownParser(): MarkdownIt {
       label: true,
       labelAfter: true
     })
+    .use(markdownItHeadingWrapper) // 标题包裹插件，必须在最后应用
 
   return md
 }

@@ -15,11 +15,17 @@ class DocumentsController < ApplicationController
   end
 
   def new
-    @document = Current.user.documents.build(title: "新文章", content: "# 新文章\n\n")
-    @themes = Theme.available_for_user(Current.user)
-    # 设置默认主题（第一个内置主题）
-    @theme = Theme.builtin.first
-    @document.theme_id = @theme&.id
+    # 直接创建空白文档
+    @document = Current.user.documents.create!(
+      title: "新文章",
+      content: "# 新文章\n\n",
+      theme_id: Theme.builtin.first&.id,
+      is_auto_save: false
+    )
+    Document.cleanup_old_entries(Current.user)
+    
+    # 立即重定向到编辑页面并显示通知
+    redirect_to edit_document_path(@document), notice: "文档创建成功"
   end
 
   def edit
@@ -34,7 +40,8 @@ class DocumentsController < ApplicationController
     
     if @document.save
       Document.cleanup_old_entries(Current.user)
-      redirect_to edit_document_path(@document), notice: "文档创建成功"
+      # 前端已显示通知，后端直接重定向即可
+      redirect_to edit_document_path(@document)
     else
       @themes = Theme.available_for_user(Current.user)
       render :new, status: :unprocessable_entity
@@ -49,8 +56,15 @@ class DocumentsController < ApplicationController
       Document.cleanup_old_entries(Current.user)
       
       respond_to do |format|
-        format.html { redirect_to edit_document_path(@document), notice: "文档已保存" }
-        format.json { render json: { success: true, document: @document.as_json(only: [:id, :title, :saved_at]) } }
+        if params[:auto_save] == "true"
+          # 自动保存：静默更新，不重定向，不显示提示
+          format.html { render plain: 'OK', status: :ok }
+          format.json { render json: { success: true, document: @document.as_json(only: [:id, :title, :saved_at]) } }
+        else
+          # 手动保存：显示提示并重定向
+          format.html { redirect_to edit_document_path(@document), notice: "文档已保存" }
+          format.json { render json: { success: true, document: @document.as_json(only: [:id, :title, :saved_at]) } }
+        end
       end
     else
       respond_to do |format|

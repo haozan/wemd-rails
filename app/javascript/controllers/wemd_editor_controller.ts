@@ -9,7 +9,7 @@ export default class extends Controller<HTMLElement> {
     "editor",
     "preview",
     "themeSelect",
-    "saveButton"
+    "copyButton"
   ]
 
   static values = {
@@ -22,12 +22,16 @@ export default class extends Controller<HTMLElement> {
   declare readonly editorTarget: HTMLTextAreaElement
   declare readonly previewTarget: HTMLElement
   declare readonly themeSelectTarget: HTMLSelectElement
-  declare readonly saveButtonTarget: HTMLButtonElement
+  declare readonly copyButtonTarget: HTMLButtonElement
+  declare readonly hasCopyButtonTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
 
   private debounceTimer: number | null = null
+  private autoSaveTimer: number | null = null
+  private isNewDocument: boolean = false
+  private documentCreated: boolean = false
   private showHeadingMenu: boolean = false
   private showListMenu: boolean = false
   private showChartMenu: boolean = false
@@ -37,6 +41,9 @@ export default class extends Controller<HTMLElement> {
 
   connect(): void {
     console.log("WeMD Editor connected")
+    // 检测是否为新建文档页面（通过 URL 判断）
+    this.isNewDocument = window.location.pathname.includes('/documents/new')
+    
     // 初始化时渲染一次预览
     this.updatePreview()
     
@@ -48,11 +55,28 @@ export default class extends Controller<HTMLElement> {
     
     // 设置点击外部关闭菜单
     this.setupOutsideClickHandler()
+    
+    // 监听表单提交结果
+    this.formTarget.addEventListener('turbo:submit-end', (event: any) => {
+      if (this.isNewDocument && event.detail.success) {
+        // 新建文档成功后，标记为已创建，不再是新建页面
+        // Turbo 会自动跳转到 edit 页面
+        this.documentCreated = true
+        
+        // 显示复制到微信按钮
+        if (this.hasCopyButtonTarget) {
+          this.copyButtonTarget.classList.remove('hidden')
+        }
+      }
+    })
   }
 
   disconnect(): void {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
+    }
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer)
     }
     document.removeEventListener('mousedown', this.handleOutsideClick)
   }
@@ -617,21 +641,64 @@ export default class extends Controller<HTMLElement> {
    * 设置自动保存（检测未保存更改）
    */
   private setupAutoSave(): void {
-    let originalContent = this.editorTarget.value
-    
-    this.editorTarget.addEventListener('input', () => {
-      if (this.editorTarget.value !== originalContent) {
-        this.saveButtonTarget.classList.add('animate-pulse')
-      } else {
-        this.saveButtonTarget.classList.remove('animate-pulse')
+    // 监听编辑器内容变化和主题选择变化
+    const triggerAutoSave = () => {
+      if (this.autoSaveTimer) {
+        clearTimeout(this.autoSaveTimer)
       }
-    })
 
-    // 表单提交后重置标记
-    this.formTarget.addEventListener('turbo:submit-end', () => {
-      originalContent = this.editorTarget.value
-      this.saveButtonTarget.classList.remove('animate-pulse')
-    })
+      // 使用 2 秒防抖
+      this.autoSaveTimer = window.setTimeout(() => {
+        this.performAutoSave()
+      }, 2000)
+    }
+
+    this.editorTarget.addEventListener('input', triggerAutoSave)
+    this.titleInputTarget.addEventListener('input', triggerAutoSave)
+    this.themeSelectTarget.addEventListener('change', triggerAutoSave)
+  }
+
+  /**
+   * 执行自动保存
+   */
+  private async performAutoSave(): Promise<void> {
+    // 如果是新建文档页面，不执行自动保存
+    if (this.isNewDocument && !this.documentCreated) {
+      return
+    }
+    
+    // 使用 fetch 发送静默更新
+    const formData = new FormData(this.formTarget)
+    formData.append('auto_save', 'true')
+    
+    try {
+      const response = await fetch(this.formTarget.action, {
+        method: 'PATCH',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': this.getCSRFToken(),
+          'Accept': 'text/html'
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('自动保存失败:', `Status ${response.status} - ${response.statusText}`, errorText)
+      }
+    } catch (error) {
+      // 只在非网络错误时记录（网络离线等情况不应显示错误）
+      if (error instanceof Error && error.message !== 'Failed to fetch') {
+        console.error('自动保存错误:', error.message, error)
+      }
+    }
+  }
+
+  /**
+   * 获取 CSRF Token
+   */
+  private getCSRFToken(): string {
+    const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement
+    return meta ? meta.content : ''
   }
 
   /**
