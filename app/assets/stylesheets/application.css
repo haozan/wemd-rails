@@ -615,7 +615,86 @@
 
   /* 主题选择器样式优化 */
   select.btn-secondary {
-    /* 已移除 - 使用新的 flex 布局方案 */
+    /* 完全重置布局，不使用 flex */
+    display: block !important;
+    /* 移除所有 flex 相关属性 */
+    align-items: initial !important;
+    justify-content: initial !important;
+    /* 文本左对齐 */
+    text-align: left !important;
+    /* 设置合适的内边距 */
+    padding: 0.5rem 2rem 0.5rem 0.75rem !important;
+    /* 最小宽度 */
+    min-width: 120px;
+    /* 确保宽度自适应 */
+    width: auto;
+    /* 继承其他按钮样式 */
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    /* 移除默认的 select appearance */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* 添加自定义下拉箭头 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.25rem;
+  }
+
+  /* 专门为主题选择器创建的独立类，不继承 btn */
+  .select-theme {
+    /* 基础布局 - 完全匹配复制按钮 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    /* 内边距：与复制按钮完全一致 - px-5 py-2.5，但右侧留2rem给箭头 */
+    padding: 0.625rem 2rem 0.625rem 1.25rem;
+    /* 最小宽度 */
+    min-width: 120px;
+    /* 字体样式 - 与复制按钮一致 */
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    font-family: var(--font-family-sans);
+    /* 颜色和背景 - 使用深色文字确保可见性 */
+    color: hsl(var(--color-text-primary));
+    background-color: hsl(var(--color-secondary));
+    /* 边框和圆角 */
+    border: none;
+    border-radius: var(--border-radius);
+    /* 阴影 */
+    box-shadow: var(--shadow-sm);
+    /* 过渡效果 */
+    transition: all 0.2s;
+    /* 鼠标样式 */
+    cursor: pointer;
+    /* 移除默认的 select 样式 */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* 自定义下拉箭头 - 使用深色箭头 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%230f172a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.25rem;
+  }
+
+  .select-theme:hover {
+    background-color: hsl(var(--color-secondary-dark));
+    box-shadow: var(--shadow);
+  }
+
+  .select-theme:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--color-secondary) / 0.3);
+  }
+
+  .select-theme option {
+    color: hsl(var(--color-text-primary));
+    background-color: white;
   }
 
   /* 主题选择器内部样式 - 确保文字可见 */

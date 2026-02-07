@@ -40,12 +40,12 @@
           <%= f.select :theme_id,
               options_from_collection_for_select(@themes, :id, :name, @document.theme_id),
               { prompt: "选择主题" },
-              class: "btn-secondary py-2 px-3",
+              class: "select-theme",
               data: { wemd_editor_target: "themeSelect", action: "change->wemd-editor#updatePreview" } %>
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-medium text-white bg-[#07c160] hover:bg-[#06ad56] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#07c160] <%= 'hidden' if @document.new_record? %>"
+                  class="inline-flex items-center justify-center whitespace-nowrap px-5 py-2.5 text-sm font-medium text-white bg-[#07c160] hover:bg-[#06ad56] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#07c160] <%= 'hidden' if @document.new_record? %>"
                   style="border-radius: var(--border-radius); box-shadow: var(--shadow-sm);"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
