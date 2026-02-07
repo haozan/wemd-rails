@@ -28,6 +28,12 @@ export default class extends Controller<HTMLElement> {
   declare themesValue: Array<{ id: number; name: string; css: string }>
 
   private debounceTimer: number | null = null
+  private showHeadingMenu: boolean = false
+  private showListMenu: boolean = false
+  private showChartMenu: boolean = false
+  private headingMenuRef: HTMLElement | null = null
+  private listMenuRef: HTMLElement | null = null
+  private chartMenuRef: HTMLElement | null = null
 
   connect(): void {
     console.log("WeMD Editor connected")
@@ -39,12 +45,16 @@ export default class extends Controller<HTMLElement> {
     
     // 恢复深色模式偏好设置
     this.restoreDarkModePreference()
+    
+    // 设置点击外部关闭菜单
+    this.setupOutsideClickHandler()
   }
 
   disconnect(): void {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
     }
+    document.removeEventListener('mousedown', this.handleOutsideClick)
   }
 
   /**
@@ -121,19 +131,25 @@ export default class extends Controller<HTMLElement> {
     // 获取选中的主题 CSS
     const themeId = this.themeSelectTarget.value
     if (themeId) {
-      // 从 window.THEME_DATA 中获取主题 CSS
+      // 从 themesValue 中获取主题 CSS
       const themeData = this.getThemeData(themeId)
       const themeStyles = themeData?.css || ''
       
-      // 更新页面上的 style 标签（用于复制到微信等功能）
+      // 更新页面上的 style 标签（先清空再设置，避免样式堆积）
       const styleElement = document.getElementById('theme-styles')
-      if (styleElement && themeStyles) {
+      if (styleElement) {
         styleElement.textContent = themeStyles
       }
       
-      this.previewTarget.innerHTML = applyTheme(html, themeStyles)
+      // 应用主题包裹到预览区域
+      this.previewTarget.innerHTML = applyTheme(html)
     } else {
-      this.previewTarget.innerHTML = `<div id="wemd">${html}</div>`
+      // 没有选择主题时，清空样式
+      const styleElement = document.getElementById('theme-styles')
+      if (styleElement) {
+        styleElement.textContent = ''
+      }
+      this.previewTarget.innerHTML = applyTheme(html)
     }
 
     // 触发代码高亮和其他渲染后处理
@@ -175,10 +191,26 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 工具栏操作：插入标题
+   * 工具栏操作：切换标题菜单
    */
-  insertHeading(): void {
-    this.insertAtCursor('## ', '二级标题')
+  toggleHeadingMenu(event: Event): void {
+    event.stopPropagation()
+    this.showHeadingMenu = !this.showHeadingMenu
+    this.showListMenu = false
+    this.showChartMenu = false
+    this.updateDropdownMenus()
+  }
+
+  /**
+   * 插入指定级别的标题
+   */
+  insertHeadingLevel(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const prefix = button.dataset.prefix || '## '
+    const placeholder = button.dataset.placeholder || '标题'
+    this.insertAtCursor(prefix, placeholder)
+    this.showHeadingMenu = false
+    this.updateDropdownMenus()
   }
 
   /**
@@ -228,17 +260,50 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 工具栏操作：插入 Mermaid 图表
+   * 工具栏操作：切换图表菜单
    */
-  insertChart(): void {
-    this.insertAtCursor('```mermaid\n', 'graph TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    B -->|No| D[End]\n```\n')
+  toggleChartMenu(event: Event): void {
+    event.stopPropagation()
+    this.showChartMenu = !this.showChartMenu
+    this.showHeadingMenu = false
+    this.showListMenu = false
+    this.updateDropdownMenus()
   }
 
   /**
-   * 工具栏操作：插入列表
+   * 插入指定的 Mermaid 图表模板
    */
-  insertList(): void {
-    this.insertAtCursor('- ', '列表项')
+  insertChartTemplate(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const template = button.dataset.template || ''
+    if (template) {
+      this.insertAtCursor('```mermaid\n', `${template}\n\`\`\`\n`)
+      this.showChartMenu = false
+      this.updateDropdownMenus()
+    }
+  }
+
+  /**
+   * 工具栏操作：切换列表菜单
+   */
+  toggleListMenu(event: Event): void {
+    event.stopPropagation()
+    this.showListMenu = !this.showListMenu
+    this.showHeadingMenu = false
+    this.showChartMenu = false
+    this.updateDropdownMenus()
+  }
+
+  /**
+   * 插入指定类型的列表
+   */
+  insertListType(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const prefix = button.dataset.prefix || '- '
+    const placeholder = button.dataset.placeholder || '列表项'
+    this.insertAtCursor(prefix, placeholder)
+    this.showListMenu = false
+    this.updateDropdownMenus()
   }
 
   /**
@@ -258,7 +323,12 @@ export default class extends Controller<HTMLElement> {
       
       // 获取主题 CSS（从更新后的 style 标签）
       const themeStyles = document.getElementById('theme-styles')?.textContent || ''
-      const styledHtml = applyTheme(html, themeStyles)
+      
+      // 为 juice构造包含<style>标签的HTML（juice需要这个来转换为内联样式）
+      const styledHtml = `
+        <style>${themeStyles}</style>
+        ${applyTheme(html)}
+      `
       
       // 使用 juice 库将 CSS 转为内联样式
       let finalHtml = juice(styledHtml)
@@ -268,7 +338,7 @@ export default class extends Controller<HTMLElement> {
         finalHtml = this.simplifyKatexForWechat(finalHtml)
       }
       
-      // 清理 HTML
+      // 清理 HTML（移除<style>标签，因为已经转换为内联样式）
       finalHtml = finalHtml.trim().replace(/<style[^>]*>\s*<\/style>/gi, '')
       
       // 复制到剪贴板
@@ -367,6 +437,74 @@ export default class extends Controller<HTMLElement> {
       if (darkModeButton) {
         darkModeButton.setAttribute('aria-label', '切换到亮色模式')
       }
+    }
+  }
+
+  /**
+   * 设置点击外部关闭下拉菜单的处理器
+   */
+  private setupOutsideClickHandler(): void {
+    this.handleOutsideClick = this.handleOutsideClick.bind(this)
+    document.addEventListener('mousedown', this.handleOutsideClick)
+  }
+
+  /**
+   * 处理点击外部关闭菜单
+   */
+  private handleOutsideClick = (event: MouseEvent): void => {
+    const target = event.target as Node
+    
+    // 检查是否点击在下拉菜单或按钮内部
+    const clickedInsideHeading = this.headingMenuRef?.contains(target)
+    const clickedInsideList = this.listMenuRef?.contains(target)
+    const clickedInsideChart = this.chartMenuRef?.contains(target)
+    
+    if (!clickedInsideHeading && !clickedInsideList && !clickedInsideChart) {
+      this.showHeadingMenu = false
+      this.showListMenu = false
+      this.showChartMenu = false
+      this.updateDropdownMenus()
+    }
+  }
+
+  /**
+   * 更新下拉菜单的显示状态
+   */
+  private updateDropdownMenus(): void {
+    // 更新标题菜单
+    this.headingMenuRef = this.element.querySelector('.wemd-heading-dropdown')
+    const headingButton = this.element.querySelector('[data-action*="toggleHeadingMenu"]')
+    const headingMenu = this.element.querySelector('.wemd-heading-menu')
+    
+    if (headingButton) {
+      headingButton.classList.toggle('active', this.showHeadingMenu)
+    }
+    if (headingMenu) {
+      headingMenu.classList.toggle('hidden', !this.showHeadingMenu)
+    }
+
+    // 更新列表菜单
+    this.listMenuRef = this.element.querySelector('.wemd-list-dropdown')
+    const listButton = this.element.querySelector('[data-action*="toggleListMenu"]')
+    const listMenu = this.element.querySelector('.wemd-list-menu')
+    
+    if (listButton) {
+      listButton.classList.toggle('active', this.showListMenu)
+    }
+    if (listMenu) {
+      listMenu.classList.toggle('hidden', !this.showListMenu)
+    }
+
+    // 更新图表菜单
+    this.chartMenuRef = this.element.querySelector('.wemd-chart-dropdown')
+    const chartButton = this.element.querySelector('[data-action*="toggleChartMenu"]')
+    const chartMenu = this.element.querySelector('.wemd-chart-menu')
+    
+    if (chartButton) {
+      chartButton.classList.toggle('active', this.showChartMenu)
+    }
+    if (chartMenu) {
+      chartMenu.classList.toggle('hidden', !this.showChartMenu)
     }
   }
 
@@ -494,6 +632,43 @@ export default class extends Controller<HTMLElement> {
       originalContent = this.editorTarget.value
       this.saveButtonTarget.classList.remove('animate-pulse')
     })
+  }
+
+  /**
+   * 从历史记录恢复文档
+   */
+  restoreFromHistory(event: CustomEvent): void {
+    const { document } = event.detail
+    if (!document) return
+
+    // 确认是否要恢复
+    if (this.editorTarget.value && this.editorTarget.value !== document.content) {
+      if (typeof showToast === 'function') {
+        showToast('当前有未保存内容，请先保存后再恢复历史记录', 'error')
+      }
+      return
+    }
+
+    // 恢复标题
+    if (this.titleInputTarget) {
+      this.titleInputTarget.value = document.title || '未命名文章'
+    }
+
+    // 恢复内容
+    this.editorTarget.value = document.content || ''
+
+    // 恢复主题
+    if (this.themeSelectTarget && document.theme_id) {
+      this.themeSelectTarget.value = document.theme_id.toString()
+    }
+
+    // 更新预览
+    this.renderPreview()
+
+    // 显示提示
+    if (typeof showToast === 'function') {
+      showToast('已恢复历史记录', 'success')
+    }
   }
 }
 

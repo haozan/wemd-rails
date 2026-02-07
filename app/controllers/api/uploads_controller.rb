@@ -10,7 +10,7 @@ class Api::UploadsController < Api::BaseController
       return
     end
 
-    result = QiniuUploadService.call(uploaded_file, Current.user)
+    result = ImageUploadService.call(uploaded_file, Current.user)
     
     if result[:success]
       render json: result, status: :created

@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 /**
  * ImageUpload Controller
  * 
- * Handles image file selection, upload to Qiniu via ActiveStorage, and insertion into Markdown editor
+ * Handles image file selection, upload via ActiveStorage, and insertion into Markdown editor
  * 
  * Targets:
  * - fileInput: Hidden file input element

@@ -4,4 +4,3 @@
 
 <%# Public navigation links (visible to all users, authenticated or not) %>
 <%= link_to "首页", root_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path == '/'}" %>
-<%= link_to "我的文档", documents_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path.start_with?('/documents')}" %>

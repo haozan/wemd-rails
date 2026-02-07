@@ -1,16 +1,23 @@
 <!-- WeMD 编辑器页面 -->
 <div class="wemd-container" 
-     data-controller="wemd-editor image-upload"
+     data-controller="wemd-editor image-upload history-panel"
      data-wemd-editor-themes-value="<%= @themes.to_json(only: [:id, :name, :css]) %>"
-     data-action="trigger-image-upload@window->image-upload#selectFile image-upload:uploaded->wemd-editor#handleImageUploaded">
+     data-history-panel-current-document-id-value="<%= @document.id %>"
+     data-action="trigger-image-upload@window->image-upload#selectFile 
+                  image-upload:uploaded->wemd-editor#handleImageUploaded
+                  history:restore@window->wemd-editor#restoreFromHistory">
   <%= form_with model: @document, class: "h-full", data: { wemd_editor_target: "form", turbo: false } do |f| %>
     
     <!-- Header -->
     <header class="wemd-header">
       <div class="flex items-center gap-4">
-        <%= link_to documents_path, class: "text-muted-foreground hover:text-foreground transition-colors" do %>
-          <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
-        <% end %>
+        <!-- History Panel Toggle -->
+        <button type="button" 
+                class="text-muted-foreground hover:text-foreground transition-colors"
+                data-action="click->history-panel#toggle"
+                title="历史记录">
+          <%= lucide_icon "history", class: "w-5 h-5" %>
+        </button>
         
         <div class="flex-1">
           <%= f.text_field :title, 
@@ -54,9 +61,44 @@
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertItalic" title="斜体">
               <%= lucide_icon "italic", class: "w-4 h-4" %>
             </button>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertHeading" title="标题">
-              <%= lucide_icon "heading", class: "w-4 h-4" %>
-            </button>
+            
+            <!-- 标题下拉菜单 -->
+            <div class="wemd-heading-dropdown wemd-dropdown-container">
+              <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#toggleHeadingMenu" title="标题">
+                <%= lucide_icon "heading", class: "w-4 h-4" %>
+              </button>
+              <div class="wemd-heading-menu wemd-dropdown-menu hidden">
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertHeadingLevel"
+                        data-prefix="# "
+                        data-placeholder="一级标题">
+                  <%= lucide_icon "heading-1", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>一级标题</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertHeadingLevel"
+                        data-prefix="## "
+                        data-placeholder="二级标题">
+                  <%= lucide_icon "heading-2", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>二级标题</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertHeadingLevel"
+                        data-prefix="### "
+                        data-placeholder="三级标题">
+                  <%= lucide_icon "heading-3", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>三级标题</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertHeadingLevel"
+                        data-prefix="#### "
+                        data-placeholder="四级标题">
+                  <%= lucide_icon "heading-4", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>四级标题</span>
+                </button>
+              </div>
+            </div>
+            
             <div class="wemd-toolbar-divider"></div>
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertLink" title="链接">
               <%= lucide_icon "link", class: "w-4 h-4" %>
@@ -70,13 +112,78 @@
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertMath" title="数学公式">
               <%= lucide_icon "sigma", class: "w-4 h-4" %>
             </button>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertChart" title="Mermaid 图表">
-              <%= lucide_icon "bar-chart-3", class: "w-4 h-4" %>
-            </button>
+            
+            <!-- 图表下拉菜单 -->
+            <div class="wemd-chart-dropdown wemd-dropdown-container">
+              <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#toggleChartMenu" title="Mermaid 图表">
+                <%= lucide_icon "bar-chart-3", class: "w-4 h-4" %>
+              </button>
+              <div class="wemd-chart-menu wemd-dropdown-menu hidden">
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertChartTemplate"
+                        data-template="graph TD&#10;    A[开始] --> B{判断}&#10;    B -- 是 --> C[执行操作]&#10;    B -- 否 --> D[结束]&#10;    C --> D">
+                  <%= lucide_icon "workflow", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>流程图</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertChartTemplate"
+                        data-template="sequenceDiagram&#10;    participant Alice&#10;    participant Bob&#10;    Alice->>Bob: Hello Bob!&#10;    Bob-->>Alice: Hi Alice!">
+                  <%= lucide_icon "clock", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>时序图</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertChartTemplate"
+                        data-template="classDiagram&#10;    class Animal {&#10;        +String name&#10;        +void eat()&#10;    }&#10;    class Duck {&#10;        +void swim()&#10;    }&#10;    Animal <|-- Duck">
+                  <%= lucide_icon "network", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>类图</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertChartTemplate"
+                        data-template="gantt&#10;    title 项目开发计划&#10;    dateFormat YYYY-MM-DD&#10;    section 设计&#10;    需求分析 :a1, 2024-01-01, 3d&#10;    原型设计 :after a1, 5d">
+                  <%= lucide_icon "git-graph", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>甘特图</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertChartTemplate"
+                        data-template="pie title 市场份额&#10;    \"产品 A\" : 40&#10;    \"产品 B\" : 30&#10;    \"产品 C\" : 20&#10;    \"其他\" : 10">
+                  <%= lucide_icon "pie-chart", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>饼图</span>
+                </button>
+              </div>
+            </div>
+            
             <div class="wemd-toolbar-divider"></div>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertList" title="列表">
-              <%= lucide_icon "list", class: "w-4 h-4" %>
-            </button>
+            
+            <!-- 列表下拉菜单 -->
+            <div class="wemd-list-dropdown wemd-dropdown-container">
+              <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#toggleListMenu" title="列表">
+                <%= lucide_icon "list", class: "w-4 h-4" %>
+              </button>
+              <div class="wemd-list-menu wemd-dropdown-menu hidden">
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertListType"
+                        data-prefix="- "
+                        data-placeholder="列表项">
+                  <%= lucide_icon "list", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>无序列表</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertListType"
+                        data-prefix="1. "
+                        data-placeholder="列表项">
+                  <%= lucide_icon "list-ordered", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>有序列表</span>
+                </button>
+                <button type="button" class="wemd-dropdown-item" 
+                        data-action="click->wemd-editor#insertListType"
+                        data-prefix="- [ ] "
+                        data-placeholder="待办事项">
+                  <%= lucide_icon "check-square", class: "w-3.5 h-3.5 mr-2" %>
+                  <span>任务列表</span>
+                </button>
+              </div>
+            </div>
+            
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertQuote" title="引用">
               <%= lucide_icon "quote", class: "w-4 h-4" %>
             </button>
@@ -110,6 +217,77 @@
     </main>
   <% end %>
 
+  <!-- History Panel Sidebar -->
+  <aside class="history-sidebar fixed top-16 left-0 bottom-0 w-96 bg-surface border-r border-border shadow-xl 
+                transform -translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col"
+         data-history-panel-target="sidebar">
+    <!-- Sidebar Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
+      <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
+        <%= lucide_icon "history", class: "w-5 h-5" %>
+        历史记录
+      </h2>
+      <div class="flex items-center gap-2">
+        <button type="button"
+                class="text-muted-foreground hover:text-foreground transition-colors"
+                data-action="click->history-panel#createNew"
+                title="新建文章">
+          <%= lucide_icon "plus", class: "w-5 h-5" %>
+        </button>
+        <button type="button"
+                class="text-muted-foreground hover:text-destructive transition-colors"
+                data-action="click->history-panel#clearAll"
+                title="清空历史">
+          <%= lucide_icon "trash-2", class: "w-5 h-5" %>
+        </button>
+        <button type="button"
+                class="text-muted-foreground hover:text-foreground transition-colors"
+                data-action="click->history-panel#close"
+                title="关闭">
+          <%= lucide_icon "x", class: "w-5 h-5" %>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="px-6 py-4 border-b border-border bg-surface">
+      <div class="relative">
+        <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
+        <input type="text"
+               placeholder="搜索历史记录..."
+               class="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg 
+                      text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+               data-history-panel-target="searchInput"
+               data-action="input->history-panel#search" />
+      </div>
+    </div>
+
+    <!-- History List -->
+    <div class="flex-1 overflow-y-auto px-6 py-4">
+      <!-- Loading State -->
+      <div class="text-center py-12" data-history-panel-target="loadingState">
+        <p class="text-muted-foreground">正在加载...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="text-center py-12 hidden" data-history-panel-target="emptyState">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+          <%= lucide_icon "file-text", class: "w-8 h-8 text-muted-foreground" %>
+        </div>
+        <p class="text-muted-foreground">暂无历史记录</p>
+      </div>
+
+      <!-- List Container -->
+      <div class="space-y-3 hidden" data-history-panel-target="list">
+        <!-- 历史记录项将通过 JS 渲染到这里 -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay -->
+  <div class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity duration-300"
+       data-action="click->history-panel#close"></div>
+
   <!-- Hidden file input for image upload -->
   <input type="file" 
          accept="image/*" 
@@ -121,4 +299,21 @@
 <!-- 加载必要的 CSS -->
 <style id="theme-styles">
   <%= raw @theme.css if @theme %>
+</style>
+
+<style>
+/* History Sidebar Styles */
+.history-sidebar {
+  width: 400px;
+  max-width: 90vw;
+}
+
+.history-entry {
+  transition: all 0.2s ease;
+}
+
+.history-entry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
 </style>

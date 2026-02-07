@@ -1,166 +1,189 @@
-<div class="min-h-screen bg-gradient-to-br from-surface via-surface-elevated to-surface">
+<!-- WeMD Markdown Editor Landing Page -->
+<div class="min-h-screen bg-gradient-to-br from-background via-surface to-muted">
   <!-- Hero Section -->
-  <div class="container mx-auto px-4 pt-20 pb-32">
-    <div class="text-center max-w-4xl mx-auto">
-      <!-- Logo -->
-      <div class="flex justify-center mb-8">
-        <svg width="80" height="80" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="200" height="200" rx="40" fill="url(#gradient)"/>
-          <path d="M60 140L80 60L100 120L120 80L140 140" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-          <defs>
-            <linearGradient id="gradient" x1="0" y1="0" x2="200" y2="200">
-              <stop offset="0%" stop-color="#07c160"/>
-              <stop offset="100%" stop-color="#00a854"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Heading -->
-      <h1 class="text-5xl md:text-6xl font-bold text-foreground mb-6 tracking-tight">
-        WeMD 编辑器
-      </h1>
-      
-      <p class="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-        专为微信公众号打造的 Markdown 排版编辑器<br>
-        所见即所得，一键复制到公众号后台，让排版更简单
-      </p>
-
-      <!-- CTA Buttons -->
-      <div class="flex flex-wrap gap-4 justify-center">
-        <% if Current.user %>
-          <%= link_to documents_path, class: "btn-primary btn-lg" do %>
-            <%= lucide_icon "file-text", class: "w-5 h-5 mr-2" %>
-            我的文档
-          <% end %>
-          <%= link_to new_document_path, class: "btn-outline btn-lg" do %>
+  <section class="relative overflow-hidden">
+    <!-- Decorative Background -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
+      <div class="text-center">
+        <!-- Logo & Title -->
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-8 animate-float">
+          <%= lucide_icon "file-text", class: "w-10 h-10 text-primary" %>
+        </div>
+        
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
+          WeMD Markdown 编辑器
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto">
+          专为微信公众号优化的 Markdown 编辑器<br>
+          所见即所得，一键复制到微信
+        </p>
+        
+        <!-- CTA Buttons -->
+        <div class="flex justify-center items-center relative z-10">
+          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4", data: { turbo: false } do %>
             <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
-            新建文档
+            开始创作
           <% end %>
-        <% else %>
-          <%= link_to sign_up_path, class: "btn-primary btn-lg" do %>
-            <%= lucide_icon "user-plus", class: "w-5 h-5 mr-2" %>
-            开始使用
-          <% end %>
-          <%= link_to sign_in_path, class: "btn-outline btn-lg" do %>
-            <%= lucide_icon "log-in", class: "w-5 h-5 mr-2" %>
-            登录
-          <% end %>
-        <% end %>
+        </div>
+        
+        <p class="text-sm text-muted-foreground mt-6">
+          <%= lucide_icon "check", class: "w-4 h-4 inline mr-1" %>
+          注册后即可免费使用
+        </p>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- Features Section -->
-  <div class="container mx-auto px-4 pb-20">
-    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      <!-- Feature 1 -->
-      <div class="card text-center">
-        <div class="card-body">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <%= lucide_icon "zap", class: "w-8 h-8 text-primary" %>
+  <section class="py-20 bg-surface/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          为什么选择 WeMD？
+        </h2>
+        <p class="text-lg text-muted-foreground">
+          我们为微信公众号写作者提供最好的 Markdown 编辑体验
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "eye", class: "w-6 h-6 text-primary" %>
           </div>
           <h3 class="text-xl font-semibold text-foreground mb-3">实时预览</h3>
           <p class="text-muted-foreground">
-            Markdown 编辑的同时，实时预览微信公众号排版效果，所见即所得
+            边写边看效果，左侧编辑右侧预览，所见即所得的编辑体验
           </p>
         </div>
-      </div>
-
-      <!-- Feature 2 -->
-      <div class="card text-center">
-        <div class="card-body">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <%= lucide_icon "palette", class: "w-8 h-8 text-primary" %>
-          </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">主题定制</h3>
-          <p class="text-muted-foreground">
-            多套精美主题可选，支持自定义 CSS 样式，打造独特的文章风格
-          </p>
-        </div>
-      </div>
-
-      <!-- Feature 3 -->
-      <div class="card text-center">
-        <div class="card-body">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <%= lucide_icon "copy", class: "w-8 h-8 text-primary" %>
+        
+        <!-- Feature 2 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "copy", class: "w-6 h-6 text-primary" %>
           </div>
           <h3 class="text-xl font-semibold text-foreground mb-3">一键复制</h3>
           <p class="text-muted-foreground">
-            自动转换为带样式的富文本，直接粘贴到微信公众号后台，无需二次调整
+            专为微信公众号优化，点击复制按钮即可完美粘贴到微信编辑器
+          </p>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "palette", class: "w-6 h-6 text-primary" %>
+          </div>
+          <h3 class="text-xl font-semibold text-foreground mb-3">丰富主题</h3>
+          <p class="text-muted-foreground">
+            内置多种精美主题，从学术风格到赛博朋克，总有一款适合你
+          </p>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "git-branch", class: "w-6 h-6 text-primary" %>
+          </div>
+          <h3 class="text-xl font-semibold text-foreground mb-3">Mermaid 图表</h3>
+          <p class="text-muted-foreground">
+            支持流程图、时序图、甘特图等多种图表，让技术文章更专业
+          </p>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "function-square", class: "w-6 h-6 text-primary" %>
+          </div>
+          <h3 class="text-xl font-semibold text-foreground mb-3">数学公式</h3>
+          <p class="text-muted-foreground">
+            支持 LaTeX 数学公式，让学术论文和技术文档排版更美观
+          </p>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
+            <%= lucide_icon "history", class: "w-6 h-6 text-primary" %>
+          </div>
+          <h3 class="text-xl font-semibold text-foreground mb-3">历史记录</h3>
+          <p class="text-muted-foreground">
+            自动保存编辑历史，随时查看和恢复之前的版本，再也不怕误删
           </p>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- How It Works Section -->
-  <div class="container mx-auto px-4 pb-32">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="text-3xl md:text-4xl font-bold text-center text-foreground mb-16">
-        简单三步，完成排版
-      </h2>
-      
-      <div class="space-y-12">
-        <!-- Step 1 -->
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">
-            1
-          </div>
-          <div>
-            <h3 class="text-xl font-semibold text-foreground mb-2">编写 Markdown</h3>
-            <p class="text-muted-foreground">使用熟悉的 Markdown 语法编写文章，支持标题、列表、引用、代码块等所有常用格式</p>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">
-            2
-          </div>
-          <div>
-            <h3 class="text-xl font-semibold text-foreground mb-2">选择主题</h3>
-            <p class="text-muted-foreground">从多套精美主题中选择，或自定义 CSS 样式，实时预览排版效果</p>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">
-            3
-          </div>
-          <div>
-            <h3 class="text-xl font-semibold text-foreground mb-2">复制粘贴</h3>
-            <p class="text-muted-foreground">点击"复制到公众号"按钮，直接粘贴到微信公众号编辑器，保留所有样式</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- CTA Section -->
-  <div class="container mx-auto px-4 pb-20">
-    <div class="card bg-primary/5 border-2 border-primary/20 max-w-4xl mx-auto">
-      <div class="card-body text-center py-16">
-        <h2 class="text-3xl font-bold text-foreground mb-4">
-          准备好开始了吗？
+  <section class="py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="card-gradient p-12 rounded-2xl">
+        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          准备好开始创作了吗？
         </h2>
-        <p class="text-muted-foreground mb-8 text-lg">
-          立即注册，体验专业的微信公众号排版工具
+        <p class="text-lg text-muted-foreground mb-8">
+          加入我们，体验更好的 Markdown 编辑方式
         </p>
-        <% if Current.user %>
-          <%= link_to new_document_path, class: "btn-primary btn-lg" do %>
-            <%= lucide_icon "edit", class: "w-5 h-5 mr-2" %>
-            开始创作
+        
+        <div class="flex justify-center">
+          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4", data: { turbo: false } do %>
+            <%= lucide_icon "rocket", class: "w-5 h-5 mr-2" %>
+            立即开始
           <% end %>
-        <% else %>
-          <%= link_to sign_up_path, class: "btn-primary btn-lg" do %>
-            <%= lucide_icon "user-plus", class: "w-5 h-5 mr-2" %>
-            免费注册
-          <% end %>
-        <% end %>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center text-muted-foreground">
+        <p class="mb-2">
+          <%= lucide_icon "heart", class: "w-4 h-4 inline text-destructive" %>
+          使用 Rails 7.2 + Tailwind CSS 构建
+        </p>
+        <p class="text-sm">
+          © <%= Time.current.year %> WeMD Markdown Editor. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </footer>
 </div>
+
+<style>
+/* Grid Pattern Background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Gradient Card */
+.card-gradient {
+  background: linear-gradient(135deg, 
+    hsl(var(--color-surface)) 0%, 
+    hsl(var(--color-muted)) 100%);
+  border: 1px solid hsl(var(--color-border));
+}
+</style>

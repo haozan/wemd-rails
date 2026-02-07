@@ -1,8 +1,8 @@
 import katex from 'katex'
 import type MarkdownIt from 'markdown-it'
-import type StateInline from 'markdown-it/lib/rules_inline/state_inline'
-import type StateBlock from 'markdown-it/lib/rules_block/state_block'
-import type Token from 'markdown-it/lib/token'
+import type StateInline from 'markdown-it/lib/rules_inline/state_inline.mjs'
+import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs'
+import type Token from 'markdown-it/lib/token.mjs'
 
 const escapeHtml = (str: string) =>
   str
@@ -170,7 +170,7 @@ function math_block(
   const token = state.push('math_block', 'math', 0)
   token.block = true
   token.content =
-    (firstLine && firstLine.trim() ? firstLine + '\n' : '') +
+    (firstLine && firstLine.trim() ? `${firstLine}\n` : '') +
     state.getLines(start + 1, next, state.tShift[start], true) +
     (lastLine && lastLine.trim() ? lastLine : '')
   token.map = [start, state.line]
@@ -216,7 +216,7 @@ export default (md: MarkdownIt, options: any = {}) => {
   }
 
   const blockRenderer = function (tokens: Token[], idx: number) {
-    return katexBlock(tokens[idx].content) + '\n'
+    return `${katexBlock(tokens[idx].content)}\n`
   }
 
   // 注册规则

@@ -1,5 +1,5 @@
-class QiniuUploadService < ApplicationService
-  # 七牛云图片上传服务
+class ImageUploadService < ApplicationService
+  # 图片上传服务
   # 使用 ActiveStorage 存储图片，返回图片 URL
   
   def initialize(file, user)
@@ -20,7 +20,7 @@ class QiniuUploadService < ApplicationService
     )
     
     # 返回图片 URL
-    # 如果配置了七牛云或 S3，ActiveStorage 会自动上传
+    # ActiveStorage 会自动上传到配置的存储位置
     {
       success: true,
       url: rails_blob_url(blob),

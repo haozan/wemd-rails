@@ -92,14 +92,11 @@ export function parseMarkdown(markdown: string): string {
 }
 
 /**
- * 应用主题 CSS 到预览 HTML
+ * 应用主题包裹到预览 HTML
  * @param html 预览 HTML
- * @param themeCSS 主题 CSS
- * @returns 包裹了主题样式的 HTML
+ * @returns 包裹了 #wemd 容器的 HTML
  */
-export function applyTheme(html: string, themeCSS: string): string {
-  return `
-    <style>${themeCSS}</style>
-    <div id="wemd">${html}</div>
-  `
+export function applyTheme(html: string): string {
+  // 只负责包裹内容，样式由外部的 #theme-styles 元素管理
+  return `<div id="wemd">${html}</div>`
 }

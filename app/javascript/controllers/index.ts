@@ -11,6 +11,8 @@ import FlashController from "./flash_controller"
 import WemdEditorController from "./wemd_editor_controller"
 import MarkdownRendererController from "./markdown_renderer_controller"
 import ImageUploadController from "./image_upload_controller"
+import HistoryPanelController from "./history_panel_controller"
+import RedirectController from "./redirect_controller"
 
 const application = Application.start()
 
@@ -25,5 +27,7 @@ application.register("flash", FlashController)
 application.register("wemd-editor", WemdEditorController)
 application.register("markdown-renderer", MarkdownRendererController)
 application.register("image-upload", ImageUploadController)
+application.register("history-panel", HistoryPanelController)
+application.register("redirect", RedirectController)
 
 window.Stimulus = application

@@ -5,12 +5,7 @@ RSpec.describe "Documents", type: :request do
   let(:user) { last_or_create(:user) }
   before { sign_in_as(user) }
 
-  describe "GET /documents" do
-    it "returns http success" do
-      get documents_path
-      expect(response).to be_success_with_view_check('index')
-    end
-  end
+  # index action 现在只支持 JSON API，不支持 HTML 视图
 
   describe "GET /documents/:id" do
     let(:document_record) { create(:document, user: user) }

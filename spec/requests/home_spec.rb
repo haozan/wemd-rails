@@ -15,7 +15,7 @@ RSpec.describe "Home", type: :request do
       expect(response).to be_success_with_view_check('index')
 
       # Skip quality checks if redirected (no HTML content to validate)
-      return if response.redirect?
+      next if response.redirect?
 
       doc = Nokogiri::HTML(response.body)
 
