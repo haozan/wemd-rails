@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 interface HistoryEntry {
-  id: string
+  id: string  // friendly_id (slug)
   title: string
   content: string
   saved_at: string
@@ -40,10 +40,20 @@ export default class extends Controller<HTMLElement> {
   connect(): void {
     console.log("[HistoryPanel] connected")
     this.loadHistory()
+    
+    // 监听自动保存事件，刷新列表以更新主题标签
+    window.addEventListener('document:autosaved', this.handleAutoSaved)
   }
 
   disconnect(): void {
     console.log("[HistoryPanel] disconnected")
+    window.removeEventListener('document:autosaved', this.handleAutoSaved)
+  }
+  
+  // 处理自动保存事件
+  private handleAutoSaved = (): void => {
+    // 重新加载历史列表，更新主题标签
+    this.loadHistory()
   }
 
   // 切换侧边栏显示/隐藏
@@ -99,7 +109,7 @@ export default class extends Controller<HTMLElement> {
     this.renderHistory()
   }
 
-  // 恢复历史记录
+  // 恢复历史记录（切换到目标文档）
   // turbo-architecture-validation: disable
   async restore(event: Event): Promise<void> {
     event.preventDefault()
@@ -108,19 +118,175 @@ export default class extends Controller<HTMLElement> {
     
     if (!documentId) return
     
+    // 立即关闭侧边栏，避免跳转前闪烁
+    this.close()
+    
+    // 先保存当前编辑器内容
+    console.log('[HistoryPanel] Saving current document before switching')
+    await this.saveCurrentDocument()
+    
+    // 直接跳转到目标文档的编辑页面
+    console.log('[HistoryPanel] Navigating to document:', documentId)
+    window.location.href = `/documents/${documentId}/edit`
+  }
+  
+  /**
+   * 保存当前编辑器中的文档（切换前）
+   */
+  private async saveCurrentDocument(): Promise<void> {
+    // 查找页面上的 wemd-editor controller 实例
+    const editorElement = document.querySelector('[data-controller~="wemd-editor"]')
+    if (!editorElement) {
+      console.log('[HistoryPanel] No editor found, skip save')
+      return
+    }
+    
+    // 获取 Stimulus controller 实例
+    const editorController = this.application.getControllerForElementAndIdentifier(
+      editorElement as HTMLElement,
+      'wemd-editor'
+    )
+    
+    if (editorController && typeof (editorController as any).saveBeforeSwitch === 'function') {
+      try {
+        await (editorController as any).saveBeforeSwitch()
+        console.log('[HistoryPanel] Current document saved before restore')
+      } catch (error) {
+        console.error('[HistoryPanel] Save before restore failed:', error)
+      }
+    }
+  }
+
+  // 重命名文章
+  // turbo-architecture-validation: disable
+  async rename(event: Event): Promise<void> {
+    event.preventDefault()
+    event.stopPropagation()
+    
+    const button = event.currentTarget as HTMLElement
+    const documentId = button.dataset.documentId
+    
+    if (!documentId) return
+    
+    // 获取当前文章信息
+    const entry = this.history.find(e => e.id === documentId)
+    if (!entry) return
+    
+    // 获取对应的标题元素
+    const historyEntry = button.closest('.history-entry')
+    if (!historyEntry) return
+    
+    const titleElement = historyEntry.querySelector('h4')
+    if (!titleElement) return
+    
+    const currentTitle = entry.title || '未命名文章'
+    
+    // 创建输入框替换标题
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.value = currentTitle
+    input.className = 'w-full px-2 py-1 text-sm border border-primary rounded focus:outline-none focus:ring-2 focus:ring-primary'
+    
+    // 保存原始内容
+    const originalContent = titleElement.innerHTML
+    
+    // 替换为输入框
+    titleElement.innerHTML = ''
+    titleElement.appendChild(input)
+    input.focus()
+    input.select()
+    
+    // 保存函数
+    const save = async () => {
+      const newTitle = input.value.trim()
+      
+      if (!newTitle || newTitle === currentTitle) {
+        titleElement.innerHTML = originalContent
+        return
+      }
+      
+      try {
+        const response = await fetch(`/documents/${documentId}.json`, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-Token': this.getCsrfToken(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ document: { title: newTitle } })
+        })
+        
+        if (!response.ok) throw new Error('Failed to rename')
+        
+        // 更新本地数据
+        entry.title = newTitle
+        const filteredEntry = this.filteredHistory.find(e => e.id === documentId)
+        if (filteredEntry) {
+          filteredEntry.title = newTitle
+        }
+        
+        this.renderHistory()
+        this.showToast('重命名成功')
+      } catch (error) {
+        console.error('[HistoryPanel] Rename failed:', error)
+        titleElement.innerHTML = originalContent
+        this.showToast('重命名失败,请重试', 'error')
+      }
+    }
+    
+    // 取消函数
+    const cancel = () => {
+      titleElement.innerHTML = originalContent
+    }
+    
+    // 监听回车键保存
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        save()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        cancel()
+      }
+    })
+    
+    // 监听失去焦点时保存
+    input.addEventListener('blur', () => {
+      setTimeout(() => save(), 100)
+    })
+  }
+
+  // 复制文章
+  // turbo-architecture-validation: disable
+  async duplicate(event: Event): Promise<void> {
+    event.preventDefault()
+    event.stopPropagation()
+    
+    const button = event.currentTarget as HTMLElement
+    const documentId = button.dataset.documentId
+    
+    if (!documentId) return
+    
     try {
-      const response = await fetch(`/documents/${documentId}/restore.json`)
-      if (!response.ok) throw new Error('Failed to restore')
+      const response = await fetch(`/documents/${documentId}/duplicate.json`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': this.getCsrfToken(),
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (!response.ok) throw new Error('Failed to duplicate')
       
       const data = await response.json()
-      if (data.success && data.document) {
-        this.applyDocument(data.document)
-        this.close()
-        // Toast will be shown by wemd_editor_controller when it handles the history:restore event
+      
+      if (data.success) {
+        // 重新加载整个历史列表，避免重复添加
+        await this.loadHistory()
+        this.showToast('复制成功')
       }
     } catch (error) {
-      console.error('[HistoryPanel] Restore failed:', error)
-      this.showToast('恢复失败,请重试', 'error')
+      console.error('[HistoryPanel] Duplicate failed:', error)
+      this.showToast('复制失败,请重试', 'error')
     }
   }
 
@@ -151,10 +317,8 @@ export default class extends Controller<HTMLElement> {
         throw new Error(errorMessage)
       }
       
-      // 从列表中移除
-      this.history = this.history.filter(entry => entry.id !== documentId)
-      this.filteredHistory = this.filteredHistory.filter(entry => entry.id !== documentId)
-      this.renderHistory()
+      // 重新加载整个历史列表，确保删除生效
+      await this.loadHistory()
       this.showToast('已删除')
     } catch (error) {
       console.error('[HistoryPanel] Delete failed:', error)
@@ -188,7 +352,8 @@ export default class extends Controller<HTMLElement> {
   }
 
   // 新建文章
-  async createNew(): Promise<void> {
+  createNew(): void {
+    // 直接跳转到 /documents/new，后端会创建文档并重定向到编辑页
     window.location.href = '/documents/new'
   }
 
@@ -229,16 +394,38 @@ export default class extends Controller<HTMLElement> {
           <h4 class="text-sm font-semibold text-foreground line-clamp-2 flex-1">
             ${this.escapeHtml(title)}
           </h4>
-          <button type="button"
-                  class="text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                  data-action="click->history-panel#delete"
-                  data-document-id="${entry.id}"
-                  title="删除">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+            <button type="button"
+                    class="text-muted-foreground hover:text-primary transition-colors"
+                    data-action="click->history-panel#rename"
+                    data-document-id="${entry.id}"
+                    title="重命名">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button type="button"
+                    class="text-muted-foreground hover:text-primary transition-colors"
+                    data-action="click->history-panel#duplicate"
+                    data-document-id="${entry.id}"
+                    title="复制">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <button type="button"
+                    class="text-muted-foreground hover:text-destructive transition-colors"
+                    data-action="click->history-panel#delete"
+                    data-document-id="${entry.id}"
+                    title="删除">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         </div>
         
         <div class="flex items-center justify-between text-xs text-muted-foreground">

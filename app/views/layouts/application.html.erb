@@ -29,8 +29,9 @@
     <!-- Load error handler early to catch all errors -->
     <%= javascript_include_tag 'error_handler' if Rails.env.development? %>
     <%= javascript_include_tag 'application', type: "module" %>
-    <!-- Generate new favicon at `images/app-favicon.svg` at the first time, remove this line after generated  -->
-    <%= favicon_link_tag asset_path("app-favicon.svg") unless Rails.env.test? %>
+    <link rel="icon" type="image/png" href="<%= asset_path('favicon.png') %>">
+    <link rel="apple-touch-icon" href="<%= asset_path('apple-touch-icon.png') %>">
+    <link rel="icon" type="image/png" sizes="512x512" href="<%= asset_path('icon-512.png') %>">
   </head>
   <body class="flex flex-col min-h-screen text-foreground <%= body_class %>">
     <main class="flex-1 flex flex-col bg-surface">

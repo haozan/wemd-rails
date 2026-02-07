@@ -50,7 +50,7 @@
     --color-surface-secondary: 214 32% 97%;  /* #f6f8fb - 次级背景 */
     --color-surface-tertiary: 214 32% 96%;   /* #eef2f6 - 三级背景 */
     --color-surface-card-muted: 210 40% 96%; /* #f1f5f9 - 卡片弱化背景 */
-    --color-surface-hover: 142 76% 95%;      /* #e6f5eb - 悬停背景 */
+    --color-surface-hover: 0 84% 95%;      /* #fde6e6 - 悬停背景 */
 
     /* Text Colors - 文字色系统 */
     --color-text-primary: 222 47% 11%;    /* #0f172a - 主要文字 */
@@ -61,15 +61,15 @@
     --color-border: 220 13% 91%;          /* #e2e8f0 - 默认边框 */
     --color-border-light: 220 13% 91%;    /* #e2e8f0- 浅色边框 */
 
-    /* Brand Colors - 品牌色（微信绿）*/
-    --color-primary: 148 90% 40%;      /* #07c160 - 微信绿主色 */
-    --color-primary-light: 148 85% 50%;  /* 浅色变体 */
-    --color-primary-dark: 148 95% 35%;   /* 深色变体 */
-    --color-primary-gradient: linear-gradient(135deg, hsl(148 90% 40%) 0%, hsl(148 95% 35%) 100%);
+    /* Brand Colors - 品牌色（红色）*/
+    --color-primary: 0 84% 60%;      /* #ef4444 - 红色主色 */
+    --color-primary-light: 0 79% 70%;  /* 浅色变体 */
+    --color-primary-dark: 0 89% 50%;   /* 深色变体 */
+    --color-primary-gradient: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(0 89% 50%) 100%);
 
-    --color-secondary: 148 70% 55%;      /* 辅助色 */
-    --color-secondary-light: 148 60% 70%;
-    --color-secondary-dark: 148 80% 45%;
+    --color-secondary: 0 74% 65%;      /* 辅助色 */
+    --color-secondary-light: 0 69% 75%;
+    --color-secondary-dark: 0 79% 55%;
 
     /*  Neutral color - use only in special cases, avoid for text */
     --color-neutral: 0 0% 64%;
@@ -134,7 +134,7 @@
     --color-surface-secondary: 0 0% 18%; /* #2d2d30 - 次级背景 */
     --color-surface-tertiary: 0 0% 20%;  /* #333333 - 三级背景 */
     --color-surface-card-muted: 0 0% 16%; /* #2a2a2b - 卡片弱化背景 */
-    --color-surface-hover: 120 15% 17%;   /* #2a3a2e - 悬停背景 */
+    --color-surface-hover: 0 15% 17%;   /* #2e2a2a - 悬停背景 */
 
     /* Text Colors - 暗色文字系统 */
     --color-text-primary: 0 0% 83%;    /* #d4d4d4 - 主要文字 */
@@ -145,15 +145,15 @@
     --color-border: 0 0% 24%;          /* #3c3c3c - 默认边框 */
     --color-border-light: 0 0% 25%;    /* #404040 - 浅色边框 */
 
-    /* Brand Colors - 品牌色（保持微信绿）*/
-    --color-primary: 148 80% 50%;      /* 暗色模式下的微信绿 */
-    --color-primary-light: 148 75% 60%; /* 浅色变体 */
-    --color-primary-dark: 148 85% 45%; /* 深色变体 */
-    --color-primary-gradient: linear-gradient(135deg, hsl(148 80% 50%) 0%, hsl(148 85% 45%) 100%);
+    /* Brand Colors - 品牌色（红色）*/
+    --color-primary: 0 84% 65%;      /* 暗色模式下的红色 */
+    --color-primary-light: 0 79% 75%; /* 浅色变体 */
+    --color-primary-dark: 0 89% 55%; /* 深色变体 */
+    --color-primary-gradient: linear-gradient(135deg, hsl(0 84% 65%) 0%, hsl(0 89% 55%) 100%);
 
-    --color-secondary: 148 65% 60%;    /* 辅助色 */
-    --color-secondary-light: 148 60% 70%;
-    --color-secondary-dark: 148 70% 50%;
+    --color-secondary: 0 74% 70%;    /* 辅助色 */
+    --color-secondary-light: 0 69% 80%;
+    --color-secondary-dark: 0 79% 60%;
 
     /* Status colors optimization for dark mode - brighter and more saturated */
     --color-success: 145 80% 50%;      /* Brighter green */

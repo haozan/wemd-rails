@@ -43,7 +43,10 @@ Additional Effects:
         <!-- Left section: Logo + Navigation -->
         <div class="flex items-center space-x-8">
           <!-- Logo -->
-          <%= link_to Rails.application.config.x.appname, root_path, class: "text-xl font-bold text-primary" %>
+          <%= link_to root_path, class: "flex items-center space-x-2" do %>
+            <%= image_tag 'icon-512.png', alt: Rails.application.config.x.appname, class: 'h-8 w-8' %>
+            <span class="text-xl font-bold text-primary"><%= Rails.application.config.x.appname %></span>
+          <% end %>
 
           <!-- Desktop navigation -->
           <div class="hidden lg:flex items-center space-x-6">

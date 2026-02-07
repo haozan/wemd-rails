@@ -1,4 +1,4 @@
-class ImageUploadService < ApplicationService
+class QiniuUploadService < ApplicationService
   # 图片上传服务
   # 使用 ActiveStorage 存储图片，返回图片 URL
   

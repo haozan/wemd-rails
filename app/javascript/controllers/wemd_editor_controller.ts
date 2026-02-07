@@ -9,7 +9,8 @@ export default class extends Controller<HTMLElement> {
     "editor",
     "preview",
     "themeSelect",
-    "copyButton"
+    "copyButton",
+    "saveStatus"
   ]
 
   static values = {
@@ -23,15 +24,15 @@ export default class extends Controller<HTMLElement> {
   declare readonly previewTarget: HTMLElement
   declare readonly themeSelectTarget: HTMLSelectElement
   declare readonly copyButtonTarget: HTMLButtonElement
+  declare readonly saveStatusTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
+  declare readonly hasSaveStatusTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
 
   private debounceTimer: number | null = null
   private autoSaveTimer: number | null = null
-  private isNewDocument: boolean = false
-  private documentCreated: boolean = false
   private showHeadingMenu: boolean = false
   private showListMenu: boolean = false
   private showChartMenu: boolean = false
@@ -41,39 +42,34 @@ export default class extends Controller<HTMLElement> {
 
   connect(): void {
     console.log("WeMD Editor connected")
-    // 检测是否为新建文档页面（通过 URL 判断）
-    this.isNewDocument = window.location.pathname.includes('/documents/new')
+    console.log('[WeMD Debug] Checking saveStatus target...', {
+      hasSaveStatusTarget: this.hasSaveStatusTarget,
+      saveStatusElement: this.hasSaveStatusTarget ? this.saveStatusTarget : null
+    })
     
-    // 初始化时渲染一次预览
     this.updatePreview()
-    
-    // 添加自动保存提示
     this.setupAutoSave()
     
-    // 设置点击外部关闭菜单
-    this.setupOutsideClickHandler()
+    // 初始化状态显示为"已保存"
+    if (this.hasSaveStatusTarget) {
+      console.log('[WeMD Debug] Initializing save status to "saved"')
+      this.updateSaveStatus('saved')
+    } else {
+      console.warn('[WeMD Debug] saveStatus target not found!')
+    }
     
-    // 监听表单提交结果
-    this.formTarget.addEventListener('turbo:submit-end', (event: any) => {
-      if (this.isNewDocument && event.detail.success) {
-        // 新建文档成功后，标记为已创建，不再是新建页面
-        // Turbo 会自动跳转到 edit 页面
-        this.documentCreated = true
-        
-        // 显示复制到微信按钮
-        if (this.hasCopyButtonTarget) {
-          this.copyButtonTarget.classList.remove('hidden')
-        }
-      }
-    })
+    this.setupOutsideClickHandler()
   }
 
   disconnect(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer)
-    }
+    // 在页面卸载前立即保存（如果有未保存的更改）
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer)
+      console.log('[WeMD AutoSave] disconnect - performing immediate save before unmount')
+      this.performAutoSaveSync()
+    }
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
     }
     document.removeEventListener('mousedown', this.handleOutsideClick)
   }
@@ -377,51 +373,6 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 创建新文章（立即保存并跳转）
-   */
-  // turbo-architecture-validation: disable
-  async createNewDocument(): Promise<void> {
-    try {
-      // 获取 CSRF token
-      const csrfToken = this.getCSRFToken()
-      
-      // 准备默认数据
-      const formData = new FormData()
-      formData.append('document[title]', '默认主题')
-      formData.append('document[content]', '# 默认主题\n\n开始编写您的 Markdown 文档...')
-      
-      // 获取当前主题 ID（如果有）
-      const themeId = this.themeSelectTarget.value
-      if (themeId) {
-        formData.append('document[theme_id]', themeId)
-      }
-      
-      // 发送 POST 请求创建文章
-      const response = await fetch('/documents', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': csrfToken,
-          'Accept': 'application/json'
-        },
-        body: formData
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        // 跳转到新文章的编辑页面
-        window.location.href = `/documents/${data.id}/edit`
-      } else {
-        throw new Error('创建失败')
-      }
-    } catch (error) {
-      console.error('创建新文章失败:', error)
-      if (typeof showToast === 'function') {
-        showToast('❌ 创建新文章失败，请重试', 'error')
-      }
-    }
-  }
-
-  /**
    * 设置点击外部关闭下拉菜单的处理器
    */
   private setupOutsideClickHandler(): void {
@@ -600,12 +551,19 @@ export default class extends Controller<HTMLElement> {
   private setupAutoSave(): void {
     // 监听编辑器内容变化和主题选择变化
     const triggerAutoSave = () => {
+      console.log('[WeMD AutoSave] triggerAutoSave called - starting 2s debounce timer')
+      
+      // 显示"编辑中"状态
+      this.updateSaveStatus('editing')
+      
       if (this.autoSaveTimer) {
+        console.log('[WeMD AutoSave] Clearing existing timer')
         clearTimeout(this.autoSaveTimer)
       }
 
       // 使用 2 秒防抖
       this.autoSaveTimer = window.setTimeout(() => {
+        console.log('[WeMD AutoSave] Debounce timer expired, calling performAutoSave')
         this.performAutoSave()
       }, 2000)
     }
@@ -613,20 +571,66 @@ export default class extends Controller<HTMLElement> {
     this.editorTarget.addEventListener('input', triggerAutoSave)
     this.titleInputTarget.addEventListener('input', triggerAutoSave)
     this.themeSelectTarget.addEventListener('change', triggerAutoSave)
+    console.log('[WeMD AutoSave] Auto-save listeners registered on editor, title, and theme select')
+  }
+
+  /**
+   * 同步执行自动保存（不使用 async，用于 disconnect 等需要立即保存的场景）
+   */
+  private performAutoSaveSync(): void {
+    console.log('[WeMD AutoSave] performAutoSaveSync called (synchronous save)')
+    
+    // 使用 sendBeacon 或同步 XMLHttpRequest 确保在页面卸载前完成保存
+    const formData = new FormData(this.formTarget)
+    
+    console.log('[WeMD AutoSave] Sending synchronous save to', this.formTarget.action)
+    
+    // 优先使用 sendBeacon（更可靠）
+    if (navigator.sendBeacon) {
+      try {
+        const sent = navigator.sendBeacon(this.formTarget.action, formData)
+        if (sent) {
+          console.log('[WeMD AutoSave] Sync save sent via sendBeacon')
+        } else {
+          console.warn('[WeMD AutoSave] sendBeacon failed, trying XMLHttpRequest')
+          this.performSyncXHR(formData)
+        }
+      } catch (error) {
+        console.error('[WeMD AutoSave] sendBeacon error:', error)
+        this.performSyncXHR(formData)
+      }
+    } else {
+      this.performSyncXHR(formData)
+    }
+  }
+  
+  /**
+   * 使用同步 XMLHttpRequest 作为 sendBeacon 的后备方案
+   */
+  private performSyncXHR(formData: FormData): void {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PATCH', this.formTarget.action, false) // false = 同步请求
+    xhr.setRequestHeader('X-CSRF-Token', this.getCSRFToken())
+    try {
+      xhr.send(formData)
+      console.log('[WeMD AutoSave] Sync save completed via XHR, status:', xhr.status)
+    } catch (error) {
+      console.error('[WeMD AutoSave] Sync XHR failed:', error)
+    }
   }
 
   /**
    * 执行自动保存
    */
   private async performAutoSave(): Promise<void> {
-    // 如果是新建文档页面，不执行自动保存
-    if (this.isNewDocument && !this.documentCreated) {
-      return
-    }
+    console.log('[WeMD AutoSave] performAutoSave called', {
+      formAction: this.formTarget.action
+    })
     
     // 使用 fetch 发送静默更新
     const formData = new FormData(this.formTarget)
-    formData.append('auto_save', 'true')
+    
+    console.log('[WeMD AutoSave] Sending PATCH request to', this.formTarget.action)
     
     try {
       const response = await fetch(this.formTarget.action, {
@@ -640,12 +644,20 @@ export default class extends Controller<HTMLElement> {
       
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('自动保存失败:', `Status ${response.status} - ${response.statusText}`, errorText)
+        console.error('[WeMD AutoSave] 自动保存失败:', `Status ${response.status} - ${response.statusText}`, errorText)
+        this.updateSaveStatus('error')
+      } else {
+        console.log('[WeMD AutoSave] Auto-save successful, dispatching event')
+        // 显示"已保存"状态
+        this.updateSaveStatus('saved')
+        // 自动保存成功后，派发事件通知历史面板刷新
+        // 这样主题切换后能立即在文章目录中看到更新的主题标签
+        window.dispatchEvent(new CustomEvent('document:autosaved'))
       }
     } catch (error) {
       // 只在非网络错误时记录（网络离线等情况不应显示错误）
       if (error instanceof Error && error.message !== 'Failed to fetch') {
-        console.error('自动保存错误:', error.message, error)
+        console.error('[WeMD AutoSave] 自动保存错误:', error.message, error)
       }
     }
   }
@@ -656,6 +668,41 @@ export default class extends Controller<HTMLElement> {
   private getCSRFToken(): string {
     const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement
     return meta ? meta.content : ''
+  }
+
+  /**
+   * 更新保存状态显示
+   */
+  private updateSaveStatus(status: 'editing' | 'saved' | 'error'): void {
+    if (!this.hasSaveStatusTarget) return
+    
+    const statusConfig = {
+      editing: { text: '编辑中...', class: 'text-yellow-600' },
+      saved: { text: '已保存', class: 'text-green-600' },
+      error: { text: '保存失败', class: 'text-red-600' }
+    }
+    
+    const config = statusConfig[status]
+    this.saveStatusTarget.textContent = config.text
+    this.saveStatusTarget.className = `text-sm ${config.class}`
+    
+    console.log('[WeMD AutoSave] Status updated to:', status)
+  }
+
+  /**
+   * 立即保存当前文档（供外部调用，如切换前保存）
+   */
+  saveBeforeSwitch(): Promise<void> {
+    console.log('[WeMD AutoSave] saveBeforeSwitch called - performing immediate save')
+    
+    // 清除防抖定时器
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer)
+      this.autoSaveTimer = null
+    }
+    
+    // 立即执行保存
+    return this.performAutoSave()
   }
 
   /**

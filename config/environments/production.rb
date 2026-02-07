@@ -20,8 +20,8 @@ Rails.application.configure do
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
   # config.require_master_key = true
 
-  # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
-  # config.public_file_server.enabled = false
+  # Enable serving static files from public/ for containerized deployment
+  config.public_file_server.enabled = true
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
@@ -30,8 +30,8 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the cloud storage bucket (S3/GCS)
-  config.active_storage.service = :storage_bucket
+  # Store uploaded files on local disk storage
+  config.active_storage.service = :local
 
   # Mount Action Cable outside main process or domain.
   config.action_cable.disable_request_forgery_protection = true

@@ -2,7 +2,7 @@
 <div class="wemd-container" 
      data-controller="wemd-editor image-upload history-panel"
      data-wemd-editor-themes-value="<%= @themes.to_json(only: [:id, :name, :css]) %>"
-     data-history-panel-current-document-id-value="<%= @document.id %>"
+     data-history-panel-current-document-id-value="<%= @document.friendly_id %>"
      data-action="trigger-image-upload@window->image-upload#selectFile 
                   image-upload:uploaded->wemd-editor#handleImageUploaded
                   history:restore@window->wemd-editor#restoreFromHistory">
@@ -20,18 +20,23 @@
         </button>
         
         <!-- New Document Button -->
-        <button type="button" 
-                class="text-muted-foreground hover:text-foreground transition-colors"
-                data-action="click->wemd-editor#createNewDocument"
-                title="新建文章">
+        <%= link_to new_document_path, 
+                    class: "text-muted-foreground hover:text-foreground transition-colors",
+                    title: "新建文章",
+                    data: { turbo: false } do %>
           <%= lucide_icon "plus", class: "w-5 h-5" %>
-        </button>
+        <% end %>
         
         <div class="flex-1">
           <%= f.text_field :title, 
               placeholder: "无标题文档", 
               class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
               data: { wemd_editor_target: "titleInput" } %>
+        </div>
+
+        <!-- Save Status Indicator -->
+        <div class="flex items-center gap-2 mr-4">
+          <span class="text-sm text-muted-foreground" data-wemd-editor-target="saveStatus">已保存</span>
         </div>
 
         <!-- Action Buttons -->
@@ -45,8 +50,7 @@
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="inline-flex items-center justify-center whitespace-nowrap px-5 py-2.5 text-sm font-medium text-white bg-[#07c160] hover:bg-[#06ad56] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#07c160] <%= 'hidden' if @document.new_record? %>"
-                  style="border-radius: var(--border-radius); box-shadow: var(--shadow-sm);"
+                  class="btn-primary <%= 'hidden' if @document.new_record? %>"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
             <%= lucide_icon "copy", class: "w-5 h-5 mr-2" %>
@@ -230,18 +234,6 @@
         文章目录
       </h2>
       <div class="flex items-center gap-2">
-        <button type="button"
-                class="text-muted-foreground hover:text-foreground transition-colors"
-                data-action="click->history-panel#createNew"
-                title="新建文章">
-          <%= lucide_icon "plus", class: "w-5 h-5" %>
-        </button>
-        <button type="button"
-                class="text-muted-foreground hover:text-destructive transition-colors"
-                data-action="click->history-panel#clearAll"
-                title="清空历史">
-          <%= lucide_icon "trash-2", class: "w-5 h-5" %>
-        </button>
         <button type="button"
                 class="text-muted-foreground hover:text-foreground transition-colors"
                 data-action="click->history-panel#close"

@@ -11,9 +11,10 @@
 # DATABASE_URL will be setted in production, Rails will check it automatically!
 
 
-# Use `rake secret` to generate one key
-# production need!!!
-SECRET_KEY_BASE: ''
+# Use `rails secret` to generate one key
+# In production, this should be set via environment variable SECRET_KEY_BASE
+# The deployment system will automatically set this via ENV
+SECRET_KEY_BASE: '<%= ENV.fetch("SECRET_KEY_BASE", "") %>'
 
 # Set this value to generate email sending URLs and callback URLs
 # production need!!!

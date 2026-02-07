@@ -11,6 +11,10 @@
 /.env*
 !/.env*.erb
 
+# Ignore local config files (will be generated from .example files in container)
+/config/application.yml
+/config/database.yml
+
 # Ignore all default key files.
 /config/master.key
 /config/credentials/*.key

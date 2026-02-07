@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :documents do
     member do
       get :restore
+      post :duplicate
     end
     collection do
       delete :clear_history
@@ -55,6 +56,9 @@ Rails.application.routes.draw do
   # Authentication routes generated end
 
   # write your business logic routes here
+
+  # 开始创作 - 智能跳转到最新文档或演示文档
+  get 'start_writing', to: 'home#start_writing', as: :start_writing
 
   # API routes
   namespace :api do

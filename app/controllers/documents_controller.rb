@@ -1,13 +1,17 @@
 class DocumentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_document, only: [:show, :edit, :update, :destroy, :restore]
-  before_action :authorize_document, only: [:edit, :update, :destroy]
+  before_action :set_document, only: [:show, :edit, :update, :destroy, :restore, :duplicate]
+  before_action :authorize_document, only: [:edit, :update, :destroy, :duplicate]
 
   # 历史记录列表 API (仅 JSON)
   # turbo-architecture-validation: disable
   def index
     @documents = Current.user.documents.history_entries.limit(50)
-    render json: @documents.as_json(only: [:id, :title, :content, :saved_at, :created_at, :theme_id], include: { theme: { only: [:id, :name] } })
+    render json: @documents.as_json(
+      only: [:title, :content, :saved_at, :created_at, :theme_id], 
+      methods: [:friendly_id],
+      include: { theme: { only: [:id, :name] } }
+    ).map { |doc| doc.merge('id' => doc['friendly_id']).except('friendly_id') }
   end
 
   def show
@@ -15,23 +19,19 @@ class DocumentsController < ApplicationController
   end
 
   def new
-    # 检查用户是否有创作记录（排除 welcome 演示文章）
-    latest_document = Current.user.documents.where.not(slug: 'welcome').order(updated_at: :desc).first
+    # 创建一个新的临时文档
+    @document = Current.user.documents.build(
+      title: '无标题文档',
+      content: '# 无标题文档\n\n开始编写您的 Markdown 文档...',
+      theme: Theme.builtin.first,
+      is_auto_save: false
+    )
     
-    if latest_document.present?
-      # 有创作记录，进入最新的文章
-      @document = latest_document
+    if @document.save
+      redirect_to edit_document_path(@document)
     else
-      # 新用户或只有演示文章，进入 welcome 演示文章
-      @document = Document.find_or_create_welcome_document(Current.user)
+      redirect_to root_path, alert: '创建文档失败'
     end
-    
-    @themes = Theme.available_for_user(Current.user)
-    @theme = @document.theme || Theme.builtin.first
-    @documents = Current.user.documents.history_entries.limit(50)
-    
-    # 直接渲染编辑页面，不重定向
-    render :edit
   end
 
   def edit
@@ -50,7 +50,17 @@ class DocumentsController < ApplicationController
       
       respond_to do |format|
         format.html { redirect_to edit_document_path(@document) }
-        format.json { render json: { success: true, id: @document.friendly_id, document: @document.as_json(only: [:id, :title, :saved_at]) } }
+        format.json { 
+          render json: { 
+            success: true, 
+            id: @document.friendly_id, 
+            document: {
+              id: @document.friendly_id,
+              title: @document.title, 
+              saved_at: @document.saved_at
+            } 
+          } 
+        }
       end
     else
       respond_to do |format|
@@ -65,26 +75,25 @@ class DocumentsController < ApplicationController
 
   # turbo-architecture-validation: disable
   def update
-    # 演示文章始终保持 is_auto_save = false，以确保在文章目录中可见
-    if @document.slug == 'welcome'
-      @document.is_auto_save = false
-    else
-      @document.is_auto_save = params[:auto_save] == "true"
-    end
+    # 不再修改 is_auto_save 字段，保持文档在创建时的状态
+    # 所有用户创建的文档都会显示在文章目录中
     
     if @document.update(document_params)
       Document.cleanup_old_entries(Current.user)
       
       respond_to do |format|
-        if params[:auto_save] == "true"
-          # 自动保存：静默更新，不重定向，不显示提示
-          format.html { render plain: 'OK', status: :ok }
-          format.json { render json: { success: true, document: @document.as_json(only: [:id, :title, :saved_at]) } }
-        else
-          # 手动保存：显示提示并重定向
-          format.html { redirect_to edit_document_path(@document), notice: "文档已保存" }
-          format.json { render json: { success: true, document: @document.as_json(only: [:id, :title, :saved_at]) } }
-        end
+        # 自动保存：静默更新，不重定向
+        format.html { render plain: 'OK', status: :ok }
+        format.json { 
+          render json: { 
+            success: true, 
+            document: {
+              id: @document.friendly_id,
+              title: @document.title, 
+              saved_at: @document.saved_at 
+            }
+          } 
+        }
       end
     else
       respond_to do |format|
@@ -123,11 +132,49 @@ class DocumentsController < ApplicationController
       format.json do
         render json: {
           success: true,
-          document: @document.as_json(
-            only: [:id, :title, :content, :saved_at, :theme_id],
-            include: { theme: { only: [:id, :name, :css] } }
-          )
+          document: {
+            id: @document.friendly_id,
+            title: @document.title,
+            content: @document.content,
+            saved_at: @document.saved_at,
+            theme_id: @document.theme_id,
+            theme: @document.theme ? @document.theme.as_json(only: [:id, :name, :css]) : nil
+          }
         }
+      end
+    end
+  end
+
+  # 复制文档
+  # turbo-architecture-validation: disable
+  def duplicate
+    # 创建副本
+    @new_document = @document.dup
+    @new_document.title = "#{@document.title} - 副本"
+    @new_document.is_auto_save = false
+    @new_document.slug = nil # 清空 slug，让 FriendlyId 重新生成
+    
+    if @new_document.save
+      Document.cleanup_old_entries(Current.user)
+      
+      respond_to do |format|
+        format.json do
+          render json: {
+            success: true,
+            document: {
+              id: @new_document.friendly_id,
+              title: @new_document.title,
+              content: @new_document.content,
+              saved_at: @new_document.saved_at,
+              theme_id: @new_document.theme_id,
+              theme: @new_document.theme ? @new_document.theme.as_json(only: [:id, :name]) : nil
+            }
+          }
+        end
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { success: false, errors: @new_document.errors.full_messages }, status: :unprocessable_entity }
       end
     end
   end
@@ -147,7 +194,7 @@ class DocumentsController < ApplicationController
   private
 
   def set_document
-    @document = Document.friendly.find(params[:id])
+    @document = Current.user.documents.friendly.find(params[:id])
   end
 
   # turbo-architecture-validation: disable

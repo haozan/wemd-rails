@@ -8,22 +8,21 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
       <div class="text-center">
         <!-- Logo & Title -->
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-8 animate-float">
-          <%= lucide_icon "file-text", class: "w-10 h-10 text-primary" %>
+        <div class="inline-flex items-center justify-center mb-8 animate-float">
+          <%= image_tag 'icon-512.png', alt: '红中排版', class: 'w-20 h-20' %>
         </div>
         
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
-          WeMD Markdown 编辑器
+          红中排版 篇篇爆红
         </h1>
         
         <p class="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-          专为微信公众号优化的 Markdown 编辑器<br>
-          所见即所得，一键复制到微信
+          公众号排版运营神器
         </p>
         
         <!-- CTA Buttons -->
         <div class="flex justify-center items-center relative z-10">
-          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4" do %>
+          <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4" do %>
             <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
             开始创作
           <% end %>
@@ -42,7 +41,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          为什么选择 WeMD？
+          为什么选择红中排版？
         </h2>
         <p class="text-lg text-muted-foreground">
           我们为微信公众号写作者提供最好的 Markdown 编辑体验
@@ -131,7 +130,7 @@
         </p>
         
         <div class="flex justify-center">
-          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4" do %>
+          <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4" do %>
             <%= lucide_icon "rocket", class: "w-5 h-5 mr-2" %>
             立即开始
           <% end %>
@@ -149,7 +148,7 @@
           使用 Rails 7.2 + Tailwind CSS 构建
         </p>
         <p class="text-sm">
-          © <%= Time.current.year %> WeMD Markdown Editor. All rights reserved.
+          © <%= Time.current.year %> 红中排版 Markdown Editor. All rights reserved.
         </p>
       </div>
     </div>
