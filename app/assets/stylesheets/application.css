@@ -565,52 +565,37 @@
   .dark .wemd-preview-content #wemd {
     background: #0f1113;
     box-shadow: none;
-    /* 覆盖主题的黑色文字，使用浅色文字 */
-    color: #e8eaed !important;
+    /* 只覆盖默认文本颜色，不强制覆盖所有子元素 */
+    color: #e8eaed;
   }
 
-  /* 深色模式 - 确保所有文本元素都使用浅色 */
-  .dark .wemd-preview-content #wemd p,
-  .dark .wemd-preview-content #wemd h1,
-  .dark .wemd-preview-content #wemd h2,
-  .dark .wemd-preview-content #wemd h3,
-  .dark .wemd-preview-content #wemd h4,
-  .dark .wemd-preview-content #wemd h5,
-  .dark .wemd-preview-content #wemd h6,
-  .dark .wemd-preview-content #wemd li,
-  .dark .wemd-preview-content #wemd span,
-  .dark .wemd-preview-content #wemd strong,
-  .dark .wemd-preview-content #wemd em,
-  .dark .wemd-preview-content #wemd blockquote,
-  .dark .wemd-preview-content #wemd td,
-  .dark .wemd-preview-content #wemd th {
-    color: #e8eaed !important;
+  /* 深色模式 - 只为没有背景色的基础文本元素设置浅色 */
+  .dark .wemd-preview-content #wemd > p,
+  .dark .wemd-preview-content #wemd > h1,
+  .dark .wemd-preview-content #wemd > h2,
+  .dark .wemd-preview-content #wemd > h3,
+  .dark .wemd-preview-content #wemd > h4,
+  .dark .wemd-preview-content #wemd > h5,
+  .dark .wemd-preview-content #wemd > h6,
+  .dark .wemd-preview-content #wemd > ul,
+  .dark .wemd-preview-content #wemd > ol {
+    color: #e8eaed;
   }
 
-  /* 深色模式 - 代码块样式调整 */
-  .dark .wemd-preview-content #wemd pre,
-  .dark .wemd-preview-content #wemd code {
-    background: #1e1e1e !important;
-    color: #d4d4d4 !important;
+  /* 深色模式 - 代码块样式调整（保持原有样式）*/
+  .dark .wemd-preview-content #wemd pre {
+    /* 仅在主题没有设置背景时才设置默认深色背景 */
+    filter: brightness(0.9);
   }
 
-  /* 深色模式 - 引用块背景 */
+  /* 深色模式 - 引用块（保持主题样式）*/
   .dark .wemd-preview-content #wemd blockquote {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-left-color: #4a9eff !important;
+    filter: brightness(0.9);
   }
 
-  /* 深色模式 - 表格样式 */
+  /* 深色模式 - 表格样式（保持主题样式）*/
   .dark .wemd-preview-content #wemd table {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-  }
-
-  .dark .wemd-preview-content #wemd th {
-    background: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  .dark .wemd-preview-content #wemd tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02) !important;
+    filter: brightness(0.9);
   }
 
   /* 响应式布局 */
