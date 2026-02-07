@@ -4,8 +4,7 @@
      data-wemd-editor-themes-value="<%= @themes.to_json(only: [:id, :name, :css]) %>"
      data-history-panel-current-document-id-value="<%= @document.friendly_id %>"
      data-action="trigger-image-upload@window->image-upload#selectFile 
-                  image-upload:uploaded->wemd-editor#handleImageUploaded
-                  history:restore@window->wemd-editor#restoreFromHistory">
+                  image-upload:uploaded->wemd-editor#handleImageUploaded">
   <%= form_with model: @document, class: "h-full", data: { wemd_editor_target: "form", turbo: false } do |f| %>
     
     <!-- Header -->

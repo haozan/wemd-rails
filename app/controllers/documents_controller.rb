@@ -1,6 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_document, only: [:show, :edit, :update, :destroy, :restore, :duplicate]
+  before_action :set_document, only: [:show, :edit, :update, :destroy, :duplicate]
   before_action :authorize_document, only: [:edit, :update, :destroy, :duplicate]
 
   # 历史记录列表 API (仅 JSON)
@@ -122,26 +122,6 @@ class DocumentsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to root_path, notice: "文档已删除" }
       format.json { render json: { success: true } }
-    end
-  end
-
-  # 恢复历史记录
-  # turbo-architecture-validation: disable
-  def restore
-    respond_to do |format|
-      format.json do
-        render json: {
-          success: true,
-          document: {
-            id: @document.friendly_id,
-            title: @document.title,
-            content: @document.content,
-            saved_at: @document.saved_at,
-            theme_id: @document.theme_id,
-            theme: @document.theme ? @document.theme.as_json(only: [:id, :name, :css]) : nil
-          }
-        }
-      end
     end
   end
 

@@ -705,35 +705,7 @@ export default class extends Controller<HTMLElement> {
     return this.performAutoSave()
   }
 
-  /**
-   * 从历史记录恢复文档
-   */
-  restoreFromHistory(event: CustomEvent): void {
-    const { document } = event.detail
-    if (!document) return
 
-    // 直接恢复文档（自动保存会在用户编辑时保存内容，无需阻止切换）
-    // 恢复标题
-    if (this.titleInputTarget) {
-      this.titleInputTarget.value = document.title || '未命名文章'
-    }
-
-    // 恢复内容
-    this.editorTarget.value = document.content || ''
-
-    // 恢复主题
-    if (this.themeSelectTarget && document.theme_id) {
-      this.themeSelectTarget.value = document.theme_id.toString()
-    }
-
-    // 更新预览
-    this.renderPreview()
-
-    // 显示提示
-    if (typeof showToast === 'function') {
-      showToast('已恢复历史记录', 'success')
-    }
-  }
 }
 
 // 扩展 Window 类型以支持 mermaid

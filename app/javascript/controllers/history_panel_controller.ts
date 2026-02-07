@@ -436,15 +436,6 @@ export default class extends Controller<HTMLElement> {
     `
   }
 
-  private applyDocument(document: HistoryEntry): void {
-    // 触发自定义事件,由 wemd_editor_controller 监听并应用
-    const event = new CustomEvent('history:restore', {
-      detail: { document },
-      bubbles: true
-    })
-    this.element.dispatchEvent(event)
-  }
-
   private showLoading(): void {
     this.loadingStateTarget.classList.remove('hidden')
     this.listTarget.classList.add('hidden')
