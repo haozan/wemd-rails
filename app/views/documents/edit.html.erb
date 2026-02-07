@@ -15,8 +15,16 @@
         <button type="button" 
                 class="text-muted-foreground hover:text-foreground transition-colors"
                 data-action="click->history-panel#toggle"
-                title="历史记录">
-          <%= lucide_icon "history", class: "w-5 h-5" %>
+                title="文章目录">
+          <%= lucide_icon "folder", class: "w-5 h-5" %>
+        </button>
+        
+        <!-- New Document Button -->
+        <button type="button" 
+                class="text-muted-foreground hover:text-foreground transition-colors"
+                data-action="click->wemd-editor#createNewDocument"
+                title="新建文章">
+          <%= lucide_icon "plus", class: "w-5 h-5" %>
         </button>
         
         <div class="flex-1">
@@ -37,7 +45,7 @@
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[#07c160] hover:bg-[#06ad56] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#07c160] <%= 'hidden' if @document.new_record? %>"
+                  class="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-medium text-white bg-[#07c160] hover:bg-[#06ad56] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#07c160] <%= 'hidden' if @document.new_record? %>"
                   style="border-radius: var(--border-radius); box-shadow: var(--shadow-sm);"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
@@ -223,8 +231,8 @@
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
       <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-        <%= lucide_icon "history", class: "w-5 h-5" %>
-        历史记录
+        <%= lucide_icon "folder", class: "w-5 h-5" %>
+        文章目录
       </h2>
       <div class="flex items-center gap-2">
         <button type="button"
@@ -253,7 +261,7 @@
       <div class="relative">
         <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
         <input type="text"
-               placeholder="搜索历史记录..."
+               placeholder="搜索文章..."
                class="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg 
                       text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                data-history-panel-target="searchInput"
@@ -273,12 +281,12 @@
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
           <%= lucide_icon "file-text", class: "w-8 h-8 text-muted-foreground" %>
         </div>
-        <p class="text-muted-foreground">暂无历史记录</p>
+        <p class="text-muted-foreground">暂无文章</p>
       </div>
 
       <!-- List Container -->
       <div class="space-y-3 hidden" data-history-panel-target="list">
-        <!-- 历史记录项将通过 JS 渲染到这里 -->
+        <!-- 文章列表项将通过 JS 渲染到这里 -->
       </div>
     </div>
   </aside>

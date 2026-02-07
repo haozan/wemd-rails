@@ -15,17 +15,9 @@ class DocumentsController < ApplicationController
   end
 
   def new
-    # 直接创建空白文档
-    @document = Current.user.documents.create!(
-      title: "新文章",
-      content: "# 新文章\n\n",
-      theme_id: Theme.builtin.first&.id,
-      is_auto_save: false
-    )
-    Document.cleanup_old_entries(Current.user)
-    
-    # 立即重定向到编辑页面并显示通知
-    redirect_to edit_document_path(@document), notice: "文档创建成功"
+    # 获取或创建当前用户的演示文章
+    welcome_doc = Document.find_or_create_welcome_document(Current.user)
+    redirect_to edit_document_path(welcome_doc)
   end
 
   def edit
@@ -34,17 +26,26 @@ class DocumentsController < ApplicationController
     @documents = Current.user.documents.history_entries.limit(50)
   end
 
+  # turbo-architecture-validation: disable
   def create
     @document = Current.user.documents.build(document_params)
     @document.is_auto_save = false
     
     if @document.save
       Document.cleanup_old_entries(Current.user)
-      # 前端已显示通知，后端直接重定向即可
-      redirect_to edit_document_path(@document)
+      
+      respond_to do |format|
+        format.html { redirect_to edit_document_path(@document) }
+        format.json { render json: { success: true, id: @document.friendly_id, document: @document.as_json(only: [:id, :title, :saved_at]) } }
+      end
     else
-      @themes = Theme.available_for_user(Current.user)
-      render :new, status: :unprocessable_entity
+      respond_to do |format|
+        format.html do
+          @themes = Theme.available_for_user(Current.user)
+          render :new, status: :unprocessable_entity
+        end
+        format.json { render json: { success: false, errors: @document.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -79,6 +80,15 @@ class DocumentsController < ApplicationController
 
   # turbo-architecture-validation: disable
   def destroy
+    # 保护演示文章不被删除
+    if @document.slug == 'welcome'
+      respond_to do |format|
+        format.html { redirect_to edit_document_path(@document), alert: "演示文章不能删除" }
+        format.json { render json: { success: false, error: "演示文章不能删除" }, status: :forbidden }
+      end
+      return
+    end
+    
     @document.destroy
     
     respond_to do |format|
@@ -106,7 +116,8 @@ class DocumentsController < ApplicationController
   # 清空历史记录
   # turbo-architecture-validation: disable
   def clear_history
-    Current.user.documents.destroy_all
+    # 删除所有文档，但保留演示文章
+    Current.user.documents.where.not(slug: 'welcome').destroy_all
     
     respond_to do |format|
       format.html { redirect_to root_path, notice: "历史记录已清空" }

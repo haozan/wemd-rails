@@ -380,6 +380,51 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
+   * 创建新文章（立即保存并跳转）
+   */
+  // turbo-architecture-validation: disable
+  async createNewDocument(): Promise<void> {
+    try {
+      // 获取 CSRF token
+      const csrfToken = this.getCSRFToken()
+      
+      // 准备默认数据
+      const formData = new FormData()
+      formData.append('document[title]', '默认主题')
+      formData.append('document[content]', '# 默认主题\n\n开始编写您的 Markdown 文档...')
+      
+      // 获取当前主题 ID（如果有）
+      const themeId = this.themeSelectTarget.value
+      if (themeId) {
+        formData.append('document[theme_id]', themeId)
+      }
+      
+      // 发送 POST 请求创建文章
+      const response = await fetch('/documents', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: formData
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // 跳转到新文章的编辑页面
+        window.location.href = `/documents/${data.id}/edit`
+      } else {
+        throw new Error('创建失败')
+      }
+    } catch (error) {
+      console.error('创建新文章失败:', error)
+      if (typeof showToast === 'function') {
+        showToast('❌ 创建新文章失败，请重试', 'error')
+      }
+    }
+  }
+
+  /**
    * 切换深色模式预览
    */
   async toggleDarkMode(event: Event): Promise<void> {
