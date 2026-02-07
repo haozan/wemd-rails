@@ -23,7 +23,7 @@
         
         <!-- CTA Buttons -->
         <div class="flex justify-center items-center relative z-10">
-          <%= link_to edit_document_path('welcome'), class: "btn-primary text-lg px-8 py-4", data: { turbo: false } do %>
+          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4" do %>
             <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
             开始创作
           <% end %>
@@ -131,7 +131,7 @@
         </p>
         
         <div class="flex justify-center">
-          <%= link_to edit_document_path('welcome'), class: "btn-primary text-lg px-8 py-4", data: { turbo: false } do %>
+          <%= link_to new_document_path, class: "btn-primary text-lg px-8 py-4" do %>
             <%= lucide_icon "rocket", class: "w-5 h-5 mr-2" %>
             立即开始
           <% end %>

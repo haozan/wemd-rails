@@ -15,9 +15,23 @@ class DocumentsController < ApplicationController
   end
 
   def new
-    # 获取或创建当前用户的演示文章
-    welcome_doc = Document.find_or_create_welcome_document(Current.user)
-    redirect_to edit_document_path(welcome_doc)
+    # 检查用户是否有创作记录（排除 welcome 演示文章）
+    latest_document = Current.user.documents.where.not(slug: 'welcome').order(updated_at: :desc).first
+    
+    if latest_document.present?
+      # 有创作记录，进入最新的文章
+      @document = latest_document
+    else
+      # 新用户或只有演示文章，进入 welcome 演示文章
+      @document = Document.find_or_create_welcome_document(Current.user)
+    end
+    
+    @themes = Theme.available_for_user(Current.user)
+    @theme = @document.theme || Theme.builtin.first
+    @documents = Current.user.documents.history_entries.limit(50)
+    
+    # 直接渲染编辑页面，不重定向
+    render :edit
   end
 
   def edit
@@ -51,7 +65,12 @@ class DocumentsController < ApplicationController
 
   # turbo-architecture-validation: disable
   def update
-    @document.is_auto_save = params[:auto_save] == "true"
+    # 演示文章始终保持 is_auto_save = false，以确保在文章目录中可见
+    if @document.slug == 'welcome'
+      @document.is_auto_save = false
+    else
+      @document.is_auto_save = params[:auto_save] == "true"
+    end
     
     if @document.update(document_params)
       Document.cleanup_old_entries(Current.user)

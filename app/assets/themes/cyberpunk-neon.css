@@ -486,27 +486,31 @@
     margin: 4px 0;
 }
 
-/* 数学公式样式 - 使用 WeMD 方案 */
-/* 块级公式 ($$...$$) */
-#wemd .block-equation {
-    display: block;
-    text-align: center;
-    margin: 20px 0;
-    overflow-x: auto;
-}
-
-#wemd .block-equation svg {
+/* 公式 - 保持默认颜色，兼容微信亮色/深色模式 */
+#wemd .block-equation svg,
+#wemd .katex-block svg,
+#wemd mjx-container[display="true"] svg {
     max-width: 100% !important;
 }
 
-/* 行内公式 ($...$) */
-#wemd .inline-equation {
-    display: inline;
-}
-
-#wemd .inline-equation svg {
+#wemd .inline-equation svg,
+#wemd .katex-inline svg,
+#wemd mjx-container:not([display="true"]) svg {
     max-width: 100%;
     vertical-align: middle;
+}
+
+/* KaTeX 重置 - 修复公式错位问题 */
+#wemd .katex,
+#wemd .katex *,
+#wemd .katex-display,
+#wemd .katex-display * {
+  line-height: 1 !important;
+}
+
+#wemd .katex {
+  font-size: 1.21em;
+  vertical-align: -0.25em;
 }
 
 /* 提示块 - 赛博朋克风格 */

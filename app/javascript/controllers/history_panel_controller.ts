@@ -144,7 +144,12 @@ export default class extends Controller<HTMLElement> {
         }
       })
       
-      if (!response.ok) throw new Error('Failed to delete')
+      if (!response.ok) {
+        // 尝试解析服务器返回的错误消息
+        const data = await response.json()
+        const errorMessage = data.error || '删除失败,请重试'
+        throw new Error(errorMessage)
+      }
       
       // 从列表中移除
       this.history = this.history.filter(entry => entry.id !== documentId)
@@ -153,7 +158,8 @@ export default class extends Controller<HTMLElement> {
       this.showToast('已删除')
     } catch (error) {
       console.error('[HistoryPanel] Delete failed:', error)
-      this.showToast('删除失败,请重试', 'error')
+      const errorMessage = error instanceof Error ? error.message : '删除失败,请重试'
+      this.showToast(errorMessage, 'error')
     }
   }
 

@@ -358,28 +358,41 @@
   display: block;
 }
 
-/* 数学公式样式 - 使用 WeMD 方案 */
-/* 块级公式 ($$...$$) */
-#wemd .block-equation {
-  display: block;
+/* 解决公式问题 */
+#wemd .block-equation,
+#wemd .katex-display {
+  display:block;
   text-align: center;
-  margin: 20px 0;
-  overflow-x: auto;
+  overflow: auto;
+  display: block;
   -webkit-overflow-scrolling: touch;
 }
 
-#wemd .block-equation svg {
-  max-width: 100% !important;
+#wemd .block-equation svg,
+#wemd .katex-display .katex-html {
+  max-width: 300% !important;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* 行内公式 ($...$) */
 #wemd .inline-equation {
-  display: inline;
 }
 
 #wemd .inline-equation svg {
-  max-width: 100%;
   vertical-align: middle;
+}
+
+/* 行内公式容器 - 仅设置最外层容器的对齐 */
+#wemd .katex {
+  font-size: 1.21em;
+  vertical-align: -0.25em;
+}
+
+/* KaTeX 重置 - 修复公式错位问题 */
+#wemd .katex,
+#wemd .katex *,
+#wemd .katex-display,
+#wemd .katex-display * {
+  line-height: 1 !important;
 }
 
 #wemd .imageflow-layer1 {

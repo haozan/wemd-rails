@@ -581,3 +581,15 @@
   color: #888;
 }
 
+ht: 300px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+#wemd .imageflow-caption {
+  text-align: center;
+  margin-top: 0px;
+  padding-top: 0px;
+  color: #888;
+}
+

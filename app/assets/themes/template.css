@@ -486,20 +486,22 @@
  * 14. 数学公式样式
  * ============================================
  */
-/* 数学公式样式 - 使用 WeMD 方案 */
-/* 块级公式 ($$...$$) */
-#wemd .block-equation {
+/* 行间公式 */
+#wemd .block-equation,
+#wemd .katex-display {
     display: block;
     text-align: center;
     margin: 20px 0;
     overflow-x: auto;
 }
 
-#wemd .block-equation svg {
+#wemd .block-equation svg,
+#wemd .katex-display .katex-html {
     max-width: 100% !important;
+    /* 最大宽度：不超出容器 */
 }
 
-/* 行内公式 ($...$) */
+/* 行内公式 */
 #wemd .inline-equation {
     display: inline;
 }
@@ -507,6 +509,21 @@
 #wemd .inline-equation svg {
     max-width: 100%;
     vertical-align: middle;
+    /* 垂直居中 */
+}
+
+/* 行内公式容器 - 仅设置最外层容器的对齐 */
+#wemd .katex {
+  font-size: 1.21em;
+  vertical-align: -0.25em;
+}
+
+/* KaTeX 重置 - 修复公式错位问题 */
+#wemd .katex,
+#wemd .katex *,
+#wemd .katex-display,
+#wemd .katex-display * {
+  line-height: 1 !important;
 }
 
 /* ============================================

@@ -439,26 +439,30 @@
   color: #888;
 }
 
-/* 数学公式样式 - 使用 WeMD 方案 */
-/* 块级公式 ($$...$$) */
-#wemd .block-equation {
+/* 行间公式 */
+#wemd .block-equation svg,
+#wemd .katex-display .katex-html {
   display: block;
-  text-align: center;
-  margin: 20px 0;
-  overflow-x: auto;
+  margin: 20px auto;
+  max-width: 300% !important;
 }
 
-#wemd .block-equation svg {
-  max-width: 100% !important;
-}
-
-/* 行内公式 ($...$) */
-#wemd .inline-equation {
-  display: inline;
-}
-
+/* 行内公式 */
 #wemd .inline-equation svg {
-  max-width: 100%;
   vertical-align: middle;
+}
+
+/* 行内公式容器 - 仅设置最外层容器的对齐 */
+#wemd .katex {
+  font-size: 1.21em;
+  vertical-align: -0.25em;
+}
+
+/* KaTeX 重置 - 修复公式错位问题 */
+#wemd .katex,
+#wemd .katex *,
+#wemd .katex-display,
+#wemd .katex-display * {
+  line-height: 1 !important;
 }
 
