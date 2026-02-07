@@ -116,7 +116,7 @@ export default class extends Controller<HTMLElement> {
       if (data.success && data.document) {
         this.applyDocument(data.document)
         this.close()
-        this.showToast('已恢复该历史记录')
+        // Toast will be shown by wemd_editor_controller when it handles the history:restore event
       }
     } catch (error) {
       console.error('[HistoryPanel] Restore failed:', error)

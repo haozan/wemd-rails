@@ -51,8 +51,19 @@ Additional Effects:
           </div>
         </div>
 
-        <!-- Right section: User menu -->
+        <!-- Right section: Theme toggle + User menu -->
         <div class="hidden md:flex items-center space-x-4">
+          <!-- Dark mode toggle -->
+          <div data-controller="theme" data-theme-storage-key-value="global-isdark">
+            <button type="button"
+                    data-action="click->theme#toggle"
+                    class="p-2 text-secondary hover:bg-surface rounded-lg transition-colors"
+                    title="切换主题">
+              <%= lucide_icon "sun", class: "w-5 h-5", "data-theme-target": "lightIcon" %>
+              <%= lucide_icon "moon", class: "w-5 h-5 hidden", "data-theme-target": "darkIcon" %>
+            </button>
+          </div>
+          
           <% if current_user %>
             <%= render 'shared/user_dropdown' %>
           <% else %>
@@ -93,6 +104,19 @@ Additional Effects:
 
         <!-- Mobile user menu -->
         <div class="border-t border-gray-300 dark:border-gray-700 pt-4">
+          <!-- Dark mode toggle (mobile) -->
+          <div data-controller="theme" data-theme-storage-key-value="global-isdark" class="mb-4">
+            <button type="button"
+                    data-action="click->theme#toggle"
+                    class="w-full flex items-center justify-between p-3 text-secondary hover:bg-surface rounded-lg transition-colors">
+              <span class="text-sm font-medium">深色模式</span>
+              <div class="flex items-center">
+                <%= lucide_icon "sun", class: "w-5 h-5", "data-theme-target": "lightIcon" %>
+                <%= lucide_icon "moon", class: "w-5 h-5 hidden", "data-theme-target": "darkIcon" %>
+              </div>
+            </button>
+          </div>
+          
           <% if current_user %>
             <%= render 'shared/user_dropdown' %>
           <% else %>

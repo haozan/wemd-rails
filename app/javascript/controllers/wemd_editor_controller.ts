@@ -50,9 +50,6 @@ export default class extends Controller<HTMLElement> {
     // 添加自动保存提示
     this.setupAutoSave()
     
-    // 恢复深色模式偏好设置
-    this.restoreDarkModePreference()
-    
     // 设置点击外部关闭菜单
     this.setupOutsideClickHandler()
     
@@ -425,91 +422,6 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 切换深色模式预览
-   */
-  async toggleDarkMode(event: Event): Promise<void> {
-    const isDark = this.previewTarget.classList.toggle('dark')
-    
-    // 更新按钮图标
-    const button = event.currentTarget as HTMLButtonElement
-    const icon = button.querySelector('svg')
-    if (icon) {
-      // 切换 moon/sun 图标 (通过重新渲染)
-      const iconName = isDark ? 'sun' : 'moon'
-      // 简单实现：更新 aria-label 来指示当前状态
-      button.setAttribute('aria-label', isDark ? '切换到亮色模式' : '切换到深色模式')
-    }
-    
-    // 保存偏好设置到 localStorage
-    localStorage.setItem('wemd-dark-mode', isDark ? 'true' : 'false')
-    
-    // 重新初始化 Mermaid 图表以适应主题变化
-    if (window.mermaid) {
-      const mermaidTheme = isDark ? 'dark' : 'default'
-      window.mermaid.initialize({
-        startOnLoad: false,
-        theme: mermaidTheme,
-        themeVariables: this.getMermaidThemeVariables(isDark),
-        securityLevel: 'loose',
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
-      })
-      
-      // 重新渲染所有 mermaid 图表
-      const mermaidElements = this.previewTarget.querySelectorAll<HTMLElement>('.mermaid')
-      if (mermaidElements.length > 0 && window.mermaid.run) {
-        // 清除现有渲染
-        mermaidElements.forEach(el => {
-          el.removeAttribute('data-processed')
-        })
-        // 重新渲染
-        await window.mermaid.run({ nodes: mermaidElements as any as NodeListOf<HTMLElement> })
-      }
-    }
-  }
-  
-  /**
-   * 获取 Mermaid 主题变量
-   */
-  private getMermaidThemeVariables(isDark: boolean): Record<string, string> {
-    if (isDark) {
-      return {
-        primaryColor: 'hsl(148, 80%, 50%)',
-        primaryTextColor: 'hsl(0, 0%, 95%)',
-        primaryBorderColor: 'hsl(148, 80%, 45%)',
-        lineColor: 'hsl(0, 0%, 80%)',
-        sectionBkgColor: 'hsl(0, 0%, 12%)',
-        altSectionBkgColor: 'hsl(0, 0%, 20%)',
-        tertiaryColor: 'hsl(0, 0%, 20%)'
-      }
-    } else {
-      return {
-        primaryColor: 'hsl(148, 80%, 50%)',
-        primaryTextColor: 'hsl(210, 24%, 16%)',
-        primaryBorderColor: 'hsl(148, 80%, 45%)',
-        lineColor: 'hsl(215, 16%, 47%)',
-        sectionBkgColor: 'hsl(210, 17%, 98%)',
-        altSectionBkgColor: 'hsl(220, 13%, 91%)'
-      }
-    }
-  }
-  
-  /**
-   * 恢复深色模式偏好设置
-   */
-  private restoreDarkModePreference(): void {
-    const savedDarkMode = localStorage.getItem('wemd-dark-mode')
-    if (savedDarkMode === 'true') {
-      this.previewTarget.classList.add('dark')
-      // 更新按钮状态 (只在 edit 视图中存在)
-      // stimulus-validator: disable-next-line
-      const darkModeButton = this.element.querySelector('[data-action*="toggleDarkMode"]') as HTMLButtonElement
-      if (darkModeButton) {
-        darkModeButton.setAttribute('aria-label', '切换到亮色模式')
-      }
-    }
-  }
-
-  /**
    * 设置点击外部关闭下拉菜单的处理器
    */
   private setupOutsideClickHandler(): void {
@@ -753,14 +665,7 @@ export default class extends Controller<HTMLElement> {
     const { document } = event.detail
     if (!document) return
 
-    // 确认是否要恢复
-    if (this.editorTarget.value && this.editorTarget.value !== document.content) {
-      if (typeof showToast === 'function') {
-        showToast('当前有未保存内容，请先保存后再恢复历史记录', 'error')
-      }
-      return
-    }
-
+    // 直接恢复文档（自动保存会在用户编辑时保存内容，无需阻止切换）
     // 恢复标题
     if (this.titleInputTarget) {
       this.titleInputTarget.value = document.title || '未命名文章'

@@ -30,7 +30,9 @@ export default class extends Controller<HTMLElement> {
   static targets = ["lightIcon", "darkIcon"]
   static values = { storageKey: String }
 
+  // stimulus-validator: disable-next-line
   declare readonly lightIconTarget: HTMLElement
+  // stimulus-validator: disable-next-line
   declare readonly darkIconTarget: HTMLElement
   declare readonly storageKeyValue: string
 
