@@ -310,6 +310,13 @@ export default class extends Controller<HTMLElement> {
       })
       
       if (!response.ok) {
+        // 如果是 404 错误，说明文档已经不存在，直接刷新列表
+        if (response.status === 404) {
+          await this.loadHistory()
+          this.showToast('文档不存在，已刷新列表', 'error')
+          return
+        }
+        
         // 尝试解析服务器返回的错误消息
         const data = await response.json()
         const errorMessage = data.error || '删除失败,请重试'
@@ -322,6 +329,8 @@ export default class extends Controller<HTMLElement> {
     } catch (error) {
       console.error('[HistoryPanel] Delete failed:', error)
       const errorMessage = error instanceof Error ? error.message : '删除失败,请重试'
+      // 发生任何错误时都刷新列表，确保显示的是最新状态
+      await this.loadHistory()
       this.showToast(errorMessage, 'error')
     }
   }
