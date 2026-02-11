@@ -34,7 +34,7 @@ class ApplicationController < ActionController::Base
     if session_record = find_session_record
       Current.session = session_record
     else
-      redirect_to sign_in_path, alert: 'Please sign in to continue'
+      redirect_to sign_in_path, alert: '请登录以继续'
     end
   end
 
@@ -82,19 +82,19 @@ class ApplicationController < ActionController::Base
     user.errors.each do |error|
       case error.attribute
       when :current_password
-        error_messages << "Current password is incorrect"
+        error_messages << "当前密码不正确"
       when :password
         if error.type == :too_short
-          error_messages << "New password must be at least #{User::MIN_PASSWORD} characters long"
+          error_messages << "新密码必须至少 #{User::MIN_PASSWORD} 个字符"
         elsif error.type == :invalid
-          error_messages << "Password format is invalid"
+          error_messages << "密码格式无效"
         else
-          error_messages << "New password: #{error.message}"
+          error_messages << "新密码：#{error.message}"
         end
       when :password_confirmation
-        error_messages << "Password confirmation doesn't match"
+        error_messages << "密码确认不匹配"
       when :password_digest
-        error_messages << "Password format is invalid"
+        error_messages << "密码格式无效"
       end
     end
 
