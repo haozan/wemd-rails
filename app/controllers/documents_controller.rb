@@ -19,10 +19,13 @@ class DocumentsController < ApplicationController
   end
 
   def new
-    # 创建一个新的临时文档
+    # 创建一个新的文档，标题包含时间戳以便识别
+    timestamp = Time.current.strftime('%m月%d日 %H:%M')
+    default_title = "新文档 #{timestamp}"
+    
     @document = Current.user.documents.build(
-      title: '无标题文档',
-      content: '# 无标题文档\n\n开始编写您的 Markdown 文档...',
+      title: default_title,
+      content: "# #{default_title}\n\n开始编写您的 Markdown 文档...",
       theme: Theme.builtin.first,
       is_auto_save: false
     )

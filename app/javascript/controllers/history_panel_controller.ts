@@ -38,7 +38,6 @@ export default class extends Controller<HTMLElement> {
   private isOpen: boolean = false
 
   connect(): void {
-    console.log("[HistoryPanel] connected")
     this.loadHistory()
     
     // 监听自动保存事件，刷新列表以更新主题标签
@@ -46,7 +45,6 @@ export default class extends Controller<HTMLElement> {
   }
 
   disconnect(): void {
-    console.log("[HistoryPanel] disconnected")
     window.removeEventListener('document:autosaved', this.handleAutoSaved)
   }
   
@@ -83,9 +81,14 @@ export default class extends Controller<HTMLElement> {
       this.showLoading()
       
       const response = await fetch('/documents.json')
-      if (!response.ok) throw new Error('Failed to load history')
       
-      this.history = await response.json()
+      if (!response.ok) {
+        throw new Error('Failed to load history')
+      }
+      
+      const data = await response.json()
+      
+      this.history = data
       this.filteredHistory = this.history
       this.renderHistory()
     } catch (error) {
@@ -122,11 +125,9 @@ export default class extends Controller<HTMLElement> {
     this.close()
     
     // 先保存当前编辑器内容
-    console.log('[HistoryPanel] Saving current document before switching')
     await this.saveCurrentDocument()
     
     // 直接跳转到目标文档的编辑页面
-    console.log('[HistoryPanel] Navigating to document:', documentId)
     window.location.href = `/documents/${documentId}/edit`
   }
   
@@ -137,7 +138,6 @@ export default class extends Controller<HTMLElement> {
     // 查找页面上的 wemd-editor controller 实例
     const editorElement = document.querySelector('[data-controller~="wemd-editor"]')
     if (!editorElement) {
-      console.log('[HistoryPanel] No editor found, skip save')
       return
     }
     
@@ -150,7 +150,6 @@ export default class extends Controller<HTMLElement> {
     if (editorController && typeof (editorController as any).saveBeforeSwitch === 'function') {
       try {
         await (editorController as any).saveBeforeSwitch()
-        console.log('[HistoryPanel] Current document saved before restore')
       } catch (error) {
         console.error('[HistoryPanel] Save before restore failed:', error)
       }
@@ -369,7 +368,8 @@ export default class extends Controller<HTMLElement> {
       this.listTarget.classList.remove('hidden')
       this.emptyStateTarget.classList.add('hidden')
       
-      this.listTarget.innerHTML = this.filteredHistory.map(entry => this.renderEntry(entry)).join('')
+      const html = this.filteredHistory.map(entry => this.renderEntry(entry)).join('')
+      this.listTarget.innerHTML = html
     }
   }
 

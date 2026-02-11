@@ -13,21 +13,21 @@ module ApplicationCable
       # Try to authenticate via session token from cookies
       if session_token = cookies.signed[:session_token]
         if session_record = Session.find_by(id: session_token)
-          session_record.user
-        else
-          reject_unauthorized_connection
+          return session_record.user
         end
+      end
+      
       # Try to authenticate via Authorization header (for API clients)
-      elsif auth_header = request.headers['Authorization']
+      if auth_header = request.headers['Authorization']
         token = auth_header.gsub(/Bearer\s+/, '')
         if session_record = Session.find_by(id: token)
-          session_record.user
-        else
-          reject_unauthorized_connection
+          return session_record.user
         end
-      else
-        reject_unauthorized_connection
       end
+      
+      # For anonymous connections, create a guest user object
+      # This prevents connection rejection while allowing channels to check authentication
+      OpenStruct.new(id: "guest_#{SecureRandom.hex(8)}", guest?: true)
     end
     # Authentication methods generated end
 

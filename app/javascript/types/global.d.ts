@@ -21,7 +21,6 @@ declare global {
     sdk?: {
       send: (message: string) => void;
     };
-    mermaid?: any;
   }
 
   var App: {

@@ -35,25 +35,9 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 渲染后处理（Mermaid 图表等）
+   * 渲染后处理（代码高亮等）
    */
   private postRenderHooks(): void {
-    // 如果有 Mermaid 图表，初始化它们
-    // stimulus-validator: disable-next-line
-    const mermaidBlocks = this.element.querySelectorAll('.mermaid')
-    if (mermaidBlocks.length > 0 && window.mermaid) {
-      window.mermaid.init(undefined, mermaidBlocks as NodeListOf<HTMLElement>)
-    }
-  }
-}
-
-// 扩展 Window 类型以支持 mermaid
-declare global {
-  interface Window {
-    mermaid?: {
-      init: (config?: any, nodes?: string | HTMLElement | NodeListOf<HTMLElement>) => Promise<void>
-      initialize: (config: any) => void
-      run?: (config?: any) => Promise<void>
-    }
+    // 未来可添加其他渲染后处理逻辑
   }
 }

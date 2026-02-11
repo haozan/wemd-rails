@@ -8,6 +8,7 @@ export default class extends Controller<HTMLElement> {
     "titleInput",
     "editor",
     "preview",
+    "previewContent",
     "themeSelect",
     "copyButton",
     "saveStatus"
@@ -22,11 +23,13 @@ export default class extends Controller<HTMLElement> {
   declare readonly titleInputTarget: HTMLInputElement
   declare readonly editorTarget: HTMLTextAreaElement
   declare readonly previewTarget: HTMLElement
+  declare readonly previewContentTarget: HTMLElement
   declare readonly themeSelectTarget: HTMLSelectElement
   declare readonly copyButtonTarget: HTMLButtonElement
   declare readonly saveStatusTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
   declare readonly hasSaveStatusTarget: boolean
+  declare readonly hasPreviewContentTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
@@ -35,10 +38,15 @@ export default class extends Controller<HTMLElement> {
   private autoSaveTimer: number | null = null
   private showHeadingMenu: boolean = false
   private showListMenu: boolean = false
-  private showChartMenu: boolean = false
   private headingMenuRef: HTMLElement | null = null
   private listMenuRef: HTMLElement | null = null
-  private chartMenuRef: HTMLElement | null = null
+  private isSyncingScroll: boolean = false
+  
+  // 撤销/重做历史记录
+  private history: Array<{ title: string; content: string }> = []
+  private historyIndex: number = -1
+  private isRestoringHistory: boolean = false
+  private maxHistorySize: number = 100
 
   connect(): void {
     console.log("WeMD Editor connected")
@@ -46,6 +54,9 @@ export default class extends Controller<HTMLElement> {
       hasSaveStatusTarget: this.hasSaveStatusTarget,
       saveStatusElement: this.hasSaveStatusTarget ? this.saveStatusTarget : null
     })
+    
+    // 初始化历史记录
+    this.saveToHistory()
     
     this.updatePreview()
     this.setupAutoSave()
@@ -59,6 +70,8 @@ export default class extends Controller<HTMLElement> {
     }
     
     this.setupOutsideClickHandler()
+    this.setupKeyboardShortcuts()
+    this.setupScrollSync()
   }
 
   disconnect(): void {
@@ -72,58 +85,11 @@ export default class extends Controller<HTMLElement> {
       clearTimeout(this.debounceTimer)
     }
     document.removeEventListener('mousedown', this.handleOutsideClick)
+    document.removeEventListener('keydown', this.handleKeyboardShortcut)
+    this.editorTarget.removeEventListener('scroll', this.handleEditorScroll)
   }
 
-  /**
-   * 简化 KaTeX 公式以提高微信兼容性
-   * 策略：提取 annotation 中的原始 LaTeX 代码，用简单样式包裹
-   */
-  private simplifyKatexForWechat(html: string): string {
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = html
-    
-    const katexElements = tempDiv.querySelectorAll('.katex')
-    
-    katexElements.forEach(katex => {
-      const annotation = katex.querySelector('annotation[encoding="application/x-tex"]')
-      if (annotation) {
-        const latex = annotation.textContent || ''
-        const isDisplay = katex.classList.contains('katex-display')
-        
-        if (isDisplay) {
-          // 块级公式：使用带边框的容器
-          const container = document.createElement('div')
-          container.style.cssText = `
-            background: #f5f5f5;
-            border-left: 3px solid #42b983;
-            padding: 12px 16px;
-            margin: 16px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            overflow-x: auto;
-            color: #2c3e50;
-          `
-          container.textContent = latex
-          katex.replaceWith(container)
-        } else {
-          // 行内公式：使用简单的 code 标签
-          const code = document.createElement('code')
-          code.style.cssText = `
-            background: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #e83e8c;
-          `
-          code.textContent = latex
-          katex.replaceWith(code)
-        }
-      }
-    })
-    
-    return tempDiv.innerHTML
-  }
+
 
   /**
    * 更新预览（防抖处理）
@@ -182,14 +148,142 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
-   * 渲染后处理（Mermaid 图表等）
+   * 渲染后处理（代码高亮等）
    */
   private postRenderHooks(): void {
-    // 如果有 Mermaid 图表，初始化它们
-    // stimulus-validator: disable-next-line
-    const mermaidBlocks = this.previewTarget.querySelectorAll('.mermaid')
-    if (mermaidBlocks.length > 0 && window.mermaid) {
-      window.mermaid.init(undefined, mermaidBlocks as NodeListOf<HTMLElement>)
+    // 未来可添加其他渲染后处理逻辑
+  }
+
+  /**
+   * 撤销
+   */
+  undo(): void {
+    if (!this.canUndo()) return
+    
+    this.historyIndex--
+    this.restoreFromHistory()
+    console.log('[WeMD Undo] Undo performed, current index:', this.historyIndex)
+  }
+
+  /**
+   * 重做
+   */
+  redo(): void {
+    if (!this.canRedo()) return
+    
+    this.historyIndex++
+    this.restoreFromHistory()
+    console.log('[WeMD Redo] Redo performed, current index:', this.historyIndex)
+  }
+
+  /**
+   * 检查是否可以撤销
+   */
+  private canUndo(): boolean {
+    return this.historyIndex > 0
+  }
+
+  /**
+   * 检查是否可以重做
+   */
+  private canRedo(): boolean {
+    return this.historyIndex < this.history.length - 1
+  }
+
+  /**
+   * 保存当前状态到历史记录
+   */
+  private saveToHistory(): void {
+    if (this.isRestoringHistory) return
+    
+    const currentState = {
+      title: this.titleInputTarget.value,
+      content: this.editorTarget.value
+    }
+    
+    // 如果在历史记录中间进行了新的编辑，删除后面的历史
+    if (this.historyIndex < this.history.length - 1) {
+      this.history = this.history.slice(0, this.historyIndex + 1)
+    }
+    
+    // 检查是否与上一个状态相同，避免重复保存
+    const lastState = this.history[this.historyIndex]
+    if (lastState && 
+        lastState.title === currentState.title && 
+        lastState.content === currentState.content) {
+      return
+    }
+    
+    this.history.push(currentState)
+    this.historyIndex++
+    
+    // 限制历史记录大小
+    if (this.history.length > this.maxHistorySize) {
+      this.history.shift()
+      this.historyIndex--
+    }
+    
+    console.log('[WeMD History] State saved, index:', this.historyIndex, 'total:', this.history.length)
+  }
+
+  /**
+   * 从历史记录恢复状态
+   */
+  private restoreFromHistory(): void {
+    if (this.historyIndex < 0 || this.historyIndex >= this.history.length) return
+    
+    this.isRestoringHistory = true
+    
+    const state = this.history[this.historyIndex]
+    this.titleInputTarget.value = state.title
+    this.editorTarget.value = state.content
+    
+    // 更新预览
+    this.updatePreview()
+    
+    // 触发自动保存（但不记录到历史）
+    this.updateSaveStatus('editing')
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer)
+    }
+    this.autoSaveTimer = window.setTimeout(() => {
+      this.performAutoSave()
+    }, 2000)
+    
+    this.isRestoringHistory = false
+  }
+
+  /**
+   * 设置键盘快捷键
+   */
+  private setupKeyboardShortcuts(): void {
+    this.handleKeyboardShortcut = this.handleKeyboardShortcut.bind(this)
+    document.addEventListener('keydown', this.handleKeyboardShortcut)
+  }
+
+  /**
+   * 处理键盘快捷键
+   */
+  private handleKeyboardShortcut = (event: KeyboardEvent): void => {
+    // 检查是否在编辑器区域
+    const target = event.target as HTMLElement
+    if (!this.element.contains(target)) return
+    
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    const modKey = isMac ? event.metaKey : event.ctrlKey
+    
+    // Ctrl+Z / Cmd+Z: 撤销
+    if (modKey && event.key === 'z' && !event.shiftKey) {
+      event.preventDefault()
+      this.undo()
+    }
+    
+    // Ctrl+Shift+Z / Cmd+Shift+Z: 重做
+    // Ctrl+Y / Cmd+Y: 重做（Windows 风格）
+    if ((modKey && event.key === 'z' && event.shiftKey) || 
+        (modKey && event.key === 'y')) {
+      event.preventDefault()
+      this.redo()
     }
   }
 
@@ -214,7 +308,6 @@ export default class extends Controller<HTMLElement> {
     event.stopPropagation()
     this.showHeadingMenu = !this.showHeadingMenu
     this.showListMenu = false
-    this.showChartMenu = false
     this.updateDropdownMenus()
   }
 
@@ -225,7 +318,7 @@ export default class extends Controller<HTMLElement> {
     const button = event.currentTarget as HTMLElement
     const prefix = button.dataset.prefix || '## '
     const placeholder = button.dataset.placeholder || '标题'
-    this.insertAtCursor(prefix, placeholder)
+    this.insertAtCursorPreserveSelection(prefix, placeholder)
     this.showHeadingMenu = false
     this.updateDropdownMenus()
   }
@@ -259,45 +352,7 @@ export default class extends Controller<HTMLElement> {
    * 工具栏操作：插入代码块
    */
   insertCode(): void {
-    this.insertAtCursor('\n```javascript\n', 'console.log("Hello World")\n```\n')
-  }
-
-  /**
-   * 工具栏操作：插入数学公式块
-   */
-  insertMath(): void {
-    this.insertAtCursor('$$\n', 'f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi) e^{2\\pi i \\xi x} d\\xi\n$$\n')
-  }
-
-  /**
-   * 工具栏操作：插入行内数学公式
-   */
-  insertInlineMath(): void {
-    this.wrapSelection('$', '$', 'E=mc^2')
-  }
-
-  /**
-   * 工具栏操作：切换图表菜单
-   */
-  toggleChartMenu(event: Event): void {
-    event.stopPropagation()
-    this.showChartMenu = !this.showChartMenu
-    this.showHeadingMenu = false
-    this.showListMenu = false
-    this.updateDropdownMenus()
-  }
-
-  /**
-   * 插入指定的 Mermaid 图表模板
-   */
-  insertChartTemplate(event: Event): void {
-    const button = event.currentTarget as HTMLElement
-    const template = button.dataset.template || ''
-    if (template) {
-      this.insertAtCursor('```mermaid\n', `${template}\n\`\`\`\n`)
-      this.showChartMenu = false
-      this.updateDropdownMenus()
-    }
+    this.wrapSelection('\n```javascript\n', '\n```\n', 'console.log("Hello World")')
   }
 
   /**
@@ -307,7 +362,6 @@ export default class extends Controller<HTMLElement> {
     event.stopPropagation()
     this.showListMenu = !this.showListMenu
     this.showHeadingMenu = false
-    this.showChartMenu = false
     this.updateDropdownMenus()
   }
 
@@ -318,7 +372,11 @@ export default class extends Controller<HTMLElement> {
     const button = event.currentTarget as HTMLElement
     const prefix = button.dataset.prefix || '- '
     const placeholder = button.dataset.placeholder || '列表项'
-    this.insertAtCursor(prefix, placeholder)
+    
+    // 检测是否是有序列表（前缀以数字开头）
+    const isOrderedList = /^\d+\.\s/.test(prefix)
+    
+    this.insertAtCursorPreserveSelection(prefix, placeholder, isOrderedList)
     this.showListMenu = false
     this.updateDropdownMenus()
   }
@@ -327,7 +385,20 @@ export default class extends Controller<HTMLElement> {
    * 工具栏操作：插入引用
    */
   insertQuote(): void {
-    this.insertAtCursor('> ', '引用内容')
+    this.insertAtCursorPreserveSelection('> ', '引用内容')
+  }
+
+  /**
+   * 工具栏操作：插入表格
+   */
+  insertTable(): void {
+    const table = `
+| 表头 1 | 表头 2 | 表头 3 |
+| ------- | ------- | ------- |
+| 单元格 1 | 单元格 2 | 单元格 3 |
+| 单元格 4 | 单元格 5 | 单元格 6 |
+`
+    this.insertAtCursor(table, '')
   }
 
   /**
@@ -349,11 +420,6 @@ export default class extends Controller<HTMLElement> {
       
       // 使用 juice 库将 CSS 转为内联样式
       let finalHtml = juice(styledHtml)
-      
-      // 处理 KaTeX 公式：将复杂的 KaTeX HTML 转为 LaTeX 源代码
-      if (finalHtml.includes('class="katex"')) {
-        finalHtml = this.simplifyKatexForWechat(finalHtml)
-      }
       
       // 清理 HTML（移除<style>标签，因为已经转换为内联样式）
       finalHtml = finalHtml.trim().replace(/<style[^>]*>\s*<\/style>/gi, '')
@@ -389,12 +455,10 @@ export default class extends Controller<HTMLElement> {
     // 检查是否点击在下拉菜单或按钮内部
     const clickedInsideHeading = this.headingMenuRef?.contains(target)
     const clickedInsideList = this.listMenuRef?.contains(target)
-    const clickedInsideChart = this.chartMenuRef?.contains(target)
     
-    if (!clickedInsideHeading && !clickedInsideList && !clickedInsideChart) {
+    if (!clickedInsideHeading && !clickedInsideList) {
       this.showHeadingMenu = false
       this.showListMenu = false
-      this.showChartMenu = false
       this.updateDropdownMenus()
     }
   }
@@ -426,22 +490,68 @@ export default class extends Controller<HTMLElement> {
     if (listMenu) {
       listMenu.classList.toggle('hidden', !this.showListMenu)
     }
-
-    // 更新图表菜单
-    this.chartMenuRef = this.element.querySelector('.wemd-chart-dropdown')
-    const chartButton = this.element.querySelector('[data-action*="toggleChartMenu"]')
-    const chartMenu = this.element.querySelector('.wemd-chart-menu')
-    
-    if (chartButton) {
-      chartButton.classList.toggle('active', this.showChartMenu)
-    }
-    if (chartMenu) {
-      chartMenu.classList.toggle('hidden', !this.showChartMenu)
-    }
   }
 
   /**
-   * 工具方法：在光标位置插入文本
+   * 工具方法：在光标位置插入文本（保留选中文本，支持多行处理）
+   * @param prefix - 行首前缀（如 '> ', '- ', '1. ', '# ' 等）
+   * @param placeholder - 占位符文本（当没有选中文本时使用）
+   * @param isOrderedList - 是否是有序列表（需要自动递增序号）
+   */
+  private insertAtCursorPreserveSelection(prefix: string, placeholder: string, isOrderedList: boolean = false): void {
+    const editor = this.editorTarget
+    const start = editor.selectionStart
+    const end = editor.selectionEnd
+    const text = editor.value
+    const selectedText = text.substring(start, end)
+
+    let newContent: string
+    let newCursorEnd: number
+
+    if (selectedText) {
+      // 如果有选中文本，处理多行
+      const lines = selectedText.split('\n')
+      const processedLines = lines.map((line, index) => {
+        if (isOrderedList) {
+          // 有序列表：自动递增序号
+          const number = index + 1
+          return `${number}. ${line}`
+        } else {
+          // 其他类型：直接添加前缀
+          return `${prefix}${line}`
+        }
+      })
+      newContent = processedLines.join('\n')
+      newCursorEnd = start + newContent.length
+    } else {
+      // 如果没有选中文本，使用占位符
+      newContent = prefix + placeholder
+      newCursorEnd = start + newContent.length
+    }
+
+    // 更新编辑器内容
+    const newText = text.substring(0, start) + newContent + text.substring(end)
+    editor.value = newText
+    
+    // 设置新的光标位置
+    if (selectedText) {
+      // 如果有选中文本，选中新插入的内容
+      editor.setSelectionRange(start, newCursorEnd)
+    } else {
+      // 如果没有选中文本，选中占位符
+      editor.setSelectionRange(start + prefix.length, newCursorEnd)
+    }
+    editor.focus()
+
+    // 保存到历史记录
+    this.saveToHistory()
+    
+    // 触发预览更新
+    this.updatePreview()
+  }
+
+  /**
+   * 工具方法：在光标位置插入文本（仅用于图片上传等不需要保留选中文本的场景）
    */
   private insertAtCursor(before: string, placeholder: string): void {
     const editor = this.editorTarget
@@ -457,6 +567,9 @@ export default class extends Controller<HTMLElement> {
     editor.setSelectionRange(newCursorPos, newCursorPos)
     editor.focus()
 
+    // 保存到历史记录
+    this.saveToHistory()
+    
     // 触发预览更新
     this.updatePreview()
   }
@@ -483,6 +596,9 @@ export default class extends Controller<HTMLElement> {
     }
     editor.focus()
 
+    // 保存到历史记录
+    this.saveToHistory()
+    
     // 触发预览更新
     this.updatePreview()
   }
@@ -552,6 +668,11 @@ export default class extends Controller<HTMLElement> {
     // 监听编辑器内容变化和主题选择变化
     const triggerAutoSave = () => {
       console.log('[WeMD AutoSave] triggerAutoSave called - starting 2s debounce timer')
+      
+      // 保存到历史记录（用户手动输入时）
+      if (!this.isRestoringHistory) {
+        this.saveToHistory()
+      }
       
       // 显示"编辑中"状态
       this.updateSaveStatus('editing')
@@ -703,6 +824,39 @@ export default class extends Controller<HTMLElement> {
     
     // 立即执行保存
     return this.performAutoSave()
+  }
+
+  /**
+   * 设置滚动同步
+   */
+  private setupScrollSync(): void {
+    this.handleEditorScroll = this.handleEditorScroll.bind(this)
+    this.editorTarget.addEventListener('scroll', this.handleEditorScroll)
+  }
+
+  /**
+   * 处理编辑区滚动事件
+   */
+  private handleEditorScroll = (): void => {
+    if (this.isSyncingScroll) return
+    
+    this.isSyncingScroll = true
+    
+    // 获取编辑区滚动百分比
+    const editor = this.editorTarget
+    const scrollPercentage = editor.scrollTop / (editor.scrollHeight - editor.clientHeight)
+    
+    // 同步到预览区
+    const previewPane = this.element.querySelector('.wemd-preview-content') as HTMLElement
+    if (previewPane) {
+      const targetScroll = scrollPercentage * (previewPane.scrollHeight - previewPane.clientHeight)
+      previewPane.scrollTop = targetScroll
+    }
+    
+    // 重置标志
+    requestAnimationFrame(() => {
+      this.isSyncingScroll = false
+    })
   }
 
 

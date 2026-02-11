@@ -65,6 +65,16 @@
         <!-- Editor Pane -->
         <div class="wemd-editor-pane">
           <div class="wemd-toolbar">
+            <!-- 撤销/重做按钮 -->
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#undo" title="撤销 (Ctrl+Z)">
+              <%= lucide_icon "undo", class: "w-4 h-4" %>
+            </button>
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#redo" title="重做 (Ctrl+Shift+Z)">
+              <%= lucide_icon "redo", class: "w-4 h-4" %>
+            </button>
+            
+            <div class="wemd-toolbar-divider"></div>
+            
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertBold" title="加粗">
               <%= lucide_icon "bold", class: "w-4 h-4" %>
             </button>
@@ -119,48 +129,6 @@
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertCode" title="代码块">
               <%= lucide_icon "code", class: "w-4 h-4" %>
             </button>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertMath" title="数学公式">
-              <%= lucide_icon "sigma", class: "w-4 h-4" %>
-            </button>
-            
-            <!-- 图表下拉菜单 -->
-            <div class="wemd-chart-dropdown wemd-dropdown-container">
-              <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#toggleChartMenu" title="Mermaid 图表">
-                <%= lucide_icon "bar-chart-3", class: "w-4 h-4" %>
-              </button>
-              <div class="wemd-chart-menu wemd-dropdown-menu hidden">
-                <button type="button" class="wemd-dropdown-item" 
-                        data-action="click->wemd-editor#insertChartTemplate"
-                        data-template="graph TD&#10;    A[开始] --> B{判断}&#10;    B -- 是 --> C[执行操作]&#10;    B -- 否 --> D[结束]&#10;    C --> D">
-                  <%= lucide_icon "workflow", class: "w-3.5 h-3.5 mr-2" %>
-                  <span>流程图</span>
-                </button>
-                <button type="button" class="wemd-dropdown-item" 
-                        data-action="click->wemd-editor#insertChartTemplate"
-                        data-template="sequenceDiagram&#10;    participant Alice&#10;    participant Bob&#10;    Alice->>Bob: Hello Bob!&#10;    Bob-->>Alice: Hi Alice!">
-                  <%= lucide_icon "clock", class: "w-3.5 h-3.5 mr-2" %>
-                  <span>时序图</span>
-                </button>
-                <button type="button" class="wemd-dropdown-item" 
-                        data-action="click->wemd-editor#insertChartTemplate"
-                        data-template="classDiagram&#10;    class Animal {&#10;        +String name&#10;        +void eat()&#10;    }&#10;    class Duck {&#10;        +void swim()&#10;    }&#10;    Animal <|-- Duck">
-                  <%= lucide_icon "network", class: "w-3.5 h-3.5 mr-2" %>
-                  <span>类图</span>
-                </button>
-                <button type="button" class="wemd-dropdown-item" 
-                        data-action="click->wemd-editor#insertChartTemplate"
-                        data-template="gantt&#10;    title 项目开发计划&#10;    dateFormat YYYY-MM-DD&#10;    section 设计&#10;    需求分析 :a1, 2024-01-01, 3d&#10;    原型设计 :after a1, 5d">
-                  <%= lucide_icon "git-graph", class: "w-3.5 h-3.5 mr-2" %>
-                  <span>甘特图</span>
-                </button>
-                <button type="button" class="wemd-dropdown-item" 
-                        data-action="click->wemd-editor#insertChartTemplate"
-                        data-template="pie title 市场份额&#10;    \"产品 A\" : 40&#10;    \"产品 B\" : 30&#10;    \"产品 C\" : 20&#10;    \"其他\" : 10">
-                  <%= lucide_icon "pie-chart", class: "w-3.5 h-3.5 mr-2" %>
-                  <span>饼图</span>
-                </button>
-              </div>
-            </div>
             
             <div class="wemd-toolbar-divider"></div>
             
@@ -197,6 +165,12 @@
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertQuote" title="引用">
               <%= lucide_icon "quote", class: "w-4 h-4" %>
             </button>
+            
+            <div class="wemd-toolbar-divider"></div>
+            
+            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertTable" title="表格">
+              <%= lucide_icon "table", class: "w-4 h-4" %>
+            </button>
           </div>
 
           <%= f.text_area :content,
@@ -214,7 +188,7 @@
             <h3 class="text-sm font-semibold text-muted-foreground">实时预览</h3>
           </div>
           
-          <div class="wemd-preview-content" data-wemd-editor-target="preview">
+          <div class="wemd-preview-content" data-wemd-editor-target="preview previewContent">
             <!-- Markdown 预览内容将通过 JS 渲染到这里 -->
           </div>
         </div>

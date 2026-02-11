@@ -16,7 +16,6 @@ import hljs from 'highlight.js'
 // 自定义插件（简化版）
 import markdownItMultiquote from './markdown-plugins/markdown-it-multiquote'
 import markdownItTableContainer from './markdown-plugins/markdown-it-table-container'
-import markdownItMath from './markdown-plugins/markdown-it-math'
 import markdownItHeadingWrapper from './markdown-plugins/markdown-it-heading-wrapper'
 
 /**
@@ -28,12 +27,6 @@ export function createMarkdownParser(): MarkdownIt {
     linkify: true,
     typographer: true,
     highlight: (str: string, lang: string): string => {
-      // Mermaid 图表：输出 pre.mermaid 让前端渲染
-      if (lang === 'mermaid') {
-        const escaped = md.utils.escapeHtml(str)
-        return `<pre class="mermaid">\n${escaped}\n</pre>\n`
-      }
-
       // 默认语言为 bash
       if (!lang || lang === '') {
         lang = 'bash'
@@ -56,9 +49,6 @@ export function createMarkdownParser(): MarkdownIt {
 
   // 应用插件
   md
-    .use(markdownItMath, {
-      throwOnError: false
-    })
     .use(markdownItTableContainer)
     .use(markdownItTableOfContents, {
       transformLink: () => '',

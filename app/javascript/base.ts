@@ -9,7 +9,6 @@ import * as ActionCable from "@rails/actioncable"
 import { Turbo } from "@hotwired/turbo-rails"
 import { StreamActions } from "@hotwired/turbo"
 import { showToast } from './toast'
-import mermaid from 'mermaid'
 import './controllers'
 import './clipboard_utils'
 import './sdk_utils'
@@ -18,23 +17,6 @@ import './channels'
 
 ActiveStorage.start()
 window.ActionCable = ActionCable
-
-// Initialize Mermaid for chart rendering
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  themeVariables: {
-    primaryColor: 'hsl(148, 80%, 50%)', // WeMD green theme
-    primaryTextColor: 'hsl(210, 24%, 16%)',
-    primaryBorderColor: 'hsl(148, 80%, 45%)',
-    lineColor: 'hsl(215, 16%, 47%)',
-    sectionBkgColor: 'hsl(210, 17%, 98%)',
-    altSectionBkgColor: 'hsl(220, 13%, 91%)'
-  },
-  securityLevel: 'loose',
-  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
-})
-window.mermaid = mermaid
 
 // Turbo configuration: Enable Drive for full SPA experience
 // Turbo Drive is now enabled by default (replaced Rails-UJS)

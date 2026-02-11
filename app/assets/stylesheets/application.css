@@ -339,6 +339,8 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    min-height: 56px;
+    height: 56px;
   }
 
   .wemd-tool-btn {
@@ -485,6 +487,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    min-height: 56px;
+    height: 56px;
   }
 
   .wemd-preview-header h3 {

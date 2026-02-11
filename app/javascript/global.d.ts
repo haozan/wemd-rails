@@ -57,9 +57,3 @@ declare module 'markdown-it-task-lists' {
   const markdownItTaskLists: MarkdownIt.PluginWithOptions
   export default markdownItTaskLists
 }
-
-declare module 'markdown-it-katex' {
-  import type MarkdownIt from 'markdown-it'
-  const markdownItKatex: MarkdownIt.PluginWithOptions
-  export default markdownItKatex
-}
