@@ -9,51 +9,59 @@
     
     <!-- Header -->
     <header class="wemd-header">
-      <div class="flex items-center gap-4">
-        <!-- History Panel Toggle -->
-        <button type="button" 
-                class="text-muted-foreground hover:text-foreground transition-colors"
-                data-action="click->history-panel#toggle"
-                title="文章目录">
-          <%= lucide_icon "folder", class: "w-5 h-5" %>
-        </button>
-        
-        <!-- New Document Button -->
-        <%= link_to new_document_path, 
-                    class: "text-muted-foreground hover:text-foreground transition-colors",
-                    title: "新建文章",
-                    data: { turbo: false } do %>
-          <%= lucide_icon "plus", class: "w-5 h-5" %>
-        <% end %>
-        
-        <div class="flex-1">
-          <%= f.text_field :title, 
-              placeholder: "无标题文档", 
-              class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
-              data: { wemd_editor_target: "titleInput" } %>
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <!-- Top Row: Icons + Title (Mobile & Desktop) -->
+        <div class="flex items-center gap-4 flex-1">
+          <!-- History Panel Toggle -->
+          <button type="button" 
+                  class="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                  data-action="click->history-panel#toggle"
+                  title="文章目录">
+            <%= lucide_icon "folder", class: "w-5 h-5" %>
+          </button>
+          
+          <!-- New Document Button -->
+          <%= link_to new_document_path, 
+                      class: "text-muted-foreground hover:text-foreground transition-colors flex-shrink-0",
+                      title: "新建文章",
+                      data: { turbo: false } do %>
+            <%= lucide_icon "plus", class: "w-5 h-5" %>
+          <% end %>
+          
+          <div class="flex-1 min-w-0">
+            <%= f.text_field :title, 
+                placeholder: "无标题文档", 
+                class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
+                data: { wemd_editor_target: "titleInput" } %>
+          </div>
+
+          <!-- Save Status Indicator (Desktop only) -->
+          <div class="hidden md:flex items-center gap-2">
+            <span class="text-sm text-muted-foreground whitespace-nowrap" data-wemd-editor-target="saveStatus">已保存</span>
+          </div>
         </div>
 
-        <!-- Save Status Indicator -->
-        <div class="flex items-center gap-2 mr-4">
-          <span class="text-sm text-muted-foreground" data-wemd-editor-target="saveStatus">已保存</span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2">
+        <!-- Bottom Row: Action Buttons (Mobile: stacked, Desktop: inline) -->
+        <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+          <!-- Save Status Indicator (Mobile only) -->
+          <div class="flex md:hidden items-center gap-2 w-full justify-end">
+            <span class="text-xs text-muted-foreground" data-wemd-editor-target="saveStatus">已保存</span>
+          </div>
+          
           <!-- Theme Selector -->
           <%= f.select :theme_id,
               options_from_collection_for_select(@themes, :id, :name, @document.theme_id),
               {},
-              class: "select-theme",
+              class: "select-theme text-sm md:text-base w-auto",
               data: { wemd_editor_target: "themeSelect", action: "change->wemd-editor#updatePreview" } %>
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="btn-primary whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
+                  class="btn-primary text-sm md:text-base whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
-            <%= lucide_icon "copy", class: "w-5 h-5 mr-2" %>
-            复制到微信
+            <%= lucide_icon "copy", class: "w-4 h-4 md:w-5 md:h-5" %>
+            <span>复制到微信</span>
           </button>
         </div>
       </div>
@@ -78,7 +86,7 @@
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertBold" title="加粗">
               <%= lucide_icon "bold", class: "w-4 h-4" %>
             </button>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertItalic" title="斜体">
+            <button type="button" class="wemd-tool-btn hidden md:inline-flex" data-action="click->wemd-editor#insertItalic" title="斜体">
               <%= lucide_icon "italic", class: "w-4 h-4" %>
             </button>
             
@@ -119,14 +127,14 @@
               </div>
             </div>
             
-            <div class="wemd-toolbar-divider"></div>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertLink" title="链接">
+            <div class="wemd-toolbar-divider hidden md:block"></div>
+            <button type="button" class="wemd-tool-btn hidden md:inline-flex" data-action="click->wemd-editor#insertLink" title="链接">
               <%= lucide_icon "link", class: "w-4 h-4" %>
             </button>
             <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertImage" title="图片">
               <%= lucide_icon "image", class: "w-4 h-4" %>
             </button>
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertCode" title="代码块">
+            <button type="button" class="wemd-tool-btn hidden md:inline-flex" data-action="click->wemd-editor#insertCode" title="代码块">
               <%= lucide_icon "code", class: "w-4 h-4" %>
             </button>
             
@@ -162,13 +170,13 @@
               </div>
             </div>
             
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertQuote" title="引用">
+            <button type="button" class="wemd-tool-btn hidden md:inline-flex" data-action="click->wemd-editor#insertQuote" title="引用">
               <%= lucide_icon "quote", class: "w-4 h-4" %>
             </button>
             
-            <div class="wemd-toolbar-divider"></div>
+            <div class="wemd-toolbar-divider hidden md:block"></div>
             
-            <button type="button" class="wemd-tool-btn" data-action="click->wemd-editor#insertTable" title="表格">
+            <button type="button" class="wemd-tool-btn hidden md:inline-flex" data-action="click->wemd-editor#insertTable" title="表格">
               <%= lucide_icon "table", class: "w-4 h-4" %>
             </button>
           </div>

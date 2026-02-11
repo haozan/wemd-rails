@@ -333,17 +333,27 @@
   }
 
   .wemd-toolbar {
-    padding: 12px 24px; /* 统一使用 24px = px-6 */
+    padding: 8px 12px; /* 移动端使用更小的内边距 */
     border-bottom: var(--border-width) solid hsl(var(--color-border-light));
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px; /* 移动端使用更小的间距 */
     flex-wrap: wrap;
-    min-height: 56px;
-    height: 56px;
+    min-height: 48px; /* 移动端最小高度 */
+    height: auto; /* 允许自动换行 */
+  }
+
+  /* 桌面端工具栏样式 */
+  @media (min-width: 768px) {
+    .wemd-toolbar {
+      padding: 12px 24px; /* 桌面端恢复原有内边距 */
+      gap: 8px; /* 桌面端恢复原有间距 */
+      min-height: 56px;
+      height: 56px; /* 桌面端固定高度 */
+    }
   }
 
   .wemd-tool-btn {
