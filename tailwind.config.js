@@ -21,9 +21,14 @@ module.exports = {
     { pattern: /^ts-/ },
     { pattern: /^flatpickr/ },
     'dark',  // Dark mode class
+    'group',  // Group hover functionality
     {
       pattern: /^(hidden|inline|block|flex|grid|inline-flex|inline-block)$/,
       variants: ['sm', 'md', 'lg', 'xl', '2xl']
+    },
+    {
+      pattern: /^opacity-/,
+      variants: ['group-hover']
     },
   ],
   darkMode: 'class',

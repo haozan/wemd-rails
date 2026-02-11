@@ -43,13 +43,13 @@
           <!-- Theme Selector -->
           <%= f.select :theme_id,
               options_from_collection_for_select(@themes, :id, :name, @document.theme_id),
-              { prompt: "选择主题" },
+              {},
               class: "select-theme",
               data: { wemd_editor_target: "themeSelect", action: "change->wemd-editor#updatePreview" } %>
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="btn-primary <%= 'hidden' if @document.new_record? %>"
+                  class="btn-primary whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
             <%= lucide_icon "copy", class: "w-5 h-5 mr-2" %>
@@ -201,7 +201,7 @@
                 transform -translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col"
          data-history-panel-target="sidebar">
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
+    <div class="flex items-center justify-between border-b border-border bg-surface" style="padding: 1rem 3.5rem;">
       <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
         <%= lucide_icon "folder", class: "w-5 h-5" %>
         文章目录
@@ -217,7 +217,7 @@
     </div>
 
     <!-- Search Bar -->
-    <div class="px-6 py-4 border-b border-border bg-surface">
+    <div class="border-b border-border bg-surface" style="padding: 1rem 3.5rem;">
       <div class="relative">
         <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
         <input type="text"
@@ -230,7 +230,7 @@
     </div>
 
     <!-- History List -->
-    <div class="flex-1 overflow-y-auto px-6 py-4">
+    <div class="flex-1 overflow-y-auto" style="padding: 1rem 3.5rem;">
       <!-- Loading State -->
       <div class="text-center py-12" data-history-panel-target="loadingState">
         <p class="text-muted-foreground">正在加载...</p>

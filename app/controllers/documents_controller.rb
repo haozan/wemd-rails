@@ -120,11 +120,31 @@ class DocumentsController < ApplicationController
       return
     end
     
+    # 在删除前查找替代文档
+    # 优先选择最近更新的其他文档
+    replacement_document = Current.user.documents
+                                        .where.not(id: @document.id)
+                                        .order(updated_at: :desc)
+                                        .first
+    
     @document.destroy
     
     respond_to do |format|
-      format.html { redirect_to root_path, notice: "文档已删除" }
-      format.json { render json: { success: true } }
+      format.html do
+        if replacement_document
+          # 有其他文档，跳转到替代文档的编辑页
+          redirect_to edit_document_path(replacement_document), notice: "文档已删除"
+        else
+          # 没有其他文档了，跳转到首页
+          redirect_to root_path, notice: "文档已删除"
+        end
+      end
+      format.json do
+        render json: { 
+          success: true,
+          redirect_to: replacement_document ? edit_document_path(replacement_document) : root_path
+        }
+      end
     end
   end
 

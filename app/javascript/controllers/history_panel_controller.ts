@@ -300,6 +300,10 @@ export default class extends Controller<HTMLElement> {
     
     if (!documentId) return
     
+    // 添加删除确认
+    const confirmed = confirm('确定要删除这篇文档吗？此操作无法撤销。')
+    if (!confirmed) return
+    
     try {
       const response = await fetch(`/documents/${documentId}.json`, {
         method: 'DELETE',
@@ -338,6 +342,10 @@ export default class extends Controller<HTMLElement> {
   // 清空所有历史
   // turbo-architecture-validation: disable
   async clearAll(): Promise<void> {
+    // 添加清空历史确认
+    const confirmed = confirm('确定要清空所有历史记录吗？此操作无法撤销。')
+    if (!confirmed) return
+    
     try {
       const response = await fetch('/documents/clear_history.json', {
         method: 'DELETE',
@@ -403,9 +411,9 @@ export default class extends Controller<HTMLElement> {
           <h4 class="text-sm font-semibold text-foreground line-clamp-2 flex-1">
             ${this.escapeHtml(title)}
           </h4>
-          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+          <div class="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors"
+                    class="text-muted-foreground hover:text-primary transition-colors p-1"
                     data-action="click->history-panel#rename"
                     data-document-id="${entry.id}"
                     title="重命名">
@@ -415,7 +423,7 @@ export default class extends Controller<HTMLElement> {
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors"
+                    class="text-muted-foreground hover:text-primary transition-colors p-1"
                     data-action="click->history-panel#duplicate"
                     data-document-id="${entry.id}"
                     title="复制">
@@ -425,7 +433,7 @@ export default class extends Controller<HTMLElement> {
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-destructive transition-colors"
+                    class="text-muted-foreground hover:text-destructive transition-colors p-1"
                     data-action="click->history-panel#delete"
                     data-document-id="${entry.id}"
                     title="删除">
