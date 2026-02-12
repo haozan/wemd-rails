@@ -1099,6 +1099,21 @@ export default class extends Controller<HTMLElement> {
     // 监听编辑器内容变化和主题选择变化
     const triggerAutoSave = () => {
       this.triggerAutoSave()
+      // 保存到历史记录（用户手动输入时）
+      this.triggerAutoSave()
+        this.triggerAutoSave()
+      }
+      // 显示"编辑中"状态
+      this.triggerAutoSave()
+      this.triggerAutoSave()
+        this.triggerAutoSave()
+        this.triggerAutoSave()
+      }
+      // 使用 2 秒防抖
+      this.triggerAutoSave()
+        this.triggerAutoSave()
+        this.triggerAutoSave()
+      this.triggerAutoSave()
     }
 
     this.editorTarget.addEventListener('input', triggerAutoSave)
@@ -1106,7 +1121,6 @@ export default class extends Controller<HTMLElement> {
     this.themeSelectTarget.addEventListener('change', triggerAutoSave)
     console.log('[WeMD AutoSave] Auto-save listeners registered on editor, title, and theme select')
   }
-
 
   /**
    * 同步执行自动保存（不使用 async，用于 disconnect 等需要立即保存的场景）
