@@ -19,6 +19,7 @@ themes_data = [
   { name: "包豪斯", files: ["basic.css", "bauhaus.css", "code-github.css"] },
   { name: "赛博朋克", files: ["basic.css", "cyberpunk-neon.css", "code-github.css"] },
   { name: "知识库", files: ["basic.css", "knowledge-base.css", "code-github.css"] },
+  { name: "李笑来原版", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
   { name: "黑金奢华", files: ["basic.css", "luxury-gold.css", "code-github.css"] },
   { name: "莫兰迪森林", files: ["basic.css", "morandi-forest.css", "code-github.css"] },
   { name: "新粗野主义", files: ["basic.css", "neo-brutalism.css", "code-github.css"] },

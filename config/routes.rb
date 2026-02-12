@@ -81,6 +81,9 @@ Rails.application.routes.draw do
   # Do not write business logic at admin dashboard
   namespace :admin do
     resources :themes
+    resources :themes do
+      post :sync, on: :collection
+    end
     resources :users, only: [:index, :show]
     resources :admin_oplogs, only: [:index, :show]
     resources :administrators

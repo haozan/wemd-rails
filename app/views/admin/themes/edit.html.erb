@@ -22,9 +22,8 @@
 
         <!-- Css -->
         <div class="form-group">
-          <%= form.label :css, "Theme CSS (使用 #wemd 选择器作为作用域)" %>
-          <%= form.text_area :css, rows: 20, placeholder: "#wemd { ... }", class: "font-mono text-sm" %>
-          <p class="text-sm text-gray-500 mt-2">提示：所有样式应该在 #wemd 选择器下，以避免影响其他页面样式</p>
+          <%= form.label :css %>
+          <%= form.text_area :css, rows: 5, placeholder: "Enter css..." %>
         </div>
 
         <!-- Is builtin -->

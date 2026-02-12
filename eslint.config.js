@@ -85,6 +85,13 @@ module.exports = [
     },
   },
   {
+    files: ['app/javascript/controllers/theme_sync_controller.ts'],
+    rules: {
+      'no-alert': 'off',
+      'no-restricted-globals': 'off',
+    },
+  },
+  {
     ignores: [
       'node_modules/',
       'app/assets/builds/',
