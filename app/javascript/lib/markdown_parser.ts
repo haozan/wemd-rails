@@ -11,6 +11,7 @@ import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
 import { full as markdownItEmoji } from 'markdown-it-emoji'
 import markdownItTaskLists from 'markdown-it-task-lists'
+import markdownItFootnote from 'markdown-it-footnote'
 import hljs from 'highlight.js'
 
 // 自定义插件（简化版）
@@ -50,6 +51,7 @@ export function createMarkdownParser(): MarkdownIt {
   // 应用插件
   md
     .use(markdownItTableContainer)
+    .use(markdownItFootnote) // 脚注插件
     .use(markdownItTableOfContents, {
       transformLink: () => '',
       includeLevel: [2, 3],

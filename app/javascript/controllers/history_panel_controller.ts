@@ -301,7 +301,8 @@ export default class extends Controller<HTMLElement> {
     if (!documentId) return
     
     // 添加删除确认
-    const confirmed = confirm('确定要删除这篇文档吗？此操作无法撤销。')
+    // eslint-disable-next-line no-alert, no-restricted-globals
+    const confirmed = window.confirm('确定要删除这篇文档吗？此操作无法撤销。')
     if (!confirmed) return
     
     try {
@@ -343,7 +344,8 @@ export default class extends Controller<HTMLElement> {
   // turbo-architecture-validation: disable
   async clearAll(): Promise<void> {
     // 添加清空历史确认
-    const confirmed = confirm('确定要清空所有历史记录吗？此操作无法撤销。')
+    // eslint-disable-next-line no-alert, no-restricted-globals
+    const confirmed = window.confirm('确定要清空所有历史记录吗？此操作无法撤销。')
     if (!confirmed) return
     
     try {

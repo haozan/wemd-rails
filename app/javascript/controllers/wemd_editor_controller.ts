@@ -389,6 +389,43 @@ export default class extends Controller<HTMLElement> {
   }
 
   /**
+   * 工具栏操作：插入脚注
+   */
+  insertFootnote(): void {
+    const editor = this.editorTarget
+    const start = editor.selectionStart
+    const end = editor.selectionEnd
+    const text = editor.value
+    const selectedText = text.substring(start, end)
+
+    // 查找当前文档中已有的脚注编号
+    const footnoteMatches = text.matchAll(/\[\^(\d+)\]/g)
+    const existingNumbers = Array.from(footnoteMatches).map(match => parseInt(match[1], 10))
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
+
+    // 在光标位置插入脚注引用
+    const footnoteRef = `[^${nextNumber}]`
+    const newText = text.substring(0, start) + footnoteRef + text.substring(end)
+    editor.value = newText
+
+    // 移动光标到文档末尾并插入脚注定义
+    const footnoteDefinition = `\n\n[^${nextNumber}]: ${selectedText || '脚注内容'}`
+    editor.value = editor.value + footnoteDefinition
+
+    // 选中脚注定义中的内容文本，方便用户编辑
+    const definitionStart = editor.value.lastIndexOf(': ') + 2
+    const definitionEnd = editor.value.length
+    editor.setSelectionRange(definitionStart, definitionEnd)
+    editor.focus()
+
+    // 保存到历史记录
+    this.saveToHistory()
+
+    // 触发预览更新
+    this.updatePreview()
+  }
+
+  /**
    * 工具栏操作：插入表格
    */
   insertTable(): void {
