@@ -1,3 +1,4 @@
+
 /* 李笑来原版 - Markdown Here Classic Style */
 
 /* 全局字体 */
@@ -229,73 +230,4 @@
   font-weight: normal !important;
   background: none !important;
   padding: 0 !important;
-}
-
-/* Imageflow CSS */
-#wemd .imageflow-layer1 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-  /* white-space: normal; */
-  border: 0px none;
-  padding: 0px;
-  overflow: hidden;
-}
-
-#wemd .imageflow-layer2 {
-  white-space: nowrap;
-  width: 100%;
-  overflow-x: scroll;
-}
-
-#wemd .imageflow-layer3 {
-  display: inline-block;
-  word-wrap: break-word;
-  white-space: normal;
-  vertical-align: top;
-  width: 80%;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-#wemd .imageflow-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 300px;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-#wemd .imageflow-caption {
-  text-align: center;
-  margin-top: 0px;
-  padding-top: 0px;
-  color: #888;
-}
-
-/* 行间公式 */
-#wemd .block-equation svg,
-#wemd .katex-display .katex-html {
-  display: block;
-  margin: 20px auto;
-  max-width: 300% !important;
-}
-
-/* 行内公式 */
-#wemd .inline-equation svg {
-  vertical-align: middle;
-}
-
-/* 行内公式容器 - 仅设置最外层容器的对齐 */
-#wemd .katex {
-  font-size: 1.21em;
-  vertical-align: -0.25em;
-}
-
-/* KaTeX 重置 - 修复公式错位问题 */
-#wemd .katex,
-#wemd .katex *,
-#wemd .katex-display,
-#wemd .katex-display * {
-  line-height: 1 !important;
 }
