@@ -22,8 +22,8 @@ COPY --chown=ruby:ruby . .
 # Ensure assets build directory exists
 RUN mkdir -p app/assets/builds
 
-# Precompile assets
-RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+# Precompile assets (use local storage to avoid Qiniu config requirement)
+RUN SECRET_KEY_BASE_DUMMY=1 ACTIVE_STORAGE_SERVICE=local bundle exec rails assets:precompile
 
 ENTRYPOINT ["/app/bin/docker-entrypoint"]
 

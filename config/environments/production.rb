@@ -31,7 +31,12 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
   # Store uploaded files on Qiniu cloud storage
-  config.active_storage.service = :qiniu
+  # Fall back to local storage during asset precompilation (SECRET_KEY_BASE_DUMMY=1)
+  if ENV['SECRET_KEY_BASE_DUMMY'].present?
+    config.active_storage.service = :local
+  else
+    config.active_storage.service = :qiniu
+  end
 
   # Mount Action Cable outside main process or domain.
   config.action_cable.disable_request_forgery_protection = true
