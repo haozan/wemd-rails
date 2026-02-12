@@ -14,7 +14,7 @@ class RegistrationsController < ApplicationController
       cookies.signed.permanent[:session_token] = { value: session_record.id, httponly: true }
 
       send_email_verification
-      redirect_to root_path, notice: "Welcome! You have signed up successfully"
+      redirect_to root_path, notice: "欢迎！注册成功"
     else
       flash.now[:alert] = handle_password_errors(@user)
       render :new, status: :unprocessable_entity
@@ -24,7 +24,7 @@ class RegistrationsController < ApplicationController
   private
 
   def redirect_if_signed_in
-    redirect_to root_path, notice: "You are already signed in" if user_signed_in?
+    redirect_to root_path, notice: "您已登录" if user_signed_in?
   end
 
   def user_params

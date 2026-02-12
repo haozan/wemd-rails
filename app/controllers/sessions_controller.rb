@@ -20,9 +20,9 @@ class SessionsController < ApplicationController
     if user = User.authenticate_by(email: params[:user][:email], password: params[:user][:password])
       @session = user.sessions.create!
       cookies.signed.permanent[:session_token] = { value: @session.id, httponly: true }
-      redirect_to root_path, notice: "Signed in successfully"
+      redirect_to root_path, notice: "登录成功"
     else
-      redirect_to sign_in_path(email_hint: params[:user][:email]), alert: "That email or password is incorrect"
+      redirect_to sign_in_path(email_hint: params[:user][:email]), alert: "邮箱或密码不正确"
     end
   end
 
@@ -31,18 +31,18 @@ class SessionsController < ApplicationController
     @session = Current.session
     @session.destroy!
     cookies.delete(:session_token)
-    redirect_to(sign_in_path, notice: "That session has been logged out")
+    redirect_to(sign_in_path, notice: "已退出登录")
   end
 
   def destroy_one
     @session = current_user.sessions.find(params[:id])
     @session.destroy!
-    redirect_to(devices_session_path, notice: "That session has been logged out")
+    redirect_to(devices_session_path, notice: "该设备已退出登录")
   end
 
   private
 
   def redirect_if_signed_in
-    redirect_to root_path, notice: "You are already signed in" if user_signed_in?
+    redirect_to root_path, notice: "您已登录" if user_signed_in?
   end
 end

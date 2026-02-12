@@ -16,9 +16,9 @@ class ProfilesController < ApplicationController
       need_email_verification = @user.previous_changes.include?(:email)
       if need_email_verification
         send_email_verification
-        additional_notice = "and sent a verification email to your new email address"
+        additional_notice = "，并已发送验证邮件到您的新邮箱"
       end
-      redirect_to profile_path, notice: "Profile updated #{additional_notice}"
+      redirect_to profile_path, notice: "个人资料已更新#{additional_notice}"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -32,13 +32,13 @@ class ProfilesController < ApplicationController
     @user = current_user
 
     unless @user.authenticate(params[:user][:current_password])
-      flash.now[:alert] = "Password not correct"
+      flash.now[:alert] = "当前密码不正确"
       render :edit_password, status: :unprocessable_entity
       return
     end
 
     if @user.update(password_params)
-      redirect_to profile_path, notice: "Password updated"
+      redirect_to profile_path, notice: "密码已更新"
     else
       render :edit_password, status: :unprocessable_entity
     end

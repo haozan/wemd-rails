@@ -1,30 +1,30 @@
 <div class="container-sm py-12">
     <div class="card-elevated">
       <div class="card-body">
-        <h1 class="text-2xl font-bold text-primary mb-8">Edit Profile</h1>
+        <h1 class="text-2xl font-bold text-primary mb-8">编辑资料</h1>
 
         <%= form_with model: @user, url: profile_path, method: :patch, local: true, class: "space-y-6" do |form| %>
           <div>
             <%= form.label :name, required: true do %>
-              Name
+              姓名
             <% end %>
-            <%= form.text_field :name, required: true, autocomplete: "name", placeholder: "Enter your name" %>
+            <%= form.text_field :name, required: true, autocomplete: "name", placeholder: "请输入姓名" %>
           </div>
 
           <div>
             <%= form.label :email do %>
-              Email
+              邮箱
             <% end %>
-            <%= form.email_field :email, required: true, autocomplete: "email", placeholder: "Enter your email" %>
+            <%= form.email_field :email, required: true, autocomplete: "email", placeholder: "请输入邮箱" %>
             <div class="form-help">
-              Email verification required after changes
+              修改后需要邮箱验证
             </div>
           </div>
 
           <div class="pt-4">
             <div class="flex justify-end space-x-3">
-              <%= form.submit "Save Changes", class: "btn-primary" %>
-              <%= link_to "Cancel", profile_path, class: "btn-ghost" %>
+              <%= form.submit "保存修改", class: "btn-primary" %>
+              <%= link_to "取消", profile_path, class: "btn-ghost" %>
             </div>
           </div>
         <% end %>
