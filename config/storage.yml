@@ -16,3 +16,13 @@ storage_bucket:
   secret_access_key: <%= ENV.fetch("STORAGE_BUCKET_SECRET_ACCESS_KEY", "") %>
   region: <%= ENV.fetch("STORAGE_BUCKET_REGION", "") %>
   bucket: <%= ENV.fetch("STORAGE_BUCKET_NAME", "") %>
+
+# 七牛云存储配置（使用 S3 兼容 API）
+qiniu:
+  service: S3
+  endpoint: <%= ENV.fetch("QINIU_ENDPOINT", "") %>
+  access_key_id: <%= ENV.fetch("QINIU_ACCESS_KEY", "") %>
+  secret_access_key: <%= ENV.fetch("QINIU_SECRET_KEY", "") %>
+  region: <%= ENV.fetch("QINIU_REGION", "cn-east-1") %>
+  bucket: <%= ENV.fetch("QINIU_BUCKET", "") %>
+  force_path_style: true
