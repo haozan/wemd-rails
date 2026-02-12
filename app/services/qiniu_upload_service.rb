@@ -2,9 +2,10 @@ class QiniuUploadService < ApplicationService
   # 图片上传服务
   # 使用 ActiveStorage 存储图片，返回图片 URL
   
-  def initialize(file, user)
+  def initialize(file, user, request = nil)
     @file = file
     @user = user
+    @request = request
   end
 
   def call
@@ -23,7 +24,7 @@ class QiniuUploadService < ApplicationService
     # ActiveStorage 会自动上传到配置的存储位置
     {
       success: true,
-      url: rails_blob_url(blob),
+      url: short_url_for(blob),
       filename: blob.filename.to_s,
       size: blob.byte_size
     }
@@ -55,8 +56,16 @@ class QiniuUploadService < ApplicationService
     "#{timestamp}_#{sanitized}#{extension}"
   end
 
-  def rails_blob_url(blob)
-    # 使用 Rails URL helpers 生成 blob URL
-    Rails.application.routes.url_helpers.rails_blob_url(blob, host: ENV['PUBLIC_HOST'] || 'localhost:3000')
+  def short_url_for(blob)
+    # 构建完整URL，支持复制到公众号等外部平台
+    if @request.present?
+      # 从请求中获取域名
+      protocol = @request.protocol # 'http://' 或 'https://'
+      host = @request.host_with_port # 包含端口的域名
+      "#{protocol}#{host}#{blob.short_url}"
+    else
+      # 降级使用相对路径
+      blob.short_url
+    end
   end
 end

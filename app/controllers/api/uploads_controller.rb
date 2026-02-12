@@ -10,7 +10,7 @@ class Api::UploadsController < Api::BaseController
       return
     end
 
-    result = ImageUploadService.call(uploaded_file, Current.user)
+    result = ImageUploadService.call(uploaded_file, Current.user, request)
     
     if result[:success]
       render json: result, status: :created

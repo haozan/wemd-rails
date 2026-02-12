@@ -100,6 +100,50 @@ puts blob.url
 - 文件上传到七牛云对象存储
 - 需要配置上述环境变量
 
+## 图片 URL 访问方式
+
+### 默认方式：Rails 代理访问（推荐）
+
+默认配置下，图片 URL 格式为：
+```
+https://yourapp.com/rails/active_storage/blobs/redirect/xxx/filename.jpg
+```
+
+**优点：**
+- 无需配置额外域名
+- 更好的访问控制和安全性
+- 统一的 URL 格式
+- 文件确实存储在七牛云，只是通过 Rails 转发
+
+**缺点：**
+- 流量经过应用服务器
+- 可能增加服务器负载
+
+### 可选方式：七牛云直接访问
+
+如果需要直接返回七牛云链接，设置 `QINIU_PUBLIC: 'true'`：
+
+```yaml
+# config/application.yml
+QINIU_PUBLIC: 'true'
+```
+
+**重要说明：**
+1. 需要将七牛云 Bucket 设置为「公开空间」
+2. URL 格式为：`https://s3-cn-south-1.qiniucs.com/atompic/文件key`
+3. ⚠️ 这**不是 CDN 域名**，访问速度可能较慢
+4. ⚠️ 不支持自定义域名（S3 兼容 API 的限制）
+
+### 使用真正的 CDN 加速（高级）
+
+如果需要使用七牛云的 CDN 域名（如 `cdn.yourdomain.com`），需要：
+
+1. 将项目改用七牛云原生 Ruby SDK（`qiniu` gem）
+2. 或在应用层自定义 URL 生成逻辑
+3. 配置自定义域名并完成备案
+
+**大多数情况下，默认的 Rails 代理方式已经足够。**
+
 ## 切换存储方式
 
 如果需要在开发环境也使用七牛云，修改 `config/environments/development.rb`：

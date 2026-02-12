@@ -26,3 +26,6 @@ qiniu:
   region: <%= ENV.fetch("QINIU_REGION", "cn-east-1") %>
   bucket: <%= ENV.fetch("QINIU_BUCKET", "") %>
   force_path_style: true
+  # 如果配置了 QINIU_CDN_HOST，将使用 CDN 域名直接访问（需要在七牛云绑定自定义域名）
+  # 格式: https://cdn.yourdomain.com
+  public: <%= ENV.fetch("QINIU_PUBLIC", "false") == "true" %>
