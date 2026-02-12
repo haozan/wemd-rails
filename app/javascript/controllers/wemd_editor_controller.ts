@@ -527,6 +527,18 @@ export default class extends Controller<HTMLElement> {
    * 复制到微信公众号（应用深色模式算法 + 内联样式）
    */
   async copyToWechat(): Promise<void> {
+    // ⚠️ 关键修复：使用 WeMD 的完整剪贴板机制
+    // 参考：https://github.com/tenngoxars/WeMD/blob/main/apps/web/src/services/wechatCopyService.ts
+    // 1. 创建临时容器渲染 DOM
+    // 2. 使用 execCommand('copy') 复制渲染后的节点
+    // 3. 使用 Clipboard API 同时写入 HTML 和 plain text
+    
+    const container = document.createElement('div')
+    container.style.position = 'absolute'
+    container.style.top = '-9999px'
+    container.style.left = '-9999px'
+    document.body.appendChild(container)
+    
     try {
       const markdown = this.editorTarget.value
       const html = parseMarkdown(markdown)
@@ -534,20 +546,167 @@ export default class extends Controller<HTMLElement> {
       // 获取主题 CSS（从更新后的 style 标签）
       const themeStyles = document.getElementById('theme-styles')?.textContent || ''
       
-      // 为 juice构造包含<style>标签的HTML（juice需要这个来转换为内联样式）
-      const styledHtml = `
-        <style>${themeStyles}</style>
-        ${applyTheme(html)}
-      `
+      // 应用主题（传入 true 表示要内联样式）
+      const wrappedHtml = applyTheme(html, true)
       
-      // 使用 juice 库将 CSS 转为内联样式
-      let finalHtml = juice(styledHtml)
+      // 使用 juice.inlineContent() 将 CSS 直接内联到 HTML
+      // 这是关键：juice.inlineContent(html, css) 比 juice(html) 更可靠
+      let finalHtml = juice.inlineContent(wrappedHtml, themeStyles, {
+        inlinePseudoElements: true,  // 内联伪元素内容（::before, ::after）
+        preserveImportant: true,     // 保留 !important 声明
+        applyWidthAttributes: true,  // 对表格应用 width 属性
+        applyHeightAttributes: true  // 对表格应用 height 属性
+      })
       
-      // 清理 HTML（移除<style>标签，因为已经转换为内联样式）
-      finalHtml = finalHtml.trim().replace(/<style[^>]*>\s*<\/style>/gi, '')
+      // 关键：在 juice 处理后，追加强制内联样式
+      // 这确保关键样式不会被微信公众号的默认样式覆盖
       
-      // 复制到剪贴板
-      await this.copyHtmlToClipboard(finalHtml)
+      // 1. 处理 pre 元素：确保 overflow 和 white-space 正确
+      finalHtml = finalHtml.replace(
+        /<pre([^>]*)(style="[^"]*")([^>]*)>/gi,
+        (_match, before: string, styleAttr: string, after: string) => {
+          const styleMatch = styleAttr.match(/style="([^"]*)"/i)
+          const existing = styleMatch ? styleMatch[1] : ''
+          const needsSemicolon = existing.trim() && !existing.trim().endsWith(';')
+          const nextStyle = `${existing}${needsSemicolon ? ';' : ''}overflow-x:auto;-webkit-overflow-scrolling:touch;`
+          return `<pre${before} style="${nextStyle}"${after}>`
+        }
+      )
+      
+      // 2. 处理 code 元素：防止 text-align:justify 破坏代码格式
+      finalHtml = finalHtml.replace(
+        /<code([^>]*)(style="[^"]*")([^>]*)>/gi,
+        (_match, before: string, styleAttr: string, after: string) => {
+          const styleMatch = styleAttr.match(/style="([^"]*)"/i)
+          const existing = styleMatch ? styleMatch[1] : ''
+          // 将 white-space:pre-wrap 标准化为 white-space:pre
+          const normalized = existing.replace(/white-space:\s*pre-wrap/gi, 'white-space:pre')
+          const needsSemicolon = normalized.trim() && !normalized.trim().endsWith(';')
+          const nextStyle = `${normalized}${needsSemicolon ? ';' : ''}text-align:left;letter-spacing:0;word-spacing:0;`
+          return `<code${before} style="${nextStyle}"${after}>`
+        }
+      )
+      
+      // 3. 关键修复：处理CSS变量（微信后台无法解析CSS自定义属性）
+      // 参考：https://github.com/doocs/md 的 apps/web/src/utils/index.ts
+      // 原因：微信公众号后台保存时会移除无法识别的CSS变量，导致样式丢失
+      
+      // 3.1 转换 top 属性为 transform: translateY
+      finalHtml = finalHtml.replace(/([^-])top:(.*?)em/g, '$1transform: translateY($2em)')
+      
+      // 3.2 替换 CSS 变量引用为实际值
+      finalHtml = finalHtml.replace(/hsl\(var\(--foreground\)\)/g, '#3f3f3f')
+      finalHtml = finalHtml.replace(/var\(--blockquote-background\)/g, '#f7f7f7')
+      
+      // 3.3 删除所有 CSS 变量声明 (包括 --md-* 系列)
+      finalHtml = finalHtml.replace(/--md-primary-color:.+?;/g, '')
+      finalHtml = finalHtml.replace(/--md-font-family:.+?;/g, '')
+      finalHtml = finalHtml.replace(/--md-font-size:.+?;/g, '')
+      
+      // 3.4 删除其他可能的 CSS 变量声明
+      finalHtml = finalHtml.replace(/--[a-zA-Z-]+:.+?;/g, '')
+      
+      // 4. 转换 checkbox 为 emoji（微信会过滤 input 标签）
+      finalHtml = finalHtml.replace(/<input[^>]*checked[^>]*>/gi, '✅&#160;')
+      finalHtml = finalHtml.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '⬜&#160;')
+      
+      // 5. 关键修复：增强链接样式（border-bottom 在微信后台保存时会被移除）
+      // 原因：微信公众号后台保存时会移除 border-bottom 属性
+      // 解决方案：将 border-bottom 转换为 text-decoration（微信支持且更稳定）
+      // 参考：WeMD 项目不使用 border-bottom，而是依赖 text-decoration
+      finalHtml = finalHtml.replace(
+        /<a([^>]*)>/gi,
+        (_match, attributes: string) => {
+          // 提取现有的 style 属性（如果有）
+          const styleMatch = attributes.match(/style="([^"]*)"/i)
+          let existingStyle = styleMatch ? styleMatch[1] : ''
+          
+          // 移除 style 属性以便重新构建
+          let otherAttributes = attributes.replace(/\s*style="[^"]*"/i, '')
+          
+          // 移除可能被微信移除的 border-bottom 属性
+          existingStyle = existingStyle.replace(/border-bottom:[^;]+;?/gi, '')
+          
+          // 移除可能存在的 text-decoration: none（这会覆盖我们的下划线）
+          existingStyle = existingStyle.replace(/text-decoration:\s*none;?/gi, '')
+          
+          // 确保样式末尾有分号（如果有内容）
+          const needsSemicolon = existingStyle.trim() && !existingStyle.trim().endsWith(';')
+          
+          // 添加微信兼容的下划线样式
+          // text-decoration: underline - 基本下划线
+          // text-decoration-thickness: 1px - 下划线粗细（微信支持）
+          // text-underline-offset: 2px - 下划线与文字的距离（微信支持）
+          const enhancedStyle = `${existingStyle}${needsSemicolon ? ';' : ''}text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;`
+          
+          return `<a${otherAttributes} style="${enhancedStyle}">`
+        }
+      )
+      
+      // 调试：输出处理后的 HTML（帮助诊断问题）
+      console.log('========== WeChat Copy Debug Info ==========') 
+      console.log('[1] Original markdown length:', markdown.length)
+      console.log('[2] Parsed HTML length:', html.length)
+      console.log('[3] Theme styles length:', themeStyles.length)
+      console.log('[4] Wrapped HTML length:', wrappedHtml.length)
+      console.log('[5] Final HTML length:', finalHtml.length)
+      console.log('[6] Theme CSS sample (first 500 chars):', themeStyles.substring(0, 500))
+      console.log('[7] Final HTML sample (first 1000 chars):', finalHtml.substring(0, 1000))
+      console.log('[8] Check if styles are inlined:', finalHtml.includes('style="'))
+      console.log('[9] Count style attributes:', (finalHtml.match(/style="/g) || []).length)
+      
+      // 检查CSS变量是否被删除
+      const cssVarsCheck = {
+        hasTopProperty: finalHtml.includes('top:'),
+        hasVarForeground: finalHtml.includes('var(--foreground)'),
+        hasVarBlockquote: finalHtml.includes('var(--blockquote-background)'),
+        hasMdPrimaryColor: finalHtml.includes('--md-primary-color:'),
+        hasMdFontFamily: finalHtml.includes('--md-font-family:'),
+        hasMdFontSize: finalHtml.includes('--md-font-size:'),
+        hasAnyDoubleDash: finalHtml.match(/--[a-zA-Z-]+:/g)?.length || 0
+      }
+      console.log('[10] CSS Variables Check:', cssVarsCheck)
+      console.log('[11] CSS Variables found (if any):', finalHtml.match(/--[a-zA-Z-]+:[^;]+;/g) || 'None')
+      
+      // 检查链接样式处理
+      const linkStyleCheck = {
+        totalLinks: (finalHtml.match(/<a[^>]*>/gi) || []).length,
+        linksWithStyle: (finalHtml.match(/<a[^>]*style="[^"]*"[^>]*>/gi) || []).length,
+        linksWithTextDecoration: (finalHtml.match(/<a[^>]*style="[^"]*text-decoration:[^"]*"[^>]*>/gi) || []).length,
+        linksWithBorderBottom: (finalHtml.match(/<a[^>]*style="[^"]*border-bottom:[^"]*"[^>]*>/gi) || []).length,
+        sampleLink: (finalHtml.match(/<a[^>]*>[^<]*<\/a>/i) || ['None'])[0]
+      }
+      console.log('[12] Link Style Check:', linkStyleCheck)
+      console.log('============================================')
+      
+      // ⚠️ CRITICAL FIX: WeMD's dual-format clipboard mechanism
+      // 将 HTML 渲染到 DOM，然后使用 execCommand 和 Clipboard API 双重复制
+      container.innerHTML = finalHtml
+      
+      // 1. 使用 execCommand('copy') 复制渲染后的 DOM 节点（包含计算样式）
+      const selection = window.getSelection()
+      const range = document.createRange()
+      range.selectNodeContents(container)
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      document.execCommand('copy')
+      
+      // 2. 使用现代 Clipboard API 同时写入 HTML 和 plain text
+      // 这确保微信后台在保存时有 plain text 作为 fallback
+      if (navigator.clipboard && window.ClipboardItem) {
+        try {
+          const htmlBlob = new Blob([container.innerHTML], { type: 'text/html' })
+          const textBlob = new Blob([markdown], { type: 'text/plain' })
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': htmlBlob,
+              'text/plain': textBlob  // ⚠️ CRITICAL: Plain text for WeChat validation
+            })
+          ])
+        } catch (e) {
+          console.error('Clipboard API 失败，已使用 execCommand 回退方案', e)
+        }
+      }
       
       if (typeof showToast === 'function') {
         showToast('✅ 已复制到剪贴板！可直接粘贴到微信公众号编辑器', 'success')

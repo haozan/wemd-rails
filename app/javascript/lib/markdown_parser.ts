@@ -151,9 +151,48 @@ export function parseMarkdown(markdown: string): string {
 /**
  * 应用主题包裹到预览 HTML
  * @param html 预览 HTML
+ * @param inlineStyles 是否内联样式（用于复制到微信）
  * @returns 包裹了 #wemd 容器的 HTML
  */
-export function applyTheme(html: string): string {
-  // 只负责包裹内容，样式由外部的 #theme-styles 元素管理
-  return `<div id="wemd">${html}</div>`
+export function applyTheme(html: string, inlineStyles: boolean = false): string {
+  // 为顶级块元素添加 data-tool 属性（微信公众号要求）
+  const DATA_TOOL = 'WeMD编辑器'
+  const BLOCK_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'table', 'figure', 'pre', 'hr']
+  
+  let processedHtml = html
+  
+  if (inlineStyles) {
+    // 保护代码块中的空格，防止微信清洗时删除
+    processedHtml = processedHtml.replace(
+      /<code([^>]*class="[^"]*\bhljs\b[^"]*"[^>]*)>([\s\S]*?)<\/code>/g,
+      (_match, attrs: string, inner: string) => {
+        let protected_ = inner
+        // 将制表符转换为4个空格
+        protected_ = protected_.replace(/\t/g, '    ')
+        // 将行首和中间的空格转换为不间断空格
+        protected_ = protected_.replace(/\n( +)/g, (_m, spaces: string) => {
+          return `\n${'&#160;'.repeat(spaces.length)}`
+        })
+        protected_ = protected_.replace(/^( +)/, (_m, spaces: string) => {
+          return '&#160;'.repeat(spaces.length)
+        })
+        return `<code${attrs}>${protected_}</code>`
+      }
+    )
+    
+    // 为块元素添加 data-tool 属性
+    BLOCK_TAGS.forEach((tag) => {
+      const regex = new RegExp(`<${tag}(\\s+[^>]*|)>`, 'gi')
+      processedHtml = processedHtml.replace(regex, (match, attributes) => {
+        if (match.includes('data-tool=')) return match
+        return `<${tag} data-tool="${DATA_TOOL}"${attributes}>`
+      })
+    })
+  }
+  
+  // 包裹在 section#wemd 中
+  // 复制到微信时添加透明背景防止浏览器保留选区背景色
+  const tagName = inlineStyles ? 'section' : 'div'
+  const bgStyle = inlineStyles ? ' style="background:transparent;background-color:transparent;"' : ''
+  return `<${tagName} id="wemd"${bgStyle}>${processedHtml}</${tagName}>`
 }
