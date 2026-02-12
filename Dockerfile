@@ -19,6 +19,9 @@ RUN npm ci --production=false
 # Copy application code
 COPY --chown=ruby:ruby . .
 
+# Ensure assets build directory exists
+RUN mkdir -p app/assets/builds
+
 # Precompile assets
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
