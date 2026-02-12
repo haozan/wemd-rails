@@ -142,7 +142,7 @@
 
 #wemd .multiquote-1::before,
 #wemd .multiquote-1::after {
-  content: none !important;
+  content: "" !important;
 }
 
 /* 标题 */
