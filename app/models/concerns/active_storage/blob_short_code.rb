@@ -26,6 +26,8 @@ module ActiveStorage
 
       self.short_code = loop do
         code = SecureRandom.alphanumeric(8)
+        # Skip database query during asset precompilation
+        break code if ENV['SECRET_KEY_BASE_DUMMY'].present?
         break code unless ActiveStorage::Blob.exists?(short_code: code)
       end
     end

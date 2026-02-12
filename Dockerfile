@@ -19,11 +19,17 @@ RUN npm ci --production=false
 # Copy application code
 COPY --chown=ruby:ruby . .
 
+# Create minimal application.yml for build time (Figaro requirement)
+RUN echo 'SECRET_KEY_BASE: "dummy"' > config/application.yml
+
 # Ensure assets build directory exists
 RUN mkdir -p app/assets/builds
 
-# Precompile assets (use local storage to avoid Qiniu config requirement)
-RUN SECRET_KEY_BASE_DUMMY=1 ACTIVE_STORAGE_SERVICE=local bundle exec rails assets:precompile
+# Precompile assets (use local storage and fake database to avoid runtime dependencies)
+RUN DATABASE_URL=postgresql://user:pass@localhost/dbname \
+    SECRET_KEY_BASE_DUMMY=1 \
+    ACTIVE_STORAGE_SERVICE=local \
+    bundle exec rails assets:precompile
 
 ENTRYPOINT ["/app/bin/docker-entrypoint"]
 
