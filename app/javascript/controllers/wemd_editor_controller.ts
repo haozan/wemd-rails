@@ -106,6 +106,7 @@ export default class extends Controller<HTMLElement> {
     }
 
     this.debounceTimer = window.setTimeout(() => {
+      this.syncFootnotes()
       this.renderPreview()
       this.updateFootnoteNumber()
     }, 300)
@@ -410,9 +411,10 @@ export default class extends Controller<HTMLElement> {
     const existingNumbers = Array.from(footnoteMatches).map(match => parseInt(match[1], 10))
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
 
-    // 在光标位置插入脚注引用
+    // 在光标位置或选中文本后面插入脚注引用
     const footnoteRef = `[^${nextNumber}]`
-    const newText = text.substring(0, start) + footnoteRef + text.substring(end)
+    // 保留选中的文本，在其后面添加脚注引用
+    const newText = text.substring(0, start) + selectedText + footnoteRef + text.substring(end)
     editor.value = newText
 
     // 移动光标到文档末尾并插入脚注定义
@@ -443,6 +445,68 @@ export default class extends Controller<HTMLElement> {
 | 单元格 4 | 单元格 5 | 单元格 6 |
 `
     this.insertAtCursor(table, '')
+  }
+
+  /**
+   * 同步脚注：双向同步删除
+   * 1. 删除脚注定义时自动删除正文中的引用
+   * 2. 删除正文引用时自动删除未使用的脚注定义
+   */
+  private syncFootnotes(): void {
+    const editor = this.editorTarget
+    let text = editor.value
+    let hasChanges = false
+    
+    // 查找所有的脚注定义 [^n]: xxx (包括整行)
+    const definitionMatches = Array.from(text.matchAll(/\[\^(\d+)\]:.*(?:\n|$)/g))
+    const definedNumbers = new Set(definitionMatches.map(match => match[1]))
+    const definitions = definitionMatches.map(match => ({
+      number: match[1],
+      index: match.index!,
+      length: match[0].length,
+      fullText: match[0]
+    }))
+    
+    // 查找所有的脚注引用 [^n]
+    const referenceMatches = Array.from(text.matchAll(/\[\^(\d+)\](?!:)/g))
+    const referencedNumbers = new Set(referenceMatches.map(match => match[1]))
+    const references = referenceMatches.map(match => ({
+      number: match[1],
+      index: match.index!,
+      length: match[0].length
+    }))
+    
+    // 1. 找出没有定义的引用（需要删除）
+    const orphanedReferences = references.filter(ref => !definedNumbers.has(ref.number))
+    
+    if (orphanedReferences.length > 0) {
+      // 从后往前删除，避免索引偏移
+      for (let i = orphanedReferences.length - 1; i >= 0; i--) {
+        const ref = orphanedReferences[i]
+        text = text.substring(0, ref.index) + text.substring(ref.index + ref.length)
+      }
+      hasChanges = true
+      console.log(`[WeMD Footnote Sync] Removed ${orphanedReferences.length} orphaned footnote reference(s)`)
+    }
+    
+    // 2. 找出没有被引用的定义（需要删除）
+    const unusedDefinitions = definitions.filter(def => !referencedNumbers.has(def.number))
+    
+    if (unusedDefinitions.length > 0) {
+      // 从后往前删除，避免索引偏移
+      for (let i = unusedDefinitions.length - 1; i >= 0; i--) {
+        const def = unusedDefinitions[i]
+        text = text.substring(0, def.index) + text.substring(def.index + def.length)
+      }
+      hasChanges = true
+      console.log(`[WeMD Footnote Sync] Removed ${unusedDefinitions.length} unused footnote definition(s)`)
+    }
+    
+    // 如果有变化，更新编辑器内容
+    if (hasChanges) {
+      editor.value = text
+      this.saveToHistory()
+    }
   }
 
   /**
