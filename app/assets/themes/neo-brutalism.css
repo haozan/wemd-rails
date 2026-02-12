@@ -461,9 +461,7 @@
 
 #wemd .footnote-num {
     font-weight: 900;
-    color: #fff;
-    background: #000;
-    padding: 1px 4px;
+    color: #000;
     margin-right: 4px;
     font-size: 12px;
 }

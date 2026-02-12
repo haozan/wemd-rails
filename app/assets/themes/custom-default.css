@@ -408,9 +408,7 @@
 
 /* 参考资料编号 */
 #wemd .footnote-num {
-  display: inline-block;
-  width: 24px;
-  text-align: right;
+  display: inline;
   margin-right: 8px;
   color: #94a3b8;
   font-weight: 500;

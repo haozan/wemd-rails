@@ -86,7 +86,7 @@ export function createMarkdownParser(): MarkdownIt {
 
   md.renderer.rules.footnote_open = (tokens, idx) => {
     const id = Number(tokens[idx].meta.id + 1)
-    return `<li id="fn${id}" class="footnote-item"><span class="footnote-num">[${id}]</span> `
+    return `<li id="fn${id}" class="footnote-item">[${id}] `
   }
 
   md.renderer.rules.footnote_close = () => {

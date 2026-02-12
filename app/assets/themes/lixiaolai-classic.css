@@ -140,11 +140,6 @@
   color: #777 !important;
 }
 
-#wemd .multiquote-1::before,
-#wemd .multiquote-1::after {
-  content: none !important;
-}
-
 /* 标题 */
 #wemd h1,
 #wemd h2,

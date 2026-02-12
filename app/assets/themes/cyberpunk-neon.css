@@ -473,11 +473,9 @@
 
 #wemd .footnote-num {
     font-weight: bold;
-    color: #0d1117;
-    background: #00F3FF;
+    color: #00F3FF;
     margin-right: 4px;
     font-size: 11px;
-    padding: 1px 4px;
 }
 
 #wemd .footnote-item p {

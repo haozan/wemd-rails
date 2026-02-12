@@ -418,15 +418,7 @@
 
 #wemd .footnote-num {
     font-weight: bold;
-    color: #FFFBF0;
-    background-color: #D98C45;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    display: inline-block;
-    text-align: center;
-    line-height: 16px;
-    font-size: 11px;
+    color: #D98C45;
     margin-right: 4px;
 }
 
