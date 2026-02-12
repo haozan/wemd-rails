@@ -11,7 +11,8 @@ export default class extends Controller<HTMLElement> {
     "previewContent",
     "themeSelect",
     "copyButton",
-    "saveStatus"
+    "saveStatus",
+    "footnoteNumber"
   ]
 
   static values = {
@@ -27,9 +28,11 @@ export default class extends Controller<HTMLElement> {
   declare readonly themeSelectTarget: HTMLSelectElement
   declare readonly copyButtonTarget: HTMLButtonElement
   declare readonly saveStatusTarget: HTMLElement
+  declare readonly footnoteNumberTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
   declare readonly hasSaveStatusTarget: boolean
   declare readonly hasPreviewContentTarget: boolean
+  declare readonly hasFootnoteNumberTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
@@ -69,6 +72,9 @@ export default class extends Controller<HTMLElement> {
       console.warn('[WeMD Debug] saveStatus target not found!')
     }
     
+    // 初始化脚注序号显示
+    this.updateFootnoteNumber()
+    
     this.setupOutsideClickHandler()
     this.setupKeyboardShortcuts()
     this.setupScrollSync()
@@ -101,6 +107,7 @@ export default class extends Controller<HTMLElement> {
 
     this.debounceTimer = window.setTimeout(() => {
       this.renderPreview()
+      this.updateFootnoteNumber()
     }, 300)
   }
 
@@ -421,7 +428,7 @@ export default class extends Controller<HTMLElement> {
     // 保存到历史记录
     this.saveToHistory()
 
-    // 触发预览更新
+    // 触发预览更新和序号更新
     this.updatePreview()
   }
 
@@ -436,6 +443,20 @@ export default class extends Controller<HTMLElement> {
 | 单元格 4 | 单元格 5 | 单元格 6 |
 `
     this.insertAtCursor(table, '')
+  }
+
+  /**
+   * 更新脚注按钮上的序号显示
+   */
+  private updateFootnoteNumber(): void {
+    if (!this.hasFootnoteNumberTarget) return
+
+    const text = this.editorTarget.value
+    const footnoteMatches = text.matchAll(/\[\^(\d+)\]/g)
+    const existingNumbers = Array.from(footnoteMatches).map(match => parseInt(match[1], 10))
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
+
+    this.footnoteNumberTarget.textContent = `[${nextNumber}]`
   }
 
   /**

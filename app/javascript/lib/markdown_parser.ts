@@ -72,6 +72,69 @@ export function createMarkdownParser(): MarkdownIt {
     })
     .use(markdownItHeadingWrapper) // 标题包裹插件，必须在最后应用
 
+  // 自定义脚注渲染规则 - 在脚注说明前添加序号显示
+  md.renderer.rules.footnote_block_open = () => (
+    '<h3>References</h3>\n' +
+    '<section class="footnotes">\n' +
+    '<ol class="footnotes-list">\n'
+  )
+
+  md.renderer.rules.footnote_block_close = () => (
+    '</ol>\n' +
+    '</section>\n'
+  )
+
+  md.renderer.rules.footnote_open = (tokens, idx) => {
+    const id = Number(tokens[idx].meta.id + 1)
+    return `<li id="fn${id}" class="footnote-item"><span class="footnote-num">[${id}]</span> `
+  }
+
+  md.renderer.rules.footnote_close = () => {
+    return '</li>\n'
+  }
+
+  md.renderer.rules.footnote_anchor = () => {
+    return ''
+  }
+
+  // 移除脚注内容中的 <p> 标签，让序号和说明在同一行
+  const defaultParagraphOpen = md.renderer.rules.paragraph_open || ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
+  const defaultParagraphClose = md.renderer.rules.paragraph_close || ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
+
+  md.renderer.rules.paragraph_open = (tokens, idx, options, env, self) => {
+    // 如果是在脚注内部，不输出 <p> 标签
+    const token = tokens[idx]
+    if (token.level > 0) {
+      // 检查是否在 footnote 环境中
+      for (let i = idx - 1; i >= 0; i--) {
+        if (tokens[i].type === 'footnote_open') {
+          return ''
+        }
+        if (tokens[i].type === 'footnote_close') {
+          break
+        }
+      }
+    }
+    return defaultParagraphOpen(tokens, idx, options, env, self)
+  }
+
+  md.renderer.rules.paragraph_close = (tokens, idx, options, env, self) => {
+    // 如果是在脚注内部，不输出 </p> 标签
+    const token = tokens[idx]
+    if (token.level > 0) {
+      // 检查是否在 footnote 环境中
+      for (let i = idx - 1; i >= 0; i--) {
+        if (tokens[i].type === 'footnote_open') {
+          return ''
+        }
+        if (tokens[i].type === 'footnote_close') {
+          break
+        }
+      }
+    }
+    return defaultParagraphClose(tokens, idx, options, env, self)
+  }
+
   return md
 }
 
