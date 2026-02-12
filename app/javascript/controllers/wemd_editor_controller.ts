@@ -12,7 +12,8 @@ export default class extends Controller<HTMLElement> {
     "themeSelect",
     "copyButton",
     "saveStatus",
-    "footnoteNumber"
+    "footnoteNumber",
+    "currentTime"
   ]
 
   static values = {
@@ -29,16 +30,19 @@ export default class extends Controller<HTMLElement> {
   declare readonly copyButtonTarget: HTMLButtonElement
   declare readonly saveStatusTarget: HTMLElement
   declare readonly footnoteNumberTarget: HTMLElement
+  declare readonly currentTimeTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
   declare readonly hasSaveStatusTarget: boolean
   declare readonly hasPreviewContentTarget: boolean
   declare readonly hasFootnoteNumberTarget: boolean
+  declare readonly hasCurrentTimeTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
 
   private debounceTimer: number | null = null
   private autoSaveTimer: number | null = null
+  private clockTimer: number | null = null
   private showHeadingMenu: boolean = false
   private showListMenu: boolean = false
   private headingMenuRef: HTMLElement | null = null
@@ -78,6 +82,7 @@ export default class extends Controller<HTMLElement> {
     this.setupOutsideClickHandler()
     this.setupKeyboardShortcuts()
     this.setupScrollSync()
+    this.startClock()
   }
 
   disconnect(): void {
@@ -89,6 +94,9 @@ export default class extends Controller<HTMLElement> {
     }
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
+    }
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer)
     }
     document.removeEventListener('mousedown', this.handleOutsideClick)
     document.removeEventListener('keydown', this.handleKeyboardShortcut)
@@ -610,36 +618,133 @@ export default class extends Controller<HTMLElement> {
       finalHtml = finalHtml.replace(/<input[^>]*checked[^>]*>/gi, '✅&#160;')
       finalHtml = finalHtml.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '⬜&#160;')
       
-      // 5. 关键修复：增强链接样式（border-bottom 在微信后台保存时会被移除）
-      // 原因：微信公众号后台保存时会移除 border-bottom 属性
-      // 解决方案：将 border-bottom 转换为 text-decoration（微信支持且更稳定）
-      // 参考：WeMD 项目不使用 border-bottom，而是依赖 text-decoration
+      // 5. 关键修复：使用 span 包裹链接文字添加下划线（微信兼容方案）
+      // 原因：微信公众号后台会移除 <a> 标签上的 border-bottom 和 text-decoration 样式
+      // 解决方案：在 <a> 标签内部用 <span> 包裹文字，将下划线样式应用到 span 上
+      // 参考：多个成熟微信编辑器（doocs/md 等）都采用此方案
       finalHtml = finalHtml.replace(
-        /<a([^>]*)>/gi,
-        (_match, attributes: string) => {
-          // 提取现有的 style 属性（如果有）
+        /<a([^>]*)>([^<]+)<\/a>/gi,
+        (_match, attributes: string, text: string) => {
+          // 提取链接的 style 属性
           const styleMatch = attributes.match(/style="([^"]*)"/i)
-          let existingStyle = styleMatch ? styleMatch[1] : ''
+          let linkStyle = styleMatch ? styleMatch[1] : ''
           
-          // 移除 style 属性以便重新构建
-          let otherAttributes = attributes.replace(/\s*style="[^"]*"/i, '')
+          // 提取需要迁移到 span 的样式：颜色、加粗、背景、内边距、外边距等视觉效果
+          const colorMatch = linkStyle.match(/color:\s*([^;]+);?/i)
+          const color = colorMatch ? colorMatch[1] : ''
+          const fontWeightMatch = linkStyle.match(/font-weight:\s*([^;]+);?/i)
+          const fontWeight = fontWeightMatch ? fontWeightMatch[1] : ''
+          const backgroundMatch = linkStyle.match(/background(-[a-z]+)?:\s*([^;]+);?/gi)
+          const background = backgroundMatch ? backgroundMatch.join('') : ''
+          const paddingMatch = linkStyle.match(/padding(-[a-z]+)?:\s*([^;]+);?/gi)
+          const padding = paddingMatch ? paddingMatch.join('') : ''
+          const marginMatch = linkStyle.match(/margin(-[a-z]+)?:\s*([^;]+);?/gi)
+          const margin = marginMatch ? marginMatch.join('') : ''
           
-          // 移除可能被微信移除的 border-bottom 属性
-          existingStyle = existingStyle.replace(/border-bottom:[^;]+;?/gi, '')
+          // 清理链接样式：移除需要迁移到 span 的属性（微信会删除 <a> 上的这些样式）
+          linkStyle = linkStyle.replace(/border-bottom:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/text-decoration(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/color:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/font-weight:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/background(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/padding(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/margin(-[a-z]+)?:[^;]+;?/gi, '')
           
-          // 移除可能存在的 text-decoration: none（这会覆盖我们的下划线）
-          existingStyle = existingStyle.replace(/text-decoration:\s*none;?/gi, '')
+          // 确保链接样式末尾有分号
+          if (linkStyle.trim() && !linkStyle.trim().endsWith(';')) {
+            linkStyle += ';'
+          }
           
-          // 确保样式末尾有分号（如果有内容）
-          const needsSemicolon = existingStyle.trim() && !existingStyle.trim().endsWith(';')
+          // 重建 attributes，替换原有的 style
+          let cleanAttributes = attributes.replace(/style="[^"]*"/gi, '')
+          if (linkStyle) {
+            cleanAttributes += ` style="${linkStyle}"`
+          }
           
-          // 添加微信兼容的下划线样式
-          // text-decoration: underline - 基本下划线
-          // text-decoration-thickness: 1px - 下划线粗细（微信支持）
-          // text-underline-offset: 2px - 下划线与文字的距离（微信支持）
-          const enhancedStyle = `${existingStyle}${needsSemicolon ? ';' : ''}text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;`
+          // 创建带下划线、颜色、加粗、背景等完整样式的 span 包裹文字
+          let spanStyle = 'text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;'
+          if (color) {
+            spanStyle += `color:${color};`
+          }
+          if (fontWeight) {
+            spanStyle += `font-weight:${fontWeight};`
+          }
+          if (background) {
+            spanStyle += background
+          }
+          if (padding) {
+            spanStyle += padding
+          }
+          if (margin) {
+            spanStyle += margin
+          }
+          return `<a${cleanAttributes}><span style="${spanStyle}">${text}</span></a>`
+        }
+      )
+      
+      // 6. 关键修复：使用 span 包裹脚注文字添加虚线下划线（微信兼容方案）
+      // 原因：微信公众号后台会移除元素上的 border-bottom 和 text-decoration 样式
+      // 解决方案：用 <span> 包裹脚注文字，将虚线下划线样式应用到 span 上
+      // 脚注使用虚线（dashed）与链接的实线（solid）区分
+      finalHtml = finalHtml.replace(
+        /<(\w+)([^>]*class="[^"]*footnote-word[^"]*"[^>]*)>([^<]+)<\/\1>/gi,
+        (_match, tagName: string, attributes: string, text: string) => {
+          // 提取元素的 style 属性
+          const styleMatch = attributes.match(/style="([^"]*)"/i)
+          let elemStyle = styleMatch ? styleMatch[1] : ''
           
-          return `<a${otherAttributes} style="${enhancedStyle}">`
+          // 提取需要迁移到 span 的样式：颜色、加粗、背景、内边距、外边距等视觉效果
+          const colorMatch = elemStyle.match(/color:\s*([^;]+);?/i)
+          const color = colorMatch ? colorMatch[1] : ''
+          const fontWeightMatch = elemStyle.match(/font-weight:\s*([^;]+);?/i)
+          const fontWeight = fontWeightMatch ? fontWeightMatch[1] : ''
+          const backgroundMatch = elemStyle.match(/background(-[a-z]+)?:\s*([^;]+);?/gi)
+          const background = backgroundMatch ? backgroundMatch.join('') : ''
+          const paddingMatch = elemStyle.match(/padding(-[a-z]+)?:\s*([^;]+);?/gi)
+          const padding = paddingMatch ? paddingMatch.join('') : ''
+          const marginMatch = elemStyle.match(/margin(-[a-z]+)?:\s*([^;]+);?/gi)
+          const margin = marginMatch ? marginMatch.join('') : ''
+          
+          // 清理元素样式：移除需要迁移到 span 的属性（微信会删除父元素上的这些样式）
+          elemStyle = elemStyle.replace(/border-bottom:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/text-decoration(-[a-z]+)?:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/color:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/font-weight:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/background(-[a-z]+)?:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/padding(-[a-z]+)?:[^;]+;?/gi, '')
+          elemStyle = elemStyle.replace(/margin(-[a-z]+)?:[^;]+;?/gi, '')
+          
+          // 确保元素样式末尾有分号
+          if (elemStyle.trim() && !elemStyle.trim().endsWith(';')) {
+            elemStyle += ';'
+          }
+          
+          // 重建 attributes，替换原有的 style
+          let cleanAttributes = attributes.replace(/style="[^"]*"/gi, '')
+          if (elemStyle) {
+            cleanAttributes += ` style="${elemStyle}"`
+          }
+          
+          // 创建带虚线下划线、颜色、加粗、背景等完整样式的 span 包裹文字
+          const dashedUnderline = 'text-decoration:underline;text-decoration-style:dashed;'
+          const underlineStyle = 'text-decoration-thickness:1px;text-underline-offset:2px;'
+          let spanStyle = dashedUnderline + underlineStyle
+          if (color) {
+            spanStyle += `color:${color};`
+          }
+          if (fontWeight) {
+            spanStyle += `font-weight:${fontWeight};`
+          }
+          if (background) {
+            spanStyle += background
+          }
+          if (padding) {
+            spanStyle += padding
+          }
+          if (margin) {
+            spanStyle += margin
+          }
+          return `<${tagName}${cleanAttributes}><span style="${spanStyle}">${text}</span></${tagName}>`
         }
       )
       
@@ -677,6 +782,16 @@ export default class extends Controller<HTMLElement> {
         sampleLink: (finalHtml.match(/<a[^>]*>[^<]*<\/a>/i) || ['None'])[0]
       }
       console.log('[12] Link Style Check:', linkStyleCheck)
+      
+      // 检查脚注样式处理
+      const footnoteStyleCheck = {
+        totalFootnoteWords: (finalHtml.match(/<[^>]*class="[^"]*footnote-word[^"]*"[^>]*>/gi) || []).length,
+        footnoteWordsWithStyle: (finalHtml.match(/<[^>]*class="[^"]*footnote-word[^"]*"[^>]*style="[^"]*"[^>]*>/gi) || []).length,
+        footnoteWordsWithTextDecoration: (finalHtml.match(/<[^>]*class="[^"]*footnote-word[^"]*"[^>]*style="[^"]*text-decoration:[^"]*"[^>]*>/gi) || []).length,
+        footnoteWordsWithBorderBottom: (finalHtml.match(/<[^>]*class="[^"]*footnote-word[^"]*"[^>]*style="[^"]*border-bottom:[^"]*"[^>]*>/gi) || []).length,
+        sampleFootnoteWord: (finalHtml.match(/<[^>]*class="[^"]*footnote-word[^"]*"[^>]*>[^<]*<\/[^>]+>/i) || ['None'])[0]
+      }
+      console.log('[13] Footnote Style Check:', footnoteStyleCheck)
       console.log('============================================')
       
       // ⚠️ CRITICAL FIX: WeMD's dual-format clipboard mechanism
@@ -1138,6 +1253,38 @@ export default class extends Controller<HTMLElement> {
     requestAnimationFrame(() => {
       this.isSyncingScroll = false
     })
+  }
+
+  /**
+   * 启动时钟，每秒更新一次时间显示
+   */
+  private startClock(): void {
+    if (!this.hasCurrentTimeTarget) return
+    
+    // 立即更新一次
+    this.updateClock()
+    
+    // 每秒更新
+    this.clockTimer = window.setInterval(() => {
+      this.updateClock()
+    }, 1000)
+  }
+
+  /**
+   * 更新时钟显示（北京时间 UTC+8）
+   */
+  private updateClock(): void {
+    if (!this.hasCurrentTimeTarget) return
+    
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const seconds = String(now.getSeconds()).padStart(2, '0')
+    
+    this.currentTimeTarget.textContent = `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
   }
 
 

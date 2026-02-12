@@ -33,6 +33,9 @@
                 placeholder: "无标题文档", 
                 class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
                 data: { wemd_editor_target: "titleInput" } %>
+            <div class="text-sm text-muted-foreground mt-1">
+              <span data-wemd-editor-target="currentTime"><%= Time.current.strftime("%Y年%m月%d日 %H:%M:%S") %></span>
+            </div>
           </div>
 
           <!-- Save Status Indicator (Desktop only) -->
