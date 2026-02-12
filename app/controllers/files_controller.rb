@@ -6,11 +6,8 @@ class FilesController < ApplicationController
     
     blob = ActiveStorage::Blob.find_by!(short_code: short_code)
     
-    # 直接提供文件内容，而非重定向
-    # 这样可以避免测试环境中的跨域问题
-    send_data blob.download, 
-              type: blob.content_type, 
-              disposition: 'inline',
-              filename: blob.filename.to_s
+    # 直接重定向到存储服务的 URL（七牛云 CDN）
+    # 这样可以充分利用 CDN 加速，减少服务器带宽和负载
+    redirect_to blob.url, allow_other_host: true
   end
 end
