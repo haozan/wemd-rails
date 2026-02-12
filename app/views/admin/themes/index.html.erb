@@ -4,10 +4,18 @@
   <!-- Page Title and Actions -->
   <div class="flex items-center justify-between mb-8">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">Themes Management</h1>
-    <%= link_to new_admin_theme_path, class: "btn-primary" do %>
-      <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
-      New Theme
-    <% end %>
+    <div class="flex gap-3">
+      <%= button_to sync_builtin_themes_admin_themes_path, method: :post, 
+          data: { confirm: "确认要同步所有内置主题吗？这将更新所有13个内置主题的CSS内容。" },
+          class: "btn-secondary flex items-center" do %>
+        <%= lucide_icon "refresh-cw", class: "w-5 h-5 mr-2" %>
+        同步内置主题
+      <% end %>
+      <%= link_to new_admin_theme_path, class: "btn-primary" do %>
+        <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
+        New Theme
+      <% end %>
+    </div>
   </div>
 
   <!-- Themes Table -->

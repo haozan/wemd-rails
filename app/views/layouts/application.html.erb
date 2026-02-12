@@ -26,8 +26,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Load error handler early to catch all errors -->
-    <%= javascript_include_tag 'error_handler' if Rails.env.development? %>
     <%= javascript_include_tag 'application', type: "module" %>
     <link rel="icon" type="image/png" href="<%= asset_path('favicon.png') %>">
     <link rel="apple-touch-icon" href="<%= asset_path('apple-touch-icon.png') %>">

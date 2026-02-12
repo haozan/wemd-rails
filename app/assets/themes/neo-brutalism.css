@@ -474,6 +474,17 @@
     margin: 4px 0;
 }
 
+/* 参考资料中的链接 - 显示为普通文本 */
+#wemd .footnote-item a {
+    color: #333 !important;
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    background: none !important;
+    font-weight: normal !important;
+    padding: 0 !important;
+}
+
 /* 数学公式样式 - 使用 WeMD 方案 */
 /* 块级公式 ($$...$$) */
 #wemd .block-equation {

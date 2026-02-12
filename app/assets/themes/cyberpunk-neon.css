@@ -486,6 +486,17 @@
     margin: 4px 0;
 }
 
+/* 参考资料中的链接 - 显示为普通文本 */
+#wemd .footnote-item a {
+    color: #666 !important;
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    font-weight: normal !important;
+    background: none !important;
+    padding: 0 !important;
+}
+
 /* 公式 - 保持默认颜色，兼容微信亮色/深色模式 */
 #wemd .block-equation svg,
 #wemd .katex-block svg,

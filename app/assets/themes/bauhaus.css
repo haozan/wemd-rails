@@ -365,6 +365,17 @@
     font-size: 14px;
 }
 
+/* 参考资料中的链接 - 显示为普通文本 */
+#wemd .footnote-item a {
+    color: #333 !important;
+    text-decoration: none !important;
+    background: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+    font-weight: normal !important;
+}
+
 /* 提示块 - 包豪斯风格 */
 #wemd .callout {
     margin: 30px 0;

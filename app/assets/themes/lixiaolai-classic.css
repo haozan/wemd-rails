@@ -1,0 +1,302 @@
+
+/* 李笑来原版 - Markdown Here Classic Style */
+
+/* 全局字体 */
+#wemd {
+  font-size: 16px;
+  line-height: 1.8em;
+  letter-spacing: 0.1em;
+}
+
+/* 段落 */
+#wemd p {
+  margin: 1.5em 5px !important;
+  text-align: justify !important;
+}
+
+/* 代码 */
+#wemd pre,
+#wemd code {
+  font-size: 14px;
+  font-family: Roboto, 'Courier New', Consolas, Inconsolata, Courier, monospace;
+  margin: auto 5px;
+}
+
+#wemd code {
+  white-space: pre-wrap;
+  border-radius: 2px;
+  display: inline;
+}
+
+#wemd pre {
+  font-size: 15px;
+  line-height: 1.4em;
+  display: block !important;
+}
+
+#wemd pre code {
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow: auto;
+  border-radius: 3px;
+  padding: 16px !important;
+  display: block !important;
+}
+
+/* 代码块容器 - 添加背景色和边框 */
+#wemd pre.custom {
+  background: #f8f8f8 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 4px !important;
+  margin: 1em 5px !important;
+  overflow-x: auto !important;
+}
+
+#wemd pre.custom code.hljs {
+  background: transparent !important;
+  padding: 16px !important;
+}
+
+/* 加粗 */
+#wemd strong,
+#wemd b {
+  color: #BF360C !important;
+}
+
+/* 斜体 */
+#wemd em,
+#wemd i {
+  color: #009688 !important;
+}
+
+/* 分隔线 */
+#wemd hr {
+  border: 1px solid #BF360C !important;
+  margin: 1.5em auto !important;
+}
+
+/* 表格、列表、引用 */
+#wemd table,
+#wemd pre,
+#wemd dl,
+#wemd .multiquote-1,
+#wemd ul,
+#wemd ol {
+  margin: 10px 5px !important;
+}
+
+/* 列表 */
+#wemd ul,
+#wemd ol {
+  padding-left: 15px !important;
+}
+
+#wemd li {
+  margin: 10px !important;
+}
+
+#wemd li p {
+  margin: 10px 0 !important;
+}
+
+#wemd ul ul,
+#wemd ul ol,
+#wemd ol ul,
+#wemd ol ol {
+  margin: 0 !important;
+  padding-left: 10px !important;
+}
+
+#wemd ul {
+  list-style-type: circle !important;
+}
+
+/* 定义列表 */
+#wemd dl {
+  padding: 0 !important;
+}
+
+#wemd dl dt {
+  font-size: 1em !important;
+  font-weight: bold !important;
+  font-style: italic !important;
+}
+
+#wemd dl dd {
+  margin: 0 0 10px !important;
+  padding: 0 10px !important;
+}
+
+/* 引用 - 使用系统的 .multiquote-1 类 */
+#wemd .multiquote-1 {
+  border-left: 2px solid #009688 !important;
+  padding: 0 10px !important;
+  background: transparent !important;
+  color: #777 !important;
+  margin-left: 1em !important;
+}
+
+#wemd .multiquote-1 p {
+  color: #777 !important;
+}
+
+#wemd .multiquote-1::before,
+#wemd .multiquote-1::after {
+  content: none !important;
+}
+
+/* 标题 */
+#wemd h1,
+#wemd h2,
+#wemd h3,
+#wemd h4,
+#wemd h5,
+#wemd h6 {
+  margin: 1.5em 5px !important;
+  padding: 0.5em 1em !important;
+  font-weight: bold !important;
+  color: #009688 !important;
+  text-align: center !important;
+}
+
+#wemd h1 {
+  font-size: 24px !important;
+  border-bottom: 1px solid #ddd !important;
+}
+
+#wemd h2 {
+  font-size: 20px !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+#wemd h3 {
+  font-size: 18px !important;
+}
+
+#wemd h4 {
+  font-size: 16px !important;
+}
+
+/* 表格 */
+#wemd table {
+  padding: 0 !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  font-size: 1em !important;
+  font: inherit !important;
+  border: 0 !important;
+  margin: 0 auto !important;
+}
+
+#wemd tbody {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+#wemd table tr {
+  border: 0 !important;
+  border-top: 1px solid #CCC !important;
+  background-color: white !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#wemd table tr:nth-child(2n) {
+  background-color: #F8F8F8 !important;
+}
+
+#wemd table tr th,
+#wemd table tr td {
+  font-size: 16px !important;
+  border: 1px solid #CCC !important;
+  margin: 0 !important;
+  padding: 5px 10px !important;
+}
+
+#wemd table tr th {
+  font-weight: bold !important;
+  color: #eee !important;
+  border: 1px solid #009688 !important;
+  background-color: #009688 !important;
+}
+
+/* 参考资料中的链接 - 显示为普通文本 */
+#wemd .footnote-item a {
+  color: #777 !important;
+  text-decoration: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  font-weight: normal !important;
+  background: none !important;
+  padding: 0 !important;
+}
+
+/* Imageflow CSS */
+#wemd .imageflow-layer1 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  /* white-space: normal; */
+  border: 0px none;
+  padding: 0px;
+  overflow: hidden;
+}
+
+#wemd .imageflow-layer2 {
+  white-space: nowrap;
+  width: 100%;
+  overflow-x: scroll;
+}
+
+#wemd .imageflow-layer3 {
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
+  vertical-align: top;
+  width: 80%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+#wemd .imageflow-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+#wemd .imageflow-caption {
+  text-align: center;
+  margin-top: 0px;
+  padding-top: 0px;
+  color: #888;
+}
+
+/* 行间公式 */
+#wemd .block-equation svg,
+#wemd .katex-display .katex-html {
+  display: block;
+  margin: 20px auto;
+  max-width: 300% !important;
+}
+
+/* 行内公式 */
+#wemd .inline-equation svg {
+  vertical-align: middle;
+}
+
+/* 行内公式容器 - 仅设置最外层容器的对齐 */
+#wemd .katex {
+  font-size: 1.21em;
+  vertical-align: -0.25em;
+}
+
+/* KaTeX 重置 - 修复公式错位问题 */
+#wemd .katex,
+#wemd .katex *,
+#wemd .katex-display,
+#wemd .katex-display * {
+  line-height: 1 !important;
+}

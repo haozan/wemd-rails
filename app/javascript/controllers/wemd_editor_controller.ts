@@ -622,8 +622,24 @@ export default class extends Controller<HTMLElement> {
       // 原因：微信公众号后台会移除 <a> 标签上的 border-bottom 和 text-decoration 样式
       // 解决方案：在 <a> 标签内部用 <span> 包裹文字，将下划线样式应用到 span 上
       // 参考：多个成熟微信编辑器（doocs/md 等）都采用此方案
+      // 特殊处理：脚注列表（footnote-item）中的链接不添加任何样式，显示为普通文本
+      
+      // 首先标记脚注列表中的链接（临时添加特殊属性）
       finalHtml = finalHtml.replace(
-        /<a([^>]*)>([^<]+)<\/a>/gi,
+        /<li([^>]*class="[^"]*footnote-item[^"]*"[^>]*)>([\s\S]*?)<\/li>/gi,
+        (_match, liAttrs: string, liContent: string) => {
+          // 在脚注列表项内的所有链接添加 data-footnote-link 标记
+          const markedContent = liContent.replace(
+            /<a([^>]*)>/gi,
+            '<a$1 data-footnote-link="true">'
+          )
+          return `<li${liAttrs}>${markedContent}</li>`
+        }
+      )
+      
+      // 处理普通链接（不包括脚注列表中的链接）
+      finalHtml = finalHtml.replace(
+        /<a(?![^>]*data-footnote-link)([^>]*)>([^<]+)<\/a>/gi,
         (_match, attributes: string, text: string) => {
           // 提取链接的 style 属性
           const styleMatch = attributes.match(/style="([^"]*)"/i)
@@ -679,6 +695,38 @@ export default class extends Controller<HTMLElement> {
             spanStyle += margin
           }
           return `<a${cleanAttributes}><span style="${spanStyle}">${text}</span></a>`
+        }
+      )
+      
+      // 处理脚注列表中的链接：完全移除所有装饰样式，显示为普通文本
+      finalHtml = finalHtml.replace(
+        /<a([^>]*)data-footnote-link="true"([^>]*)>([^<]+)<\/a>/gi,
+        (_match, beforeAttrs: string, afterAttrs: string, text: string) => {
+          // 移除 data-footnote-link 标记
+          let attributes = beforeAttrs + afterAttrs
+          attributes = attributes.replace(/data-footnote-link="true"/g, '')
+          
+          // 提取或创建 style 属性
+          const styleMatch = attributes.match(/style="([^"]*)"/i)
+          let linkStyle = styleMatch ? styleMatch[1] : ''
+          
+          // 完全清除所有装饰样式，只保留必要的样式
+          linkStyle = linkStyle.replace(/color:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/text-decoration(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/border(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/font-weight:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/background(-[a-z]+)?:[^;]+;?/gi, '')
+          linkStyle = linkStyle.replace(/padding(-[a-z]+)?:[^;]+;?/gi, '')
+          
+          // 添加继承父元素样式，使链接显示为普通文本
+          linkStyle += 'color:inherit;text-decoration:none;border:none;background:none;font-weight:inherit;'
+          
+          // 重建 attributes
+          let cleanAttributes = attributes.replace(/style="[^"]*"/gi, '')
+          cleanAttributes += ` style="${linkStyle}"`
+          
+          // 直接返回链接，不使用 span 包裹
+          return `<a${cleanAttributes}>${text}</a>`
         }
       )
       
