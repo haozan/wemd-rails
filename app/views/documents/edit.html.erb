@@ -57,10 +57,10 @@
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
           <button type="button" 
-                  class="btn-primary text-sm md:text-base whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
+                  class="btn-primary text-base md:text-lg whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
                   data-wemd-editor-target="copyButton"
                   data-action="click->wemd-editor#copyToWechat">
-            <%= lucide_icon "copy", class: "w-4 h-4 md:w-5 md:h-5" %>
+            <%= lucide_icon "copy", class: "w-5 h-5 md:w-6 md:h-6" %>
             <span>复制到微信</span>
           </button>
         </div>
