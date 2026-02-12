@@ -341,8 +341,6 @@
 
 /* 移除旧的 .footnote-item p 样式，因为现在没有 p 标签了 */
 
-/* 参考资料中的链接样式由各主题自己定义 */
-
 #wemd sub, sup {
   line-height: 0;
 }

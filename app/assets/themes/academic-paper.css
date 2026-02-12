@@ -307,24 +307,20 @@
     font-weight: bold;
     color: #000;
     margin-right: 4px;
+    vertical-align: super;
     font-size: 10px;
 }
 
 #wemd .footnote-item p {
+
+/* 参考资料中的链接 - 保持链接样式 */
+#wemd .footnote-item a {
+    color: #000080;
+    text-decoration: underline;
+}
     color: #666;
     font-size: 12px;
     margin: 4px 0;
-}
-
-/* 参考资料中的链接 - 显示为普通文本 */
-#wemd .footnote-item a {
-    color: #666 !important;
-    text-decoration: none !important;
-    border: none !important;
-    border-bottom: none !important;
-    font-weight: normal !important;
-    background: none !important;
-    padding: 0 !important;
 }
 
 /* 公式 */

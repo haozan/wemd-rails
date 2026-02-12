@@ -369,18 +369,6 @@
     font-family: monospace;
 }
 
-/* 参考资料中的链接 - 显示为普通文本 */
-#wemd .footnote-item a {
-    color: #444 !important;
-    text-decoration: none !important;
-    font-family: inherit !important;
-    font-weight: normal !important;
-    border: none !important;
-    border-bottom: none !important;
-    background: none !important;
-    padding: 0 !important;
-}
-
 /* 提示块 - 购物小票风格 */
 #wemd .callout {
     margin: 25px 0;

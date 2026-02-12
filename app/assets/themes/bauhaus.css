@@ -354,24 +354,15 @@
 
 #wemd .footnote-num {
     font-weight: 900;
-    color: #D32F2F;
+    color: #fff;
+    background: #D32F2F;
+    padding: 2px 6px;
     margin-right: 6px;
 }
 
 #wemd .footnote-item p {
     color: #333;
     font-size: 14px;
-}
-
-/* 参考资料中的链接 - 显示为普通文本 */
-#wemd .footnote-item a {
-    color: #333 !important;
-    text-decoration: none !important;
-    background: none !important;
-    border: none !important;
-    border-bottom: none !important;
-    padding: 0 !important;
-    font-weight: normal !important;
 }
 
 /* 提示块 - 包豪斯风格 */

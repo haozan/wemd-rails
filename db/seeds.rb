@@ -24,7 +24,6 @@ themes_data = [
   { name: "新粗野主义", files: ["basic.css", "neo-brutalism.css", "code-github.css"] },
   { name: "购物小票", files: ["basic.css", "receipt.css", "code-github.css"] },
   { name: "落日胶片", files: ["basic.css", "sunset-film.css", "code-github.css"] },
-  { name: "李笑来原版", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
   { name: "主题模板", files: ["basic.css", "template.css", "code-github.css"] }
 ]
 
