@@ -57,6 +57,13 @@
               <span class="text-sm font-medium text-orange-700 dark:text-orange-300">Change Password</span>
             <% end %>
 
+            <%= button_to admin_reinitialize_themes_dashboard_path, method: :post, class: "flex items-center justify-center p-4 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors w-full", form: { data: { turbo_confirm: "确定要重新初始化所有内置主题吗？这将更新所有内置主题的 CSS 内容。" } } do %>
+              <svg class="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+              </svg>
+              <span class="text-sm font-medium text-purple-700 dark:text-purple-300">重新初始化主题</span>
+            <% end %>
+
           </div>
         </div>
       </div>

@@ -90,6 +90,7 @@ Rails.application.routes.draw do
     post 'login', to: 'sessions#create'
     delete 'logout', to: 'sessions#destroy', as: :logout
     resource :account, only: [:edit, :update]
+    post 'dashboard/reinitialize_themes', to: 'dashboard#reinitialize_themes', as: :reinitialize_themes_dashboard
 
     # Mount GoodJob dashboard
     mount GoodJob::Engine => 'good_job', :constraints => AdminConstraint.new
