@@ -4,3 +4,7 @@
 
 <%# Public navigation links (visible to all users, authenticated or not) %>
 <%= link_to "首页", root_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path == '/'}" %>
+
+<%= link_to "开始创作", new_document_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path == '/documents/new'}" %>
+
+<%= link_to "运营日历", calendars_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path.start_with?('/calendars')}" %>

@@ -14,6 +14,7 @@ import ImageUploadController from "./image_upload_controller"
 import HistoryPanelController from "./history_panel_controller"
 import RedirectController from "./redirect_controller"
 import ThemeSyncController from "./theme_sync_controller"
+import CalendarController from "./calendar_controller"
 
 const application = Application.start()
 
@@ -31,5 +32,6 @@ application.register("image-upload", ImageUploadController)
 application.register("history-panel", HistoryPanelController)
 application.register("redirect", RedirectController)
 application.register("theme-sync", ThemeSyncController)
+application.register("calendar", CalendarController)
 
 window.Stimulus = application

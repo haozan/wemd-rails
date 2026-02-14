@@ -92,6 +92,13 @@ module.exports = [
     },
   },
   {
+    files: ['app/javascript/controllers/history_panel_controller.ts'],
+    rules: {
+      'no-alert': 'off',
+      'no-restricted-globals': 'off',
+    },
+  },
+  {
     ignores: [
       'node_modules/',
       'app/assets/builds/',

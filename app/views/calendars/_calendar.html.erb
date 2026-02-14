@@ -1,0 +1,92 @@
+<!-- 本月目标 -->
+<div class="card p-6 mb-6">
+  <div class="flex items-start gap-4">
+    <div class="flex-1">
+      <label class="form-label mb-3">
+        <span class="font-semibold">本月目标</span>
+      </label>
+      <%= form_with url: save_goal_calendars_path, method: :post, data: { turbo: true, action: "turbo:submit-end->calendar#handleGoalSaved" } do |f| %>
+        <%= f.hidden_field :year, value: year %>
+        <%= f.hidden_field :month, value: month %>
+        <%= f.text_area :goal_content, 
+                        value: monthly_goal.goal_content,
+                        placeholder: "输入本月的运营目标...",
+                        class: "form-input w-full",
+                        rows: 3 %>
+        <div class="flex items-center justify-end mt-3">
+          <%= f.submit "保存目标", class: "btn-primary btn-sm" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 日历主体 -->
+<div class="card overflow-hidden">
+  <div class="p-6">
+    <!-- 星期标题 -->
+    <div class="grid grid-cols-7 gap-2 mb-4">
+      <% %w[日 一 二 三 四 五 六].each do |day| %>
+        <div class="text-center text-sm font-semibold text-muted-foreground py-2">
+          <%= day %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- 日历格子 -->
+    <div class="grid grid-cols-7 gap-2" id="calendar-grid">
+      <% 
+        start_date = Date.new(year, month, 1)
+        end_date = start_date.end_of_month
+        
+        # 计算第一天是星期几（0=周日）
+        start_wday = start_date.wday
+        
+        # 填充空白格子
+        start_wday.times do
+      %>
+        <div class="aspect-square border border-border rounded-lg bg-muted/30"></div>
+      <% end %>
+      
+      <% 
+        # 填充日期格子
+        (start_date..end_date).each do |date|
+          documents = documents_by_date[date] || []
+          is_today = date == Date.current
+      %>
+        <div class="aspect-square border border-border rounded-lg bg-surface hover:bg-surface-hover transition-colors cursor-pointer relative overflow-hidden group <%= 'ring-2 ring-primary' if is_today %>"
+             data-action="click->calendar#viewOrAddDocuments"
+             data-date="<%= date.to_s %>"
+             data-year="<%= year %>"
+             data-month="<%= month %>"
+             data-documents='<%= documents.map { |d| { id: d.id, title: d.title } }.to_json %>'>
+          <!-- 日期数字 -->
+          <div class="absolute top-1 left-2 text-sm font-semibold <%= is_today ? 'text-primary' : 'text-muted-foreground' %>">
+            <%= date.day %>
+          </div>
+          
+          <!-- 文章列表预览 -->
+          <div class="mt-6 px-1 space-y-1 overflow-y-auto max-h-24 pointer-events-none">
+            <% documents.first(3).each do |doc| %>
+              <div class="block px-2 py-1 bg-primary/10 text-primary rounded text-xs truncate">
+                <%= doc.title.truncate(10) %>
+              </div>
+            <% end %>
+            
+            <% if documents.size > 3 %>
+              <div class="px-2 py-1 text-xs text-muted-foreground">
+                还有 <%= documents.size - 3 %> 篇
+              </div>
+            <% end %>
+            
+            <% if documents.empty? %>
+              <div class="px-2 py-1 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                点击添加文章
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,7 @@ class Document < ApplicationRecord
 
   belongs_to :user
   belongs_to :theme, optional: true
+  has_many :calendar_entries, dependent: :destroy
 
   validates :title, presence: true, length: { maximum: 200 }
   validates :content, presence: true

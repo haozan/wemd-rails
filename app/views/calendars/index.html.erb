@@ -1,0 +1,130 @@
+<% content_for :title, "运营日历" %>
+
+<div class="container-xl mx-auto py-8" 
+     data-controller="calendar"
+     data-calendar-year-value="<%= @year %>"
+     data-calendar-month-value="<%= @month %>">
+  <!-- 页面标题和月份切换 -->
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-foreground">运营日历</h1>
+    
+    <div class="flex items-center gap-4">
+      <%= link_to calendars_path(year: @year, month: @month == 1 ? 12 : @month - 1), 
+                  class: "btn-secondary btn-sm",
+                  data: { turbo_frame: "calendar-container" } do %>
+        <%= lucide_icon "chevron-left", class: "w-5 h-5" %>
+      <% end %>
+      
+      <span class="text-lg font-semibold text-foreground">
+        <%= @year %>年<%= @month %>月
+      </span>
+      
+      <%= link_to calendars_path(year: @year, month: @month == 12 ? 1 : @month + 1), 
+                  class: "btn-secondary btn-sm",
+                  data: { turbo_frame: "calendar-container" } do %>
+        <%= lucide_icon "chevron-right", class: "w-5 h-5" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div id="calendar-container">
+    <%= render "calendar", year: @year, month: @month, documents_by_date: @documents_by_date, monthly_goal: @monthly_goal %>
+  </div>
+
+  <!-- 选择文章对话框 -->
+  <div id="select-document-modal" 
+       class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+       data-calendar-target="modal"
+       data-action="click->calendar#closeModal">
+    <div class="bg-surface-elevated rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden"
+         data-action="click->calendar#stopPropagation">
+      <!-- 模态框头部 -->
+      <div class="border-b border-border p-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-foreground">
+            添加文章到 <span data-calendar-target="selectedDate"></span>
+          </h2>
+          <button type="button" 
+                  class="text-muted-foreground hover:text-foreground"
+                  data-action="click->calendar#closeModal">
+            <%= lucide_icon "x", class: "w-6 h-6" %>
+          </button>
+        </div>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="p-6 border-b border-border">
+        <div class="relative">
+          <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" %>
+          <input type="text"
+                 placeholder="搜索文章标题..."
+                 class="form-input w-full pl-10"
+                 data-calendar-target="searchInput"
+                 data-action="input->calendar#searchDocuments" />
+        </div>
+      </div>
+
+      <!-- 文章列表 -->
+      <div class="p-6 overflow-y-auto max-h-96" id="document-list">
+        <%= render "document_list", documents: current_user.documents.order(updated_at: :desc).limit(10) %>
+      </div>
+
+      <!-- 模态框底部 -->
+      <div class="border-t border-border p-6 flex justify-end gap-3">
+        <button type="button" 
+                class="btn-secondary"
+                data-action="click->calendar#closeModal">
+          取消
+        </button>
+        <button type="button" 
+                class="btn-primary"
+                data-action="click->calendar#addDocuments">
+          添加
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看文章列表对话框 -->
+  <div id="view-documents-modal" 
+       class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+       data-calendar-target="viewModal"
+       data-action="click->calendar#closeViewModal">
+    <div class="bg-surface-elevated rounded-lg shadow-xl max-w-lg w-full mx-4"
+         data-action="click->calendar#stopPropagation">
+      <!-- 模态框头部 -->
+      <div class="border-b border-border p-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-foreground">
+            <span data-calendar-target="viewDate"></span> 的文章
+          </h2>
+          <button type="button" 
+                  class="text-muted-foreground hover:text-foreground"
+                  data-action="click->calendar#closeViewModal">
+            <%= lucide_icon "x", class: "w-6 h-6" %>
+          </button>
+        </div>
+      </div>
+
+      <!-- 文章列表 -->
+      <div class="p-6 space-y-3" data-calendar-target="viewDocumentList">
+        <!-- 动态加载 -->
+      </div>
+
+      <!-- 模态框底部 -->
+      <div class="border-t border-border p-6 flex justify-between">
+        <button type="button" 
+                class="btn-primary"
+                data-action="click->calendar#switchToAddModal">
+          <%= lucide_icon "plus", class: "w-4 h-4 inline-block mr-1" %>
+          继续添加文章
+        </button>
+        <button type="button" 
+                class="btn-secondary"
+                data-action="click->calendar#closeViewModal">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

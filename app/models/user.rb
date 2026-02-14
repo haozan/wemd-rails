@@ -103,5 +103,7 @@ class User < ApplicationRecord
   # write your own code here
   has_many :documents, dependent: :destroy
   has_many :themes, dependent: :destroy
+  has_many :monthly_goals, dependent: :destroy
+  has_many :calendar_entries, dependent: :destroy
 
 end

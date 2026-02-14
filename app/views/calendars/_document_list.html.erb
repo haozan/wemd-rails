@@ -1,0 +1,22 @@
+<div class="space-y-2">
+  <% if documents.empty? %>
+    <p class="text-muted-foreground text-sm text-center py-8">
+      暂无文章，请创建文章后再添加
+    </p>
+  <% else %>
+    <% documents.each do |doc| %>
+      <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface transition-colors cursor-pointer">
+        <input type="checkbox" 
+               class="form-checkbox"
+               value="<%= doc.id %>"
+               data-calendar-target="documentCheckbox" />
+        <div class="flex-1">
+          <div class="font-medium text-foreground"><%= doc.title %></div>
+          <div class="text-xs text-muted-foreground">
+            更新于 <%= doc.updated_at.strftime("%Y-%m-%d %H:%M") %>
+          </div>
+        </div>
+      </label>
+    <% end %>
+  <% end %>
+</div>
