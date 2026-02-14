@@ -34,6 +34,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="<%= asset_path('icon-512.png') %>">
   </head>
   <body class="flex flex-col min-h-screen text-foreground <%= body_class %>">
+    <%= render 'shared/qingshiying_banner' unless @full_render %>
     <main class="flex-1 flex flex-col bg-surface">
       <%= render 'shared/navbar' unless @full_render %>
       <%= render 'shared/flash_messages' %>

@@ -187,6 +187,59 @@
 
   /* Add your custom components here */
 
+  /* 青狮营横幅样式 */
+  .qingshiying-banner {
+    background: hsl(var(--color-primary));
+    color: white;
+    padding: 0.625rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .qingshiying-banner:hover {
+    background: hsl(var(--color-primary-dark));
+  }
+
+  .qingshiying-banner a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .qingshiying-banner .separator {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0.5rem;
+  }
+
+  .qingshiying-banner .arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .qingshiying-banner:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* 响应式：移动端调整字体大小 */
+  @media (max-width: 640px) {
+    .qingshiying-banner {
+      font-size: 0.8125rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
   /* WeMD 编辑器布局样式 */
   .wemd-container {
     display: flex;
