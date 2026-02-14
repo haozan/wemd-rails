@@ -11,7 +11,7 @@
     <div class="flex items-center gap-4">
       <%= link_to calendars_path(year: @year, month: @month == 1 ? 12 : @month - 1), 
                   class: "btn-secondary btn-sm",
-                  data: { turbo_frame: "calendar-container" } do %>
+                  data: { turbo: false } do %>
         <%= lucide_icon "chevron-left", class: "w-5 h-5" %>
       <% end %>
       
@@ -21,7 +21,7 @@
       
       <%= link_to calendars_path(year: @year, month: @month == 12 ? 1 : @month + 1), 
                   class: "btn-secondary btn-sm",
-                  data: { turbo_frame: "calendar-container" } do %>
+                  data: { turbo: false } do %>
         <%= lucide_icon "chevron-right", class: "w-5 h-5" %>
       <% end %>
     </div>
