@@ -49,14 +49,18 @@ Rails.application.configure do
   Rails.application.routes.default_url_options = host_and_port_and_protocol
   config.action_mailer.default_url_options = host_and_port_and_protocol
 
-  if ENV["EMAIL_SMTP_PASSWORD"].present?
+  smtp_password = ENV["CLACKY_EMAIL_API_KEY"].presence || ENV["EMAIL_SMTP_PASSWORD"].presence
+  if smtp_password.present?
     config.action_mailer.smtp_settings = {
-      address: ENV.fetch("EMAIL_SMTP_ADDRESS"),
-      port: ENV.fetch("EMAIL_SMTP_PORT"),
-      user_name: ENV.fetch("EMAIL_SMTP_USERNAME"),
-      password: ENV.fetch("EMAIL_SMTP_PASSWORD")
+      address:   ENV["CLACKY_EMAIL_SMTP_ADDRESS"]  || ENV.fetch("EMAIL_SMTP_ADDRESS"),
+      port:     (ENV["CLACKY_EMAIL_SMTP_PORT"]     || ENV.fetch("EMAIL_SMTP_PORT")).to_i,
+      user_name: ENV["CLACKY_EMAIL_SMTP_USERNAME"] || ENV.fetch("EMAIL_SMTP_USERNAME"),
+      password:  smtp_password,
+      authentication: :login,
+      enable_starttls_auto: true
     }
     config.action_mailer.delivery_method = :smtp
+    config.action_mailer.perform_deliveries = true
   end
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
