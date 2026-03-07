@@ -38,8 +38,11 @@ Rails.application.routes.draw do
   get  "sign_in", to: "sessions#new"
   post "sign_in", to: "sessions#create"
   delete 'sign_out', to: 'sessions#destroy', as: :sign_out
-  get  "sign_up", to: "registrations#new"
-  post "sign_up", to: "registrations#create"
+  get  "sign_up",          to: "registrations#new"
+  post "sign_up",          to: "registrations#create"
+  get  "sign_up/verify",   to: "registrations#verify",      as: :verify_sign_up
+  post "sign_up/confirm",  to: "registrations#confirm",     as: :confirm_sign_up
+  post "sign_up/resend",   to: "registrations#resend_code", as: :resend_sign_up
   resource :session, only: [:new, :show, :destroy] do
     get :devices, on: :member
     delete :destroy_one, on: :member

@@ -18,6 +18,16 @@ class SessionsController < ApplicationController
 
   def create
     if user = User.authenticate_by(email: params[:user][:email], password: params[:user][:password])
+
+      # ⚠️ 关键：登录时检查邮箱验证状态
+      unless user.verified?
+        session[:pending_user_id] = user.id
+        code = user.generate_email_verification_code!
+        UserMailer.with(user: user, code: code).email_verification_code.deliver_later
+        redirect_to verify_sign_up_path, alert: "您的邮箱尚未验证，验证码已重新发送到 #{user.email}，请查收"
+        return
+      end
+
       @session = user.sessions.create!
       cookies.signed.permanent[:session_token] = { value: @session.id, httponly: true }
       redirect_to root_path, notice: "登录成功"

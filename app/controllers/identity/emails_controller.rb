@@ -21,13 +21,19 @@ class Identity::EmailsController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email, :password_challenge).with_defaults(password_challenge: "")
+    # OAuth 用户没有密码，允许不填 password_challenge
+    # 普通用户修改邮箱需要验证当前密码
+    if current_user.oauth_user?
+      params.require(:user).permit(:email).with_defaults(password_challenge: "")
+    else
+      params.require(:user).permit(:email, :password_challenge)
+    end
   end
 
   def redirect_to_root
     if @user.email_previously_changed?
       resend_email_verification
-      redirect_to root_path, notice: "Your email has been changed"
+      redirect_to root_path, notice: "邮箱已更新，验证邮件已发送，请查收并点击验证链接"
     else
       redirect_to root_path
     end

@@ -100,6 +100,37 @@ class User < ApplicationRecord
     password_digest.blank? || password.present?
   end
 
+  # ========== 邮箱验证码（6位数字，15分钟有效）==========
+
+  # 生成 6 位数字验证码，有效期 15 分钟，存入数据库
+  def generate_email_verification_code!
+    code = rand(100_000..999_999).to_s
+    update_columns(
+      email_verification_code: code,
+      email_verification_code_expires_at: 15.minutes.from_now
+    )
+    # 开发环境打印到日志方便调试（无 SMTP 时）
+    Rails.logger.info "[UserMailer] 验证码 → #{email} : #{code}"
+    code
+  end
+
+  # 校验验证码：正确且未过期返回 true，同时清空验证码字段
+  def verify_email_code!(code)
+    return false if email_verification_code.blank?
+    return false if email_verification_code_expires_at.blank? ||
+                    email_verification_code_expires_at < Time.current
+    return false if email_verification_code != code.to_s.strip
+
+    update_columns(
+      verified: true,
+      email_verification_code: nil,
+      email_verification_code_expires_at: nil
+    )
+    true
+  end
+
+  # ========== 业务数据关联 ==========
+
   # write your own code here
   has_many :documents, dependent: :destroy
   has_many :themes, dependent: :destroy

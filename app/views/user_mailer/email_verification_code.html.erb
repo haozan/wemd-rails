@@ -1,0 +1,25 @@
+<div class="email-container">
+  <div class="email-card">
+    <div class="email-header">
+      <h1 class="email-title">邮箱验证码</h1>
+    </div>
+
+    <div class="email-body">
+      <p class="email-text">您好<%= @user.name.present? ? "，#{@user.name}" : "" %>，</p>
+
+      <p class="email-text">您正在注册账号，验证码为：</p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <span style="font-size: 2.5rem; font-weight: bold; letter-spacing: 0.6em; color: #1a1a2e; font-family: monospace;"><%= @code %></span>
+      </div>
+
+      <div class="email-alert">
+        <p class="email-alert-text">验证码 <strong>15 分钟</strong>内有效，请尽快完成验证。请勿将验证码告知他人。</p>
+      </div>
+
+      <hr class="email-divider">
+
+      <p class="email-footer">如果您没有进行此操作，请忽略此邮件。如有疑问，请直接回复此邮件联系我们。</p>
+    </div>
+  </div>
+</div>
