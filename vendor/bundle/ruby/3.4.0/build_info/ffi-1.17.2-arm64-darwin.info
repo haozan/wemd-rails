@@ -1,2 +1,0 @@
---enable-libffi-alloc
---with-pkg-config=pkg-config
