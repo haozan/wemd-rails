@@ -59,13 +59,22 @@
               data: { wemd_editor_target: "themeSelect", action: "change->wemd-editor#updatePreview" } %>
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
-          <button type="button" 
-                  class="btn-primary text-base md:text-lg whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
-                  data-wemd-editor-target="copyButton"
-                  data-action="click->wemd-editor#copyToWechat">
-            <%= lucide_icon "copy", class: "w-5 h-5 md:w-6 md:h-6" %>
-            <span>复制到公众号后台</span>
-          </button>
+          <div class="flex gap-2">
+            <button type="button" 
+                    class="btn-primary text-base md:text-lg whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
+                    data-wemd-editor-target="copyButton"
+                    data-action="click->wemd-editor#copyToWechat">
+              <%= lucide_icon "copy", class: "w-5 h-5 md:w-6 md:h-6" %>
+              <span>复制到公众号后台</span>
+            </button>
+            <button type="button" 
+                    class="btn-outline border-primary text-primary hover:bg-primary/5 text-base md:text-lg whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
+                    data-wemd-editor-target="syncButton"
+                    data-action="click->wemd-editor#syncToWechat">
+              <%= lucide_icon "cloud-upload", class: "w-5 h-5 md:w-6 md:h-6" %>
+              <span>一键同步草稿箱</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

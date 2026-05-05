@@ -11,6 +11,7 @@ export default class extends Controller<HTMLElement> {
     "previewContent",
     "themeSelect",
     "copyButton",
+    "syncButton",
     "saveStatus",
     "footnoteNumber",
     "currentTime"
@@ -28,10 +29,12 @@ export default class extends Controller<HTMLElement> {
   declare readonly previewContentTarget: HTMLElement
   declare readonly themeSelectTarget: HTMLSelectElement
   declare readonly copyButtonTarget: HTMLButtonElement
+  declare readonly syncButtonTarget: HTMLButtonElement
   declare readonly saveStatusTarget: HTMLElement
   declare readonly footnoteNumberTarget: HTMLElement
   declare readonly currentTimeTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
+  declare readonly hasSyncButtonTarget: boolean
   declare readonly hasSaveStatusTarget: boolean
   declare readonly hasPreviewContentTarget: boolean
   declare readonly hasFootnoteNumberTarget: boolean
@@ -529,6 +532,78 @@ export default class extends Controller<HTMLElement> {
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
 
     this.footnoteNumberTarget.textContent = `[${nextNumber}]`
+  }
+
+  /**
+   * 一键同步至微信草稿箱 API 调用
+   */
+  async syncToWechat(): Promise<void> {
+    if (!this.hasSyncButtonTarget) return;
+
+    // 获取当前 Markdown
+    const markdown = this.editorTarget.value
+    if (!markdown || markdown.trim() === "") {
+      const { showToast } = await import("../toast")
+      showToast("文章内容为空，无法同步", "error")
+      return
+    }
+
+    try {
+      this.syncButtonTarget.disabled = true
+      this.syncButtonTarget.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 md:h-6 md:w-6 text-primary inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>同步中...</span>
+      `
+
+      // Ensure the content is saved and we have an ID
+      await this.saveDocumentContent()
+
+      // The ID is extracted from current URL if it's an existing document
+      const currentUrl = window.location.pathname
+      const match = currentUrl.match(/\/documents\/([^\/]+)/)
+      
+      if (!match) {
+        throw new Error("无法获取文档 ID 请先保存文档！")
+      }
+      
+      const docId = match[1]
+
+      const response = await fetch(`/documents/${docId}/sync_to_wechat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content || "",
+          "Accept": "application/json"
+        }
+      })
+
+      const data = await response.json()
+      const { showToast } = await import("../toast")
+
+      if (response.ok && data.success) {
+        showToast(data.message || "成功同步到微信草稿箱", "success")
+      } else {
+        showToast(data.message || "同步失败，请重试", "error")
+        if (data.need_config) {
+          setTimeout(() => {
+            window.location.href = "/profile/wechat_settings"
+          }, 2000)
+        }
+      }
+    } catch (error) {
+      console.error("Sync to wechat error:", error)
+      const { showToast } = await import("../toast")
+      showToast(error instanceof Error ? error.message : "网络错误，请稍后重试", "error")
+    } finally {
+      this.syncButtonTarget.disabled = false
+      this.syncButtonTarget.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-upload w-5 h-5 md:w-6 md:h-6"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+        <span>一键同步草稿箱</span>
+      `
+    }
   }
 
   /**
