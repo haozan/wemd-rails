@@ -113,6 +113,14 @@ module Wechat
       # 微信要求 content 不能全空白，且要求一定的标签包裹。补一个极简的包裹以防万一内容为空报错
       processed_content = "<p>空草稿</p>" if processed_content.to_s.strip.empty?
       
+      # 避免有些转换库在最外层缺少块级元素被微信嫌弃非法内容
+      unless processed_content.include?('<p') || processed_content.include?('<div') || processed_content.include?('<section')
+        processed_content = "<p>#{processed_content}</p>"
+      end
+      
+      # NOTE: 针对 45166 invalid content，微信极度严格，在 JSON 编码时不能有双引号错误转义或特殊 HTML 转义。
+      # 而且内容外部经常需要一个基础标签，如果在生成 HTML 时失去了最外层的换行或者什么，也会被拦截。
+      
       # 第三阶段：提交草稿
       uri = URI("#{API_URL}/draft/add?access_token=#{access_token}")
       
@@ -133,9 +141,12 @@ module Wechat
       req.content_type = 'application/json; charset=utf-8'
       
       # 微信的 API 对 JSON 里的 HTML 转义十分敏感。
-      # Ruby 默认 to_json / JSON.generate 有可能带奇怪的转义或者不对 utf-8 进行合理包裹
-      # 使用以下方式可以强制生成一个纯正无任何 \u 转义的 JSON 字符串（针对中文和特殊符号）
-      req.body = JSON.generate(payload, ascii_only: false)
+      # 生成 JSON 时禁用一些可能破坏微信校验的默认转义，同时由于微信接口特别奇葩，
+      # 有时候它需要 unicode 避免解析不过去，有时候需要纯中避免内容截断。
+      json_body = payload.to_json
+      # 有时候内容里的单行图片，也就是 Nokogiri 出来可能只是一堆自闭合图片标签没被 p 包裹，也会被 45166
+      
+      req.body = json_body
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -173,7 +184,8 @@ module Wechat
         end
       end
 
-      doc.to_html
+      # Nokogiri 转换出来的 html 默认可能有一些不必要的格式，强制按 UTF-8 转出来
+      doc.to_html(encoding: 'UTF-8')
     end
 
     def format_image_url(url)
