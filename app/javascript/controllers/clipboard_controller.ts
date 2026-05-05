@@ -29,7 +29,7 @@ export default class extends Controller<HTMLElement> {
   copy(event: Event): void {
     event.preventDefault()
 
-    const textToCopy = this.sourceTarget.value
+    const textToCopy = this.sourceTarget.value || this.sourceTarget.textContent || this.sourceTarget.innerText
 
     if (!textToCopy) {
       console.error('No text to copy found')
