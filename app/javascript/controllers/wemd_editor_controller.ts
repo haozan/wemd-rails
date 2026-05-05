@@ -559,7 +559,7 @@ export default class extends Controller<HTMLElement> {
       `
 
       // Ensure the content is saved and we have an ID
-      await this.saveDocumentContent()
+      await this.saveBeforeSwitch()
 
       // The ID is extracted from current URL if it's an existing document
       const currentUrl = window.location.pathname
