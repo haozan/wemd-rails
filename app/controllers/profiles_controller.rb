@@ -44,10 +44,28 @@ class ProfilesController < ApplicationController
     end
   end
 
+  def wechat_settings
+    @user = current_user
+  end
+
+  def update_wechat_settings
+    @user = current_user
+    
+    if @user.update(wechat_settings_params)
+      redirect_to wechat_settings_profile_path, notice: "微信配置已保存"
+    else
+      render :wechat_settings, status: :unprocessable_entity
+    end
+  end
+
   private
 
+  def wechat_settings_params
+    params.require(:user).permit(:wechat_app_id, :wechat_app_secret)
+  end
+
   def user_params
-    params.require(:user).permit(:name, :email, :wechat_app_id, :wechat_app_secret)
+    params.require(:user).permit(:name, :email)
   end
 
   def password_params

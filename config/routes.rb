@@ -56,6 +56,8 @@ Rails.application.routes.draw do
     member do
       get :edit_password
       patch :update_password
+      get :wechat_settings
+      patch :update_wechat_settings
     end
   end
 
@@ -85,9 +87,6 @@ Rails.application.routes.draw do
 
   root 'home#index'
 
-  if Rails.env.development?
-    mount LetterOpenerWeb::Engine, at: "/letter_opener"
-  end
 
   # Do not write business logic at admin dashboard
   namespace :admin do

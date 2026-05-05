@@ -1,0 +1,43 @@
+<div class="container-sm py-12">
+  <div class="card-elevated">
+    <div class="card-body">
+      <h1 class="text-2xl font-bold text-primary mb-8 text-center">微信公众号同步配置</h1>
+
+      <div class="bg-surface/50 rounded-lg p-5 border border-border mb-8">
+        <h3 class="text-sm font-bold text-primary mb-3">🛠️ 配置指南</h3>
+        <ol class="list-decimal pl-4 space-y-2 text-sm text-secondary">
+          <li>登录 <a href="https://mp.weixin.qq.com" target="_blank" class="text-primary hover:underline">微信公众平台</a>。</li>
+          <li>进入左侧菜单的 <strong>设置与开发 > 基本配置</strong>。</li>
+          <li>复制您的 <strong>AppID(开发者ID)</strong> 和 <strong>AppSecret(开发者密码)</strong> 到下方。</li>
+          <li><span class="text-warning font-semibold">【极其重要】</span>向下滑动，在 <strong>IP白名单</strong> 中加入我们服务器的公网 IP。如不配置，同步功能将无法使用！</li>
+        </ol>
+      </div>
+
+      <%= form_with model: @user, url: update_wechat_settings_profile_path, method: :patch, local: true, class: "space-y-6" do |form| %>
+        
+        <div>
+          <%= form.label :wechat_app_id, "AppID", class: "form-label required" %>
+          <%= form.text_field :wechat_app_id, class: "input-field w-full", placeholder: "例如: wx1234567890abcdef" %>
+        </div>
+
+        <div>
+          <%= form.label :wechat_app_secret, "AppSecret", class: "form-label required" %>
+          <%= form.text_field :wechat_app_secret, class: "input-field w-full", placeholder: "只有在配置时才需要输入" %>
+          <% if @user.wechat_app_secret.present? %>
+            <div class="form-help text-success mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block -mt-1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> 您已保存过 AppSecret，不修改请留空或保持原样。
+            </div>
+          <% end %>
+        </div>
+
+        <div class="pt-6">
+          <div class="flex justify-end space-x-3">
+            <%= link_to "返回", profile_path, class: "btn-ghost" %>
+            <%= form.submit "保存配置", class: "btn-primary px-8" %>
+          </div>
+        </div>
+
+      <% end %>
+    </div>
+  </div>
+</div>
