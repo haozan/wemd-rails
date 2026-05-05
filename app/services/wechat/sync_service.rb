@@ -100,10 +100,16 @@ module Wechat
 
     # 同步整个文档到微信草稿箱
     def push_draft(document, thumb_media_id)
-      # 第一阶段：解析 HTML 并替换所有 img
-      processed_content = process_html_images(document.content)
+      # 第一阶段：将 Markdown 转换为 HTML（如果它原本就是 HTML 会保持基本原样，但考虑到数据都是 markdown_text）
+      require 'commonmarker'
+      html_content = Commonmarker.to_html(document.content, options: {
+        render: { unsafe: true } # 允许渲染行内 HTML 如 <img> <br>
+      })
+
+      # 第二阶段：解析 HTML 并替换所有 img，将其转成微信特有的 mmbiz_url
+      processed_content = process_html_images(html_content)
       
-      # 第二阶段：提交草稿
+      # 第三阶段：提交草稿
       uri = URI("#{API_URL}/draft/add?access_token=#{access_token}")
       
       payload = {

@@ -255,9 +255,18 @@ class DocumentsController < ApplicationController
   end
 
   # 提取正文里的第一张图片的 src
-  def extract_first_image_url(html_content)
-    return nil if html_content.blank?
-    doc = Nokogiri::HTML::DocumentFragment.parse(html_content)
+  def extract_first_image_url(content)
+    return nil if content.blank?
+    
+    # 首先尝试使用 Markdown 的正则匹配图片 ![](url) 或 <img src="url">
+    md_match = content.match(/!\[.*?\]\((.*?)\)/)
+    return md_match[1] if md_match
+    
+    html_match = content.match(/<img[^>]+src=["'](.*?)["']/)
+    return html_match[1] if html_match
+
+    # 如果正则匹配不到（非常少见），退化为 Nokogiri 解析
+    doc = Nokogiri::HTML::DocumentFragment.parse(content)
     first_img = doc.css('img').first
     first_img ? first_img['src'] : nil
   end

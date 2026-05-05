@@ -54,3 +54,5 @@ gem "omniauth-github", "~> 2.0"
 gem 'multipart-post'
 gem 'down'
 gem 'nokogiri'
+
+gem "commonmarker", "~> 2.8"
