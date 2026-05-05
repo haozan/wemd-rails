@@ -1,7 +1,7 @@
 class DocumentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_document, only: [:show, :edit, :update, :destroy, :duplicate]
-  before_action :authorize_document, only: [:edit, :update, :destroy, :duplicate]
+  before_action :set_document, only: [:show, :edit, :update, :destroy, :duplicate, :sync_to_wechat]
+  before_action :authorize_document, only: [:edit, :update, :destroy, :duplicate, :sync_to_wechat]
 
   # 历史记录列表 API (仅 JSON)
   # turbo-architecture-validation: disable
@@ -150,6 +150,46 @@ class DocumentsController < ApplicationController
 
   # 复制文档
   # turbo-architecture-validation: disable
+  def sync_to_wechat
+    sync_service = Wechat::SyncService.new(Current.user)
+    
+    unless sync_service.ready?
+      return render json: { 
+        success: false, 
+        message: "尚未配置微信公众号参数，请先前往『账号设置 -> 微信公众号配置』进行配置。",
+        need_config: true
+      }, status: :unprocessable_entity
+    end
+
+    begin
+      # 封面图：如果前端传了，就用前端传的封面URL，没有的话找正文中第一个图片，还没有就报错
+      cover_url = params[:cover_image_url] || extract_first_image_url(@document.content)
+      
+      if cover_url.blank?
+        return render json: { 
+          success: false, 
+          message: "同步失败：微信公众号草稿必须包含一张封面图，请在正文中添加至少一张图片。" 
+        }, status: :unprocessable_entity
+      end
+
+      # 1. 临时补全图片可能需要的 host
+      cover_url = URI.join(ENV.fetch('HOST_URL', "http://#{request.host_with_port}"), cover_url).to_s unless cover_url.start_with?('http')
+      
+      # 2. 上传永久封面素材获取 media_id
+      thumb_media_id = sync_service.upload_material_image(cover_url)
+
+      # 3. 将包含完整 HTML 图片替换逻辑的内容推到草稿箱
+      draft_media_id = sync_service.push_draft(@document, thumb_media_id)
+      
+      render json: { success: true, message: "文章已成功同步至微信公众平台草稿箱！媒体ID: #{draft_media_id}" }
+    rescue Wechat::SyncService::SyncError => e
+      render json: { success: false, message: "同步失败：#{e.message}" }, status: :unprocessable_entity
+    rescue StandardError => e
+      Rails.logger.error("Wechat Sync Unexpected Error: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}")
+      render json: { success: false, message: "系统错误，请联系管理员或稍后重试。" }, status: :internal_server_error
+    end
+  end
+
   def duplicate
     # 创建副本
     @new_document = @document.dup
@@ -212,5 +252,13 @@ class DocumentsController < ApplicationController
 
   def document_params
     params.require(:document).permit(:title, :content, :theme_id)
+  end
+
+  # 提取正文里的第一张图片的 src
+  def extract_first_image_url(html_content)
+    return nil if html_content.blank?
+    doc = Nokogiri::HTML::DocumentFragment.parse(html_content)
+    first_img = doc.css('img').first
+    first_img ? first_img['src'] : nil
   end
 end

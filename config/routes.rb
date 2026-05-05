@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   resources :documents do
     member do
       post :duplicate
+      post :sync_to_wechat
     end
     collection do
       delete :clear_history
