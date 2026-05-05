@@ -47,7 +47,7 @@ class ProfilesController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:name, :email)
+    params.require(:user).permit(:name, :email, :wechat_app_id, :wechat_app_secret)
   end
 
   def password_params

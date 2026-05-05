@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_14_073600) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_05_155612) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -235,6 +235,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_14_073600) do
     t.string "uid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "email_verification_code"
+    t.datetime "email_verification_code_expires_at"
+    t.string "wechat_app_id"
+    t.string "wechat_app_secret"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
