@@ -2,6 +2,7 @@ require 'net/http'
 require 'json'
 require 'uri'
 require 'down'
+require 'net/http/post/multipart'
 
 module Wechat
   class SyncService
