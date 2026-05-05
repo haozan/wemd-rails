@@ -21,25 +21,6 @@
             </div>
           </div>
 
-          <hr class="my-6 border-border" />
-          
-          <div class="space-y-4">
-            <h2 class="text-lg font-semibold text-foreground">微信公众号同步配置</h2>
-            <p class="text-sm text-secondary">
-              配置后可将文章一键同步至微信公众平台草稿箱。注意：必须在公众号后台将本服务器IP加入白名单。
-            </p>
-            
-            <div>
-              <%= form.label :wechat_app_id, "AppID (开发者ID)", class: "block text-sm font-medium text-foreground mb-1" %>
-              <%= form.text_field :wechat_app_id, class: "input-field w-full", placeholder: "例如: wx1234567890abcdef" %>
-            </div>
-
-            <div>
-              <%= form.label :wechat_app_secret, "AppSecret (开发者密码)", class: "block text-sm font-medium text-foreground mb-1" %>
-              <%= form.text_field :wechat_app_secret, class: "input-field w-full", placeholder: "输入以保存/更新 Secret" %>
-            </div>
-          </div>
-
           <div class="pt-4">
             <div class="flex justify-end space-x-3">
               <%= form.submit "保存修改", class: "btn-primary" %>
