@@ -103,12 +103,15 @@ module Wechat
     def push_draft(document, thumb_media_id)
       # 第一阶段：将 Markdown 转换为 HTML（如果它原本就是 HTML 会保持基本原样，但考虑到数据都是 markdown_text）
       require 'commonmarker'
-      html_content = Commonmarker.to_html(document.content, options: {
+      html_content = Commonmarker.to_html(document.content || "", options: {
         render: { unsafe: true } # 允许渲染行内 HTML 如 <img> <br>
       })
 
       # 第二阶段：解析 HTML 并替换所有 img，将其转成微信特有的 mmbiz_url
       processed_content = process_html_images(html_content)
+
+      # 微信要求 content 不能全空白，且要求一定的标签包裹。补一个极简的包裹以防万一内容为空报错
+      processed_content = "<p>空草稿</p>" if processed_content.to_s.strip.empty?
       
       # 第三阶段：提交草稿
       uri = URI("#{API_URL}/draft/add?access_token=#{access_token}")
@@ -127,9 +130,12 @@ module Wechat
       }
 
       req = Net::HTTP::Post.new(uri)
-      req.content_type = 'application/json'
-      # 微信要求中文不要被 Unicode 编码导致乱码，不过 Ruby to_json 大部分时间安全
-      req.body = payload.to_json
+      req.content_type = 'application/json; charset=utf-8'
+      
+      # 微信的 API 对 JSON 里的 HTML 转义十分敏感。
+      # Ruby 默认 to_json / JSON.generate 有可能带奇怪的转义或者不对 utf-8 进行合理包裹
+      # 使用以下方式可以强制生成一个纯正无任何 \u 转义的 JSON 字符串（针对中文和特殊符号）
+      req.body = JSON.generate(payload, ascii_only: false)
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
