@@ -104,7 +104,10 @@ module Wechat
       # 第一阶段：将 Markdown 转换为 HTML（如果它原本就是 HTML 会保持基本原样，但考虑到数据都是 markdown_text）
       require 'commonmarker'
       html_content = Commonmarker.to_html(document.content || "", options: {
-        render: { unsafe: true } # 允许渲染行内 HTML 如 <img> <br>
+        render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
+        extension: {
+          header_ids: nil  # 关闭 heading 自动锚点，微信草稿不允许这种 <a href="#..."> 链接，会触发 45166
+        }
       })
 
       # 第二阶段：解析 HTML 并替换所有 img，将其转成微信特有的 mmbiz_url
@@ -169,7 +172,17 @@ module Wechat
     # 用 Nokogiri 解析 HTML，找到所有的 img 并走微信上传
     def process_html_images(html_content)
       doc = Nokogiri::HTML::DocumentFragment.parse(html_content)
-      
+
+      # 兜底清理：删除 heading 自动锚点产生的 <a class="anchor" href="#xxx">...</a>
+      # 微信 45166 invalid content 的罪魁祸首之一
+      doc.css('a').each do |a|
+        href = a['href'].to_s
+        if href.start_with?('#') || a['class'].to_s.include?('anchor')
+          # 保留内部文本，移除标签本身
+          a.replace(a.children)
+        end
+      end
+
       doc.css('img').each do |img|
         src = img['src']
         next if src.blank?
