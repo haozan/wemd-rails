@@ -1,0 +1,2 @@
+--with-cflags=-Wno-error=incompatible-function-pointer-types
+-Wno-incompatible-function-pointer-types

@@ -32,7 +32,7 @@ Rails.application.configure do
   config.public_file_server.headers = { "Cache-Control" => "public, max-age=#{2.days.to_i}" }
 
   # Store uploaded files on Qiniu cloud storage (see config/storage.yml for options).
-  config.active_storage.service = :qiniu
+  config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = true

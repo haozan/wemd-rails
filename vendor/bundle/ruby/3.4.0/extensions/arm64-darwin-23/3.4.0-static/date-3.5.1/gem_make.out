@@ -1,0 +1,24 @@
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/date-3.5.1/ext/date
+/Users/zan/.local/share/mise/installs/ruby/3.4.8/bin/ruby extconf.rb
+checking for rb_category_warn()... yes
+checking for timezone in time.h with -Werror... yes
+checking for altzone in time.h with -Werror... no
+creating Makefile
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/date-3.5.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-hqek7d sitelibdir\=./.gem.20260505-84292-hqek7d clean
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/date-3.5.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-hqek7d sitelibdir\=./.gem.20260505-84292-hqek7d
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.bundle
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/date-3.5.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-hqek7d sitelibdir\=./.gem.20260505-84292-hqek7d install
+/usr/bin/install -c -m 0755 date_core.bundle ./.gem.20260505-84292-hqek7d
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/date-3.5.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-hqek7d sitelibdir\=./.gem.20260505-84292-hqek7d clean

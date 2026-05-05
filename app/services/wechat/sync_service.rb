@@ -139,19 +139,23 @@ module Wechat
 
       req = Net::HTTP::Post.new(uri)
       req.content_type = 'application/json; charset=utf-8'
-      
-      # 微信的 API 对 JSON 里的 HTML 转义十分敏感。
-      # 生成 JSON 时禁用一些可能破坏微信校验的默认转义，同时由于微信接口特别奇葩，
-      # 有时候它需要 unicode 避免解析不过去，有时候需要纯中避免内容截断。
       json_body = payload.to_json
-      # 有时候内容里的单行图片，也就是 Nokogiri 出来可能只是一堆自闭合图片标签没被 p 包裹，也会被 45166
-      
       req.body = json_body
+
+      # ===== 调试日志：打印真正发给微信的完整 Payload =====
+      Rails.logger.warn("[WECHAT_DEBUG] Title: #{document.title.inspect}")
+      Rails.logger.warn("[WECHAT_DEBUG] Author: #{@user.name.inspect}")
+      Rails.logger.warn("[WECHAT_DEBUG] Thumb Media ID: #{thumb_media_id.inspect}")
+      Rails.logger.warn("[WECHAT_DEBUG] Content Length: #{processed_content.bytesize} bytes")
+      Rails.logger.warn("[WECHAT_DEBUG] Content (first 2000 chars): #{processed_content[0, 2000]}")
+      Rails.logger.warn("[WECHAT_DEBUG] JSON Body (first 3000 chars): #{json_body[0, 3000]}")
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       response = http.request(req)
       result = JSON.parse(response.body)
+
+      Rails.logger.warn("[WECHAT_DEBUG] Response: #{response.body}")
 
       if result["errcode"] && result["errcode"] != 0
         handle_error(result)

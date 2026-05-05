@@ -1,0 +1,295 @@
+---
+es:
+  good_job:
+    actions:
+      destroy: Eliminar
+      discard: Descartar
+      force_discard: Forzar descarte
+      inspect: Inspeccionar
+      reschedule: Reprogramar
+      retry: Reintentar
+    batches:
+      actions:
+        confirm_retry: "¿Estás seguro que querés reintentar este lote?"
+        retry: Reintentar
+      index:
+        older_batches: Lotes anteriores
+        title: Lotes
+      jobs:
+        actions:
+          confirm_destroy: "¿Estás seguro que querés eliminar esta tarea?"
+          confirm_discard: "¿Estás seguro que querés descartar esta tarea?"
+          confirm_reschedule: "¿Estás seguro que querés reprogramar esta tarea?"
+          confirm_retry: "¿Estás seguro que querés reintentar esta tarea?"
+          destroy: Eliminar tarea
+          discard: Descartar tarea
+          reschedule: Reprogramar tarea
+          retry: Reintentar tarea
+          title: Acciones
+        no_jobs_found: No hay tareas.
+      retry:
+        notice: El lote ha sido reintentado
+      show:
+        attributes: Atributos
+        batched_jobs: Tareas en lote
+        callback_jobs: Callback Jobs
+      table:
+        no_batches_found: No hay lotes.
+    cleaner:
+      index:
+        all: All
+        class: Class
+        exception: Exception
+        grouped_by_class: Discards grouped by Class
+        grouped_by_exception: Discards grouped by Exception
+        last_1_hour: Last 1 hour
+        last_24_hours: Last 24 hours
+        last_3_days: Last 3 days
+        last_3_hours: Last 3 hours
+        last_7_days: Last 7 days
+        title: Discard Cleaner
+        total: Total
+    cron_entries:
+      actions:
+        confirm_disable: "¿Estás seguro que querés deshabilitar esta tarea programada?"
+        confirm_enable: "¿Estás seguro que querés habilitar esta tarea programada?"
+        confirm_enqueue: "¿Estás seguro que querés encolar esta tarea programada?"
+        disable: Deshabilitar tarea programada
+        enable: Habilitar tarea programada
+        enqueue: Encolar tarea programada ahora
+      disable:
+        notice: La tarea programada ha sido deshabilitada.
+      enable:
+        notice: La tarea programada ha sido habilitada.
+      enqueue:
+        notice: La tarea programada ha sido encolada.
+      index:
+        no_cron_schedules_found: No hay tareas programadas.
+        title: Tareas Programadas
+      show:
+        cron_entry_key: Cron Entry Key
+    datetime:
+      distance_in_words:
+        about_x_hours:
+          one: alrededor de 1 hora
+          other: alrededor de %{count} horas
+        about_x_months:
+          one: alrededor de 1 mes
+          other: alrededor de %{count} meses
+        about_x_years:
+          one: alrededor de 1 año
+          other: alrededor de %{count} años
+        almost_x_years:
+          one: casi 1 año
+          other: casi %{count} años
+        half_a_minute: medio minuto
+        less_than_x_minutes:
+          one: menos de un minuto
+          other: menos de %{count} minutos
+        less_than_x_seconds:
+          one: menos de 1 segundo
+          other: menos de %{count} segundos
+        over_x_years:
+          one: más de 1 año
+          other: durante %{count} años
+        x_days:
+          one: 1 día
+          other: "%{count} días"
+        x_minutes:
+          one: 1 minuto
+          other: "%{count} minutos"
+        x_months:
+          one: 1 mes
+          other: "%{count} meses"
+        x_seconds:
+          one: 1 segundo
+          other: "%{count} segundos"
+        x_years:
+          one: 1 año
+          other: "%{count} años"
+    duration:
+      hours: "%{hour}h %{min}m"
+      less_than_10_seconds: "%{sec}s"
+      milliseconds: "%{ms}ms"
+      minutes: "%{min}m %{sec}s"
+      seconds: "%{sec}s"
+    error_event:
+      discarded: Descartado
+      handled: Manejado
+      interrupted: interrumpido
+      retried: reintentado
+      retry_stopped: Reintentar detenido
+      unhandled: sin manejar
+    helpers:
+      relative_time:
+        future: en %{time}
+        past: "%{time} atrás"
+    jobs:
+      actions:
+        confirm_destroy: "¿Estás seguro que querés eliminar esta tarea?"
+        confirm_discard: "¿Estás seguro que querés descartar esta tarea?"
+        confirm_force_discard: "¿Está seguro de que desea forzar el descarte de esta tarea? La tarea se marcará como descartada, pero la tarea en ejecución no se detendrá; sin embargo, no se volverá a intentar en caso de falla.\n"
+        confirm_reschedule: "¿Estás seguro que querés reprogramar esta tarea?"
+        confirm_retry: "¿Estás seguro que querés reintentar esta tarea?"
+        destroy: Eliminar tarea
+        discard: Descartar tarea
+        force_discard: Forzar el descarte de la tarea
+        reschedule: Reprogramar tarea
+        retry: Reiuntentar tarea
+      destroy:
+        notice: La tarea ha sido eliminada
+      discard:
+        notice: La tarea ha sido descartada
+      executions:
+        application_trace: Traza de la aplicación
+        full_trace: Traza completa
+        in_queue: en cola
+        runtime: en ejecución
+        title: Ejecuciones
+      force_discard:
+        notice: La tarea ha sido descartada a la fuerza. Continuará ejecutándose pero no se volverá a intentar en caso de fallas.
+      index:
+        job_pagination: Paginación de tareas
+        older_jobs: Tareas anteriores
+      reschedule:
+        notice: La tarea ha sido reprogramada
+      retry:
+        notice: La tarea ha sido reintentada
+      show:
+        jobs: Tareas
+      table:
+        actions:
+          apply_to_all:
+            one: Aplicar a 1 tarea.
+            other: Aplicar a %{count} tareas.
+          confirm_destroy_all: "¿Estás seguro que querés eliminar las tareas seleccionadas?"
+          confirm_discard_all: "¿Estás seguro que querés descartar las tareas seleccionadas?"
+          confirm_reschedule_all: "¿Estás seguro que querés reprogramar las tareas seleccionadas?"
+          confirm_retry_all: "¿Estás seguro que querés reintentar las tareas seleccionadas?"
+          destroy_all: Eliminar todas
+          discard_all: Descartar todas
+          reschedule_all: Reprogramar todas
+          retry_all: Reintentar todas
+          title: Acciones
+        no_jobs_found: No hay tareas.
+        toggle_actions: Conmutar acciones
+        toggle_all_jobs: Conmutar todas las tareas
+    models:
+      batch:
+        created: Creado
+        created_at: Fecha de creación
+        discarded: Descartado
+        discarded_at: Fecha de descarte
+        enqueued: Encolado
+        enqueued_at: Fecha de encolado
+        finished: Finalizado
+        finished_at: Fecha de finalización
+        jobs: Tareas
+        name: Nombre
+      cron:
+        class: Clase
+        last_run: Última ejecución
+        next_scheduled: Próxima ejecución
+        schedule: Cronograma
+        states:
+          active: Activo
+          paused: Pausado
+        status: Estado
+      job:
+        arguments: Argumentos
+        attempts: Intentos
+        labels: Etiquetas
+        priority: Prioridad
+        queue: Cola
+    number:
+      format:
+        delimiter: " "
+        separator: ","
+      human:
+        decimal_units:
+          delimiter: " "
+          format: "%n%u"
+          precision: 3
+          separator: ","
+          units:
+            billion: B
+            million: M
+            quadrillion: q
+            thousand: k
+            trillion: T
+            unit: ''
+    pauses:
+      index:
+        confirm_pause: "¿Está seguro de que desea pausar %{value}?"
+        confirm_unpause: "¿Está seguro de que desea reanudar %{value}?"
+        disabled: La función experimental de Pausas de GoodJob está desactivada por defecto porque puede degradar el rendimiento. Configure para habilitar
+        job_class: Clase de trabajo
+        label: Etiqueta
+        pause: Pausar
+        queue: Cola
+        title: Pausas
+        type: Tipo de Pausa
+        unpause: Reanudar
+        value: Valor
+    performance:
+      index:
+        average_duration: Duración promedio
+        chart_title: Tiempo total de ejecución del trabajo en segundos
+        executions: Ejecuciones
+        job_class: Clase de trabajo
+        maximum_duration: Duración máxima
+        minimum_duration: Duración mínima
+        queue_name: Nombre de la cola
+        title: Rendimiento
+      show:
+        slow: Lento
+        title: Rendimiento
+    processes:
+      index:
+        cron_enabled: Cron habilitado
+        no_good_job_processes_found: No hay procesos de GoodJob.
+        process: Proceso
+        schedulers: Schedulers
+        started: Iniciado
+        title: Procesos
+        updated: Actualizado
+    shared:
+      boolean:
+        'false': 'No'
+        'true': Sí
+      error: Error
+      filter:
+        all: Todas
+        all_jobs: Todas las tareas
+        all_queues: Todas las colas
+        clear: Limpiar
+        job_name: Nombre de la tarea
+        placeholder: Buscar por clase, id de tarea, parámetros y mensaje de error.
+        queue_name: Nombre de la cola
+        search: Buscar
+      navbar:
+        batches: Lotes
+        cleaner: Discard Cleaner
+        cron_schedules: Cron
+        jobs: Tareas
+        live_poll: En vivo
+        name: "GoodJob 👍"
+        pauses: Pausas
+        performance: Rendimiento
+        processes: Procesos
+        theme:
+          auto: Auto
+          dark: Oscuro
+          light: Luz
+          theme: Tema
+      pending_migrations: GoodJob tiene migraciones pendientes.
+      secondary_navbar:
+        inspiration: "¡Recuerda, también tú estás haciendo un buen trabajo!"
+        last_updated: Última actualización
+    status:
+      discarded: Descartado
+      queued: Encolado
+      retried: Reintentado
+      running: Ejecutando
+      scheduled: Programado
+      succeeded: Exitoso

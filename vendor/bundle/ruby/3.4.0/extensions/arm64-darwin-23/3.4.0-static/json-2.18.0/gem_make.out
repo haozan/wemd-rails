@@ -1,0 +1,25 @@
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/json-2.18.0/ext/json/ext/parser
+/Users/zan/.local/share/mise/installs/ruby/3.4.8/bin/ruby extconf.rb
+checking for rb_enc_interned_str() in ruby/encoding.h... yes
+checking for rb_str_to_interned_str() in ruby.h... yes
+checking for rb_hash_new_capa() in ruby.h... yes
+checking for rb_hash_bulk_insert() in ruby.h... yes
+checking for whether -std=c99 is accepted as CFLAGS... yes
+checking for arm_neon.h... yes
+checking for cpuid.h... no
+creating Makefile
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/json-2.18.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-w2nnfr sitelibdir\=./.gem.20260505-84292-w2nnfr clean
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/json-2.18.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-w2nnfr sitelibdir\=./.gem.20260505-84292-w2nnfr
+compiling parser.c
+linking shared-object json/ext/parser.bundle
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/json-2.18.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-w2nnfr sitelibdir\=./.gem.20260505-84292-w2nnfr install
+/usr/bin/install -c -m 0755 parser.bundle ./.gem.20260505-84292-w2nnfr/json/ext
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/json-2.18.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-w2nnfr sitelibdir\=./.gem.20260505-84292-w2nnfr clean

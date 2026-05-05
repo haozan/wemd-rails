@@ -1,0 +1,22 @@
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/bootsnap-1.19.0/ext/bootsnap
+/Users/zan/.local/share/mise/installs/ruby/3.4.8/bin/ruby extconf.rb
+checking for fdatasync() in unistd.h... yes
+checking for whether -D_GNU_SOURCE is accepted as CPPFLAGS... yes
+checking for whether -O3 is accepted as CFLAGS... yes
+checking for whether -std=c99 is accepted as CFLAGS... yes
+creating Makefile
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/bootsnap-1.19.0/ext/bootsnap
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-vvywuv sitelibdir\=./.gem.20260505-84292-vvywuv clean
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/bootsnap-1.19.0/ext/bootsnap
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-vvywuv sitelibdir\=./.gem.20260505-84292-vvywuv
+compiling bootsnap.c
+linking shared-object bootsnap/bootsnap.bundle
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/bootsnap-1.19.0/ext/bootsnap
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-vvywuv sitelibdir\=./.gem.20260505-84292-vvywuv install
+/usr/bin/install -c -m 0755 bootsnap.bundle ./.gem.20260505-84292-vvywuv/bootsnap
+
+current directory: /Users/zan/Documents/GitHub/wemd-rails/vendor/bundle/ruby/3.4.0/gems/bootsnap-1.19.0/ext/bootsnap
+make DESTDIR\= sitearchdir\=./.gem.20260505-84292-vvywuv sitelibdir\=./.gem.20260505-84292-vvywuv clean
