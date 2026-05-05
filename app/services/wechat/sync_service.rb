@@ -101,26 +101,22 @@ module Wechat
 
     # 同步整个文档到微信草稿箱
     def push_draft(document, thumb_media_id)
-      # 第一阶段：将 Markdown 转换为 HTML（如果它原本就是 HTML 会保持基本原样，但考虑到数据都是 markdown_text）
+      # 第一阶段：将 Markdown 转换为 HTML
       require 'commonmarker'
       html_content = Commonmarker.to_html(document.content || "", options: {
         render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
         extension: {
-          header_ids: nil  # 关闭 heading 自动锚点，微信草稿不允许这种 <a href="#..."> 链接，会触发 45166
+          header_ids: nil  # 关闭 heading 自动锚点，微信草稿不允许 <a href="#..."> 链接
         }
       })
 
-      # 第二阶段：解析 HTML 并替换所有 img，将其转成微信特有的 mmbiz_url
+      # 第二阶段：解析 HTML 并替换所有 img -> mmbiz_url
       processed_content = process_html_images(html_content)
 
-      # 微信要求 content 不能全空白，且要求一定的标签包裹。补一个极简的包裹以防万一内容为空报错
-      processed_content = "<p>空草稿</p>" if processed_content.to_s.strip.empty?
-      
-      # 避免有些转换库在最外层缺少块级元素被微信嫌弃非法内容
-      unless processed_content.include?('<p') || processed_content.include?('<div') || processed_content.include?('<section')
-        processed_content = "<p>#{processed_content}</p>"
-      end
-      
+      # 第三阶段：把主题 CSS 内联到每个元素的 style 属性上
+      # 微信公众号草稿不支持 <style>/<link>，只认内联 style
+      processed_content = apply_theme_styles(processed_content, document.theme)
+
       # NOTE: 针对 45166 invalid content，微信极度严格，在 JSON 编码时不能有双引号错误转义或特殊 HTML 转义。
       # 而且内容外部经常需要一个基础标签，如果在生成 HTML 时失去了最外层的换行或者什么，也会被拦截。
       
@@ -203,6 +199,63 @@ module Wechat
 
       # Nokogiri 转换出来的 html 默认可能有一些不必要的格式，强制按 UTF-8 转出来
       doc.to_html(encoding: 'UTF-8')
+    end
+
+    # 将主题 CSS 内联到 HTML 元素的 style 属性中
+    # 微信公众号草稿不支持 <style>/<link>/<class>，只认内联 style
+    def apply_theme_styles(html_content, theme)
+      return ensure_block_wrap(html_content) if theme.blank? || theme.css.blank?
+
+      require 'premailer'
+
+      # 用一个最小的 HTML 文档包裹，premailer 才能正确工作
+      # 注意必须显式声明 UTF-8，否则 Nokogiri 会按 Latin-1 解析导致中文乱码
+      full_html = <<~HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+          <style type="text/css">#{theme.css}</style>
+        </head>
+        <body><section class="wemd-article">#{html_content}</section></body>
+        </html>
+      HTML
+
+      premailer = Premailer.new(
+        full_html,
+        with_html_string: true,
+        warn_level: Premailer::Warnings::SAFE,
+        preserve_styles: false,
+        remove_classes: false,
+        remove_ids: true,
+        remove_comments: true,
+        input_encoding: 'UTF-8',
+        adapter: :nokogiri
+      )
+
+      inlined = premailer.to_inline_css
+
+      # premailer 会返回完整 HTML，抽出 body 里 section 的内容并保留 section 包装
+      doc = Nokogiri::HTML::DocumentFragment.parse(inlined, 'UTF-8')
+      section = doc.at_css('section.wemd-article')
+      result = section ? section.to_html(encoding: 'UTF-8') : inlined
+
+      # 兜底：微信要求最外层有块级元素
+      result = "<section>#{result}</section>" unless result.match?(/\A\s*<(p|div|section|h\d|ul|ol|blockquote|pre|table|figure)/)
+      result = "<p>空草稿</p>" if result.to_s.strip.empty?
+      result
+    rescue => e
+      Rails.logger.error "[WECHAT] apply_theme_styles failed: #{e.message}, fallback to raw html"
+      ensure_block_wrap(html_content)
+    end
+
+    # 不带主题时的最小包装
+    def ensure_block_wrap(html_content)
+      html_content = "<p>空草稿</p>" if html_content.to_s.strip.empty?
+      unless html_content.match?(/\A\s*<(p|div|section|h\d|ul|ol|blockquote|pre|table|figure)/)
+        html_content = "<p>#{html_content}</p>"
+      end
+      html_content
     end
 
     def format_image_url(url)

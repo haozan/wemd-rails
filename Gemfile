@@ -54,5 +54,6 @@ gem "omniauth-github", "~> 2.0"
 gem 'multipart-post'
 gem 'down'
 gem 'nokogiri'
+gem 'premailer', '~> 1.27' # 把 CSS 内联到 HTML 元素的 style 属性，微信公众号不支持 <style>/<link>
 
 gem "commonmarker", "~> 2.8"
