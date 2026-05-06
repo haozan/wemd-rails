@@ -75,6 +75,17 @@ module Wechat
       end
 
       inner = doc.to_html(encoding: 'UTF-8')
+
+      # Nokogiri HTML 序列化会对块级标签自动 pretty-print 插换行,
+      # 例如 "<ol>\n<li>\n<strong>..</strong></li>\n<li>..." ——
+      # 微信编辑器会把这些换行当独立空块渲染,导致列表双重编号 bug。
+      # 清洗所有 list 相关标签之间的空白
+      inner = inner.gsub(/(<li[^>]*>)\s+/) { $1 }
+                   .gsub(/\s+(<\/li>)/) { $1 }
+                   .gsub(/(<(?:ol|ul)[^>]*>)\s+/) { $1 }
+                   .gsub(/\s+(<\/(?:ol|ul)>)/) { $1 }
+                   .gsub(/(<\/li>)\s+(<li[^>]*>)/) { "#{$1}#{$2}" }
+
       root_style = substitute(@map['_root'] || 'font-size:15px;color:#333;line-height:1.75;')
       %(<section class="wemd-article" style="#{root_style}">#{inner}</section>)
     end
@@ -171,9 +182,13 @@ module Wechat
     # 扁平化 loose list item: <li><p>foo</p></li> → <li>foo</li>
     # loose list 在微信里会被双重渲染(<li> 自己一个 marker + 内部 <p> 新块)
     # 导致 5 条变 10 条的双重编号 bug
+    #
+    # 同时清洗 ol/ul 内 <li> 之间的纯空白文本节点: Commonmarker 会在
+    # </li> 与下一个 <li> 之间留换行符,微信把这些换行当独立空块渲染,
+    # 仍会双重编号。所以把 ol/ul 直接子节点里的空白 text 节点删掉。
     def flatten_loose_list_items(doc)
+      # 1) loose list 扁平化
       doc.css('li').each do |li|
-        # 只含 <p> 子元素(允许文本节点为空白)时扁平化
         child_elements = li.children.select(&:element?)
         next if child_elements.empty?
         next unless child_elements.all? { |c| c.name == 'p' }
@@ -181,6 +196,23 @@ module Wechat
         # 多个 <p>: 用 <br><br> 连接(微信里 <li> 内不能有块级)
         new_html = child_elements.map(&:inner_html).join('<br/><br/>')
         li.inner_html = new_html
+      end
+
+      # 2) 清洗 ol/ul 里 <li> 之间的空白文本节点
+      doc.css('ol, ul').each do |list|
+        list.children.each do |child|
+          child.remove if child.text? && child.content.strip.empty?
+        end
+      end
+
+      # 3) 再清洗每个 <li> 内首尾的空白文本节点(防御性)
+      doc.css('li').each do |li|
+        while (first = li.children.first) && first.text? && first.content.strip.empty?
+          first.remove
+        end
+        while (last = li.children.last) && last.text? && last.content.strip.empty?
+          last.remove
+        end
       end
     end
 
