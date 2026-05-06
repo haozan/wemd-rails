@@ -6,6 +6,7 @@ export default class extends Controller<HTMLElement> {
   static targets = [
     "form",
     "titleInput",
+    "titleDisplay",
     "editor",
     "preview",
     "previewContent",
@@ -28,6 +29,8 @@ export default class extends Controller<HTMLElement> {
   declare readonly formTarget: HTMLFormElement
   declare readonly titleInputTarget: HTMLInputElement
   declare readonly hasTitleInputTarget: boolean
+  declare readonly titleDisplayTarget: HTMLElement
+  declare readonly hasTitleDisplayTarget: boolean
   declare readonly editorTarget: HTMLTextAreaElement
   declare readonly previewTarget: HTMLElement
   declare readonly previewContentTarget: HTMLElement
@@ -67,7 +70,7 @@ export default class extends Controller<HTMLElement> {
   private wechatPreviewInflight: AbortController | null = null
 
   // 标题同步：记录上次从 Markdown 提取并同步的标题，用于冲突检测
-  private _lastSyncedTitle: string = ''
+  // _lastSyncedTitle 已废弃，标题完全由 markdown # 驱动，无需手动同步跟踪
   
   // 撤销/重做历史记录
   private history: Array<{ title: string; content: string }> = []
@@ -319,21 +322,19 @@ export default class extends Controller<HTMLElement> {
    *   2. 标题框内容与上次从 Markdown 同步的值一致（用户未手动修改）
    */
   private syncTitleFromMarkdown(): void {
-    if (!this.hasTitleInputTarget) return
-
     const markdown = this.editorTarget.value
-    // 提取第一个 # 一级标题（支持行首，忽略 ## 以上）
+    // 提取第一个 # 一级标题
     const match = markdown.match(/^#\s+(.+)$/m)
     const extracted = match ? match[1].trim() : ''
 
-    const current = this.titleInputTarget.value.trim()
+    // 更新显示（只读 div）
+    if (this.hasTitleDisplayTarget) {
+      this.titleDisplayTarget.textContent = extracted || '无标题文档'
+    }
 
-    // 只有标题框为空，或内容等于上次同步值（未被手动改动），才覆盖
-    if (current === '' || current === this._lastSyncedTitle) {
-      if (extracted && extracted !== current) {
-        this.titleInputTarget.value = extracted
-        this._lastSyncedTitle = extracted
-      }
+    // 更新 hidden input（表单提交时携带）
+    if (this.hasTitleInputTarget) {
+      this.titleInputTarget.value = extracted
     }
   }
 
@@ -444,8 +445,10 @@ export default class extends Controller<HTMLElement> {
     this.isRestoringHistory = true
     
     const state = this.history[this.historyIndex]
-    this.titleInputTarget.value = state.title
     this.editorTarget.value = state.content
+    
+    // 从 content 重新同步标题（显示 div + hidden input）
+    this.syncTitleFromMarkdown()
     
     // 更新预览
     this.updatePreview()
@@ -1367,9 +1370,9 @@ export default class extends Controller<HTMLElement> {
     }
 
     this.editorTarget.addEventListener('input', triggerAutoSave)
-    this.titleInputTarget.addEventListener('input', triggerAutoSave)
+    // titleInput 现在是 hidden field（由 markdown # 驱动），无需监听 input 事件
     this.themeSelectTarget.addEventListener('change', triggerAutoSave)
-    console.log('[WeMD AutoSave] Auto-save listeners registered on editor, title, and theme select')
+    console.log('[WeMD AutoSave] Auto-save listeners registered on editor and theme select')
   }
 
 

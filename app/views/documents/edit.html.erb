@@ -29,10 +29,11 @@
           <% end %>
           
           <div class="flex-1 min-w-0">
-            <%= f.text_field :title, 
-                placeholder: "无标题文档", 
-                class: "text-xl font-semibold bg-transparent border-none focus:outline-none w-full",
-                data: { wemd_editor_target: "titleInput" } %>
+            <%# 标题只读，由 markdown 里的 # 自动同步，不允许手动修改 %>
+            <div class="text-xl font-semibold truncate text-foreground select-none"
+                 data-wemd-editor-target="titleDisplay"><%= @document.title.presence || '无标题文档' %></div>
+            <%# 隐藏字段用于表单提交，值由 JS 从 markdown 提取后写入 %>
+            <%= f.hidden_field :title, data: { wemd_editor_target: "titleInput" } %>
             <div class="text-sm text-muted-foreground mt-1">
               <span data-wemd-editor-target="currentTime"><%= Time.current.strftime("%Y年%m月%d日 %H:%M:%S") %></span>
             </div>
