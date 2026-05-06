@@ -652,10 +652,51 @@
     color: #e8eaed;
   }
 
-  /* 深色模式 - 代码块样式调整（保持原有样式）*/
-  .dark .wemd-preview-content #wemd pre {
-    /* 仅在主题没有设置背景时才设置默认深色背景 */
-    filter: brightness(0.9);
+  /* 深色模式 - 代码块：改为深底浅字，避免浅灰背景+深色文字在暗色界面里突兀 */
+  .dark .wemd-preview-content #wemd pre,
+  .dark .wemd-preview-content #wemd pre.custom {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+  }
+
+  .dark .wemd-preview-content #wemd pre code,
+  .dark .wemd-preview-content #wemd pre code.hljs,
+  .dark .wemd-preview-content #wemd .hljs {
+    background: transparent !important;
+    color: #d4d4d4 !important;  /* VS Code 深色主题默认文字色 */
+  }
+
+  /* hljs token 颜色：深色模式下用亮色系替换原本为深色的 token */
+  .dark .wemd-preview-content #wemd .hljs-comment,
+  .dark .wemd-preview-content #wemd .hljs-quote {
+    color: #6a9955 !important;  /* 绿色注释 */
+  }
+
+  .dark .wemd-preview-content #wemd .hljs-keyword,
+  .dark .wemd-preview-content #wemd .hljs-selector-tag,
+  .dark .wemd-preview-content #wemd .hljs-subst {
+    color: #569cd6 !important;  /* 蓝色关键字 */
+  }
+
+  .dark .wemd-preview-content #wemd .hljs-string,
+  .dark .wemd-preview-content #wemd .hljs-doctag {
+    color: #ce9178 !important;  /* 橙色字符串 */
+  }
+
+  .dark .wemd-preview-content #wemd .hljs-title,
+  .dark .wemd-preview-content #wemd .hljs-section,
+  .dark .wemd-preview-content #wemd .hljs-selector-id {
+    color: #dcdcaa !important;  /* 黄色函数名 */
+  }
+
+  .dark .wemd-preview-content #wemd .hljs-number,
+  .dark .wemd-preview-content #wemd .hljs-literal {
+    color: #b5cea8 !important;  /* 浅绿色数字 */
+  }
+
+  .dark .wemd-preview-content #wemd .hljs-built_in,
+  .dark .wemd-preview-content #wemd .hljs-builtin-name {
+    color: #4ec9b0 !important;  /* 青色内建 */
   }
 
   /* 深色模式 - 引用块（保持主题样式）*/

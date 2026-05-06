@@ -39,21 +39,9 @@ class Admin::ThemesController < Admin::BaseController
   end
 
   def sync
-    # 定义所有内置主题（与 seeds.rb 保持一致）
+    # 只保留李笑来原版（唯一内置主题）
     themes_data = [
-      { name: "默认主题", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
-      { name: "学术论文", files: ["basic.css", "academic-paper.css", "code-github.css"] },
-      { name: "极光玻璃", files: ["basic.css", "aurora-glass.css", "code-github.css"] },
-      { name: "包豪斯", files: ["basic.css", "bauhaus.css", "code-github.css"] },
-      { name: "赛博朋克", files: ["basic.css", "cyberpunk-neon.css", "code-github.css"] },
-      { name: "知识库", files: ["basic.css", "knowledge-base.css", "code-github.css"] },
-      { name: "李笑来原版", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
-      { name: "黑金奢华", files: ["basic.css", "luxury-gold.css", "code-github.css"] },
-      { name: "莫兰迪森林", files: ["basic.css", "morandi-forest.css", "code-github.css"] },
-      { name: "新粗野主义", files: ["basic.css", "neo-brutalism.css", "code-github.css"] },
-      { name: "购物小票", files: ["basic.css", "receipt.css", "code-github.css"] },
-      { name: "落日胶片", files: ["basic.css", "sunset-film.css", "code-github.css"] },
-      { name: "主题模板", files: ["basic.css", "template.css", "code-github.css"] }
+      { name: "李笑来原版", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] }
     ]
 
     synced_count = 0

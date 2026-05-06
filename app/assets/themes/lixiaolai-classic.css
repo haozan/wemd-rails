@@ -28,6 +28,11 @@
   display: inline;
 }
 
+/* 代码块内的 code 元素应为块级（覆盖上方 inline） */
+#wemd pre code {
+  display: block;
+}
+
 #wemd pre {
   font-size: 15px;
   line-height: 1.4em;
@@ -35,12 +40,14 @@
 }
 
 #wemd pre code {
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: pre;
+  word-break: normal;
   overflow: auto;
   border-radius: 3px;
   padding: 16px !important;
   display: block !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
 }
 
 /* 代码块容器 - 添加背景色和边框 */
