@@ -484,4 +484,51 @@
     background: hsl(var(--color-text-muted));
   }
 
+  /* ==========================================
+   * 微信真实效果预览外壳 (模拟公众号手机阅读)
+   * 手机屏幕宽度 ~ 375px,居中展示,像在模拟器里看文章
+   * ========================================== */
+  .wx-preview-shell {
+    min-height: 100%;
+    background: #e5e7eb;                 /* 外部浅灰,凸显手机屏幕 */
+    border-radius: 4px;
+    padding: 24px 16px;                  /* 上下留白,避免手机贴边 */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .wx-preview-page {
+    /* 手机屏幕:窄卡片,iPhone 逻辑宽度 */
+    width: 100%;
+    max-width: 375px;
+    background: #ffffff;
+    padding: 16px 14px;                  /* 手机内文章两边的标准留白 */
+    border-radius: 18px;                 /* 模拟圆角屏幕 */
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 10px 30px rgba(0, 0, 0, 0.12),
+      0 2px 8px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+    /* 关键:让内部文字/图片按 375px 的视觉宽度渲染,更接近真机 */
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* 手机预览里的图片自适应不溢出 */
+  .wx-preview-page img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 暗色模式下外壳变深,文章卡片保持白底(公众号文章永远白底) */
+  .dark .wx-preview-shell {
+    background: #1f2937;
+  }
+
+  .dark .wx-preview-page {
+    background: #ffffff;
+    color: #1a1a1a;
+  }
+
 }

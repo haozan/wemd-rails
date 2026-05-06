@@ -9,7 +9,7 @@ class Admin::DashboardController < Admin::BaseController
   def reinitialize_themes
     # 定义所有内置主题（与 seeds.rb 保持一致）
     themes_data = [
-      { name: "默认主题", files: ["basic.css", "custom-default.css", "code-github.css"] },
+      { name: "默认主题", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
       { name: "学术论文", files: ["basic.css", "academic-paper.css", "code-github.css"] },
       { name: "极光玻璃", files: ["basic.css", "aurora-glass.css", "code-github.css"] },
       { name: "包豪斯", files: ["basic.css", "bauhaus.css", "code-github.css"] },
@@ -36,6 +36,14 @@ class Admin::DashboardController < Admin::BaseController
       theme.css = css_content
       theme.save!
       updated_count += 1
+    end
+
+    # 同步 wx_style_map(jsonb):以 Wechat::ThemeStyleMaps::BY_NAME 为准
+    require Rails.root.join('app/services/wechat/theme_style_maps')
+    Wechat::ThemeStyleMaps::BY_NAME.each do |name, map|
+      theme = Theme.builtin.find_by(name: name)
+      next unless theme
+      theme.update_column(:wx_style_map, map.stringify_keys)
     end
 
     AdminOplog.create!(

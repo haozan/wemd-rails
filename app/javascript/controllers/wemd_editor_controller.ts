@@ -14,7 +14,10 @@ export default class extends Controller<HTMLElement> {
     "syncButton",
     "saveStatus",
     "footnoteNumber",
-    "currentTime"
+    "currentTime",
+    "wechatModeToggle",
+    "previewTitle",
+    "previewBadge"
   ]
 
   static values = {
@@ -33,12 +36,18 @@ export default class extends Controller<HTMLElement> {
   declare readonly saveStatusTarget: HTMLElement
   declare readonly footnoteNumberTarget: HTMLElement
   declare readonly currentTimeTarget: HTMLElement
+  declare readonly wechatModeToggleTarget: HTMLInputElement
+  declare readonly previewTitleTarget: HTMLElement
+  declare readonly previewBadgeTarget: HTMLElement
   declare readonly hasCopyButtonTarget: boolean
   declare readonly hasSyncButtonTarget: boolean
   declare readonly hasSaveStatusTarget: boolean
   declare readonly hasPreviewContentTarget: boolean
   declare readonly hasFootnoteNumberTarget: boolean
   declare readonly hasCurrentTimeTarget: boolean
+  declare readonly hasWechatModeToggleTarget: boolean
+  declare readonly hasPreviewTitleTarget: boolean
+  declare readonly hasPreviewBadgeTarget: boolean
   
   // Declare value types
   declare themesValue: Array<{ id: number; name: string; css: string }>
@@ -51,6 +60,10 @@ export default class extends Controller<HTMLElement> {
   private headingMenuRef: HTMLElement | null = null
   private listMenuRef: HTMLElement | null = null
   private isSyncingScroll: boolean = false
+
+  // 微信真实效果预览模式
+  private wechatPreviewMode: boolean = false
+  private wechatPreviewInflight: AbortController | null = null
   
   // 撤销/重做历史记录
   private history: Array<{ title: string; content: string }> = []
@@ -125,8 +138,22 @@ export default class extends Controller<HTMLElement> {
 
   /**
    * 渲染 Markdown 预览
+   * 两种模式:
+   *   - 本地模式 (默认): 前端 marked + 主题 CSS 类,快速
+   *   - 微信模式: 调后端接口,渲染公众号后台的真实内联样式
    */
   private renderPreview(): void {
+    if (this.wechatPreviewMode) {
+      this.renderWechatPreview()
+    } else {
+      this.renderLocalPreview()
+    }
+  }
+
+  /**
+   * 本地快速预览(原逻辑)
+   */
+  private renderLocalPreview(): void {
     const markdown = this.editorTarget.value
     const html = parseMarkdown(markdown)
     
@@ -137,7 +164,7 @@ export default class extends Controller<HTMLElement> {
       const themeData = this.getThemeData(themeId)
       const themeStyles = themeData?.css || ''
       
-      // 更新页面上的 style 标签（先清空再设置，避免样式堆积）
+      // 更新页面上的 style 标签(先清空再设置,避免样式堆积)
       const styleElement = document.getElementById('theme-styles')
       if (styleElement) {
         styleElement.textContent = themeStyles
@@ -146,7 +173,7 @@ export default class extends Controller<HTMLElement> {
       // 应用主题包裹到预览区域
       this.previewTarget.innerHTML = applyTheme(html)
     } else {
-      // 没有选择主题时，清空样式
+      // 没有选择主题时,清空样式
       const styleElement = document.getElementById('theme-styles')
       if (styleElement) {
         styleElement.textContent = ''
@@ -156,6 +183,136 @@ export default class extends Controller<HTMLElement> {
 
     // 触发代码高亮和其他渲染后处理
     this.postRenderHooks()
+  }
+
+  /**
+   * 微信效果预览: 调用后端 /documents/:id/wechat_preview
+   */
+  private async renderWechatPreview(): Promise<void> {
+    const toggle = this.hasWechatModeToggleTarget ? this.wechatModeToggleTarget : null
+    const url = toggle?.dataset.wechatPreviewUrl
+    if (!url) {
+      console.warn('[WeMD] wechat_preview URL not found')
+      return
+    }
+
+    // 取消上一次未完成的请求
+    if (this.wechatPreviewInflight) {
+      this.wechatPreviewInflight.abort()
+    }
+    const controller = new AbortController()
+    this.wechatPreviewInflight = controller
+
+    const content = this.editorTarget.value
+    const themeId = this.themeSelectTarget.value
+
+    // 清空本地主题 CSS,避免和内联样式冲突
+    const styleElement = document.getElementById('theme-styles')
+    if (styleElement) styleElement.textContent = ''
+
+    // 显示加载占位
+    this.previewTarget.innerHTML = '<div class="text-sm text-muted-foreground p-4">⏳ 正在渲染微信效果...</div>'
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-Token': this.csrfToken(),
+        },
+        body: JSON.stringify({ content, theme_id: themeId }),
+        signal: controller.signal,
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        this.previewTarget.innerHTML = `<div class="text-sm text-destructive p-4">预览失败: ${this.escapeHtml(data.message || '未知错误')}</div>`
+        return
+      }
+      // 直接把完整内联 HTML 塞进预览区,就是公众号后台看到的样子
+      // 包一层"公众号阅读器"外壳,模拟真机阅读环境(留白 + 居中 + 白色卡片)
+      this.previewTarget.innerHTML = `
+        <div class="wx-preview-shell">
+          <div class="wx-preview-page">
+            ${data.html}
+          </div>
+        </div>
+      `
+
+      // 更新徽章提示
+      if (this.hasPreviewBadgeTarget) {
+        const parts: string[] = []
+        if (data.primary_color) parts.push(`主色 ${data.primary_color}`)
+        if (data.bold_color && data.bold_color !== data.primary_color) {
+          parts.push(`加粗 ${data.bold_color}`)
+        }
+        if (!data.theme_adapted && data.theme_name) parts.push('⚠️ 未适配')
+        this.previewBadgeTarget.textContent = parts.length ? `[${parts.join(' · ')}]` : ''
+        this.previewBadgeTarget.classList.remove('hidden')
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return
+      this.previewTarget.innerHTML = `<div class="text-sm text-destructive p-4">网络错误: ${this.escapeHtml(err?.message || '')}</div>`
+    } finally {
+      if (this.wechatPreviewInflight === controller) {
+        this.wechatPreviewInflight = null
+      }
+    }
+  }
+
+  /**
+   * 切换微信效果预览模式
+   */
+  toggleWechatMode(): void {
+    if (!this.hasWechatModeToggleTarget) return
+    this.wechatPreviewMode = this.wechatModeToggleTarget.checked
+
+    // 切换预览标题
+    if (this.hasPreviewTitleTarget) {
+      this.previewTitleTarget.textContent = this.wechatPreviewMode ? '公众号真实效果' : '实时预览'
+    }
+    // 关闭徽章
+    if (this.hasPreviewBadgeTarget && !this.wechatPreviewMode) {
+      this.previewBadgeTarget.textContent = ''
+      this.previewBadgeTarget.classList.add('hidden')
+    }
+
+    // 立即重新渲染
+    this.renderPreview()
+
+    // 监听主色变化(来自 color_picker_controller),微信模式下实时重渲染
+    // 用 MutationObserver 监听 data-color-picker-initial-value 的变化不够好,
+    // 改用一个轻量定时 poll: 记住上次的 swatch 背景色,变了就重渲染
+    this.watchPrimaryColorChange()
+  }
+
+  private _colorSchemeHandler: ((e: Event) => void) | null = null
+  private watchPrimaryColorChange(): void {
+    // 老的轮询方案不稳,改为监听 color_picker 派发的事件
+    if (this._colorSchemeHandler) {
+      window.removeEventListener("wemd:color-scheme-changed", this._colorSchemeHandler)
+      this._colorSchemeHandler = null
+    }
+    if (!this.wechatPreviewMode) return
+
+    this._colorSchemeHandler = () => {
+      if (this.wechatPreviewMode) {
+        this.renderPreview()
+      }
+    }
+    window.addEventListener("wemd:color-scheme-changed", this._colorSchemeHandler)
+  }
+
+  private csrfToken(): string {
+    const el = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null
+    return el?.content || ''
+  }
+
+  private escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string)
+    )
   }
 
   /**

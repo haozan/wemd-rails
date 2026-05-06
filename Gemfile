@@ -57,3 +57,5 @@ gem 'nokogiri'
 gem 'premailer', '~> 1.27' # 把 CSS 内联到 HTML 元素的 style 属性，微信公众号不支持 <style>/<link>
 
 gem "commonmarker", "~> 2.8"
+gem "rouge", "~> 4.5" # 代码高亮，生成内联样式（微信公众号不支持 CSS 类）
+gem "css_parser", "~> 1.19" # 主题 CSS 兜底解析（wx_style_map 未配置时使用）

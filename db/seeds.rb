@@ -13,7 +13,7 @@ puts "Creating built-in themes..."
 
 # 定义所有内置主题（顺序与 WeMD 一致）
 themes_data = [
-  { name: "默认主题", files: ["basic.css", "custom-default.css", "code-github.css"] },
+  { name: "默认主题", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
   { name: "学术论文", files: ["basic.css", "academic-paper.css", "code-github.css"] },
   { name: "极光玻璃", files: ["basic.css", "aurora-glass.css", "code-github.css"] },
   { name: "包豪斯", files: ["basic.css", "bauhaus.css", "code-github.css"] },
@@ -38,6 +38,15 @@ themes_data.each do |theme_data|
     theme.css = css_content
   end
 end
+
+# 同步 wx_style_map(jsonb):真源在 Wechat::ThemeStyleMaps::BY_NAME,始终以最新 Ruby 常量为准
+require Rails.root.join('app/services/wechat/theme_style_maps')
+Wechat::ThemeStyleMaps::BY_NAME.each do |name, map|
+  theme = Theme.builtin.find_by(name: name)
+  next unless theme
+  theme.update_column(:wx_style_map, map.stringify_keys)
+end
+puts "✓ Synced wx_style_map for #{Wechat::ThemeStyleMaps::BY_NAME.size} theme(s)"
 
 puts "✓ Created #{Theme.builtin.count} built-in themes"
 

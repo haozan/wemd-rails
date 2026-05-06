@@ -102,13 +102,7 @@ module Wechat
     # 同步整个文档到微信草稿箱
     def push_draft(document, thumb_media_id)
       # 第一阶段：将 Markdown 转换为 HTML
-      require 'commonmarker'
-      html_content = Commonmarker.to_html(document.content || "", options: {
-        render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
-        extension: {
-          header_ids: nil  # 关闭 heading 自动锚点，微信草稿不允许 <a href="#..."> 链接
-        }
-      })
+      html_content = markdown_to_html(document.content)
 
       # 第二阶段：解析 HTML 并替换所有 img -> mmbiz_url
       processed_content = process_html_images(html_content)
@@ -163,7 +157,39 @@ module Wechat
       result["media_id"]
     end
 
+    # 本地预览渲染:完整复用同步管道,但跳过微信图片上传(保留原图 URL)
+    # 前端可以直接把返回的 HTML 塞到预览区,所见即 = 同步到草稿后的效果
+    # (差别:图片 src 未变成 mmbiz_url,但视觉上没差别)
+    def render_preview_html(document)
+      html_content = markdown_to_html(document.content)
+      html_content = clean_anchors_only(html_content)
+      apply_theme_styles(html_content, document.theme)
+    end
+
     private
+
+    # Markdown -> HTML (Commonmarker,关闭自动锚点)
+    def markdown_to_html(content)
+      require 'commonmarker'
+      Commonmarker.to_html(content.to_s, options: {
+        render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
+        extension: {
+          header_ids: nil  # 关闭 heading 自动锚点,微信草稿不允许 <a href="#..."> 链接
+        }
+      })
+    end
+
+    # 仅清洗锚点(预览用,不上传图片)
+    def clean_anchors_only(html_content)
+      doc = Nokogiri::HTML::DocumentFragment.parse(html_content)
+      doc.css('a').each do |a|
+        href = a['href'].to_s
+        if href.start_with?('#') || a['class'].to_s.include?('anchor')
+          a.replace(a.children)
+        end
+      end
+      doc.to_html(encoding: 'UTF-8')
+    end
 
     # 用 Nokogiri 解析 HTML，找到所有的 img 并走微信上传
     def process_html_images(html_content)
@@ -201,10 +227,31 @@ module Wechat
       doc.to_html(encoding: 'UTF-8')
     end
 
-    # 将主题 CSS 内联到 HTML 元素的 style 属性中
-    # 微信公众号草稿不支持 <style>/<link>/<class>，只认内联 style
+    # 将主题样式应用到 HTML
+    # 优先级:
+    #   1. theme.wx_style_map 存在 -> 用 Wechat::StyleRenderer (高保真,推荐)
+    #   2. 否则 -> fallback 到 premailer 通用 CSS 内联(保真度一般)
+    # 微信公众号草稿不支持 <style>/<link>/<class>,只认内联 style
     def apply_theme_styles(html_content, theme)
-      return ensure_block_wrap(html_content) if theme.blank? || theme.css.blank?
+      return ensure_block_wrap(html_content) if theme.blank?
+
+      # ===== 路径 1:wx_style_map (新方案,推荐) =====
+      if theme.respond_to?(:wx_style_map) && theme.wx_style_map.present?
+        begin
+          require Rails.root.join('app/services/wechat/style_renderer')
+          primary = @user&.wx_primary_color.presence
+          bold    = @user&.wx_bold_color.presence
+          renderer = Wechat::StyleRenderer.new(theme.wx_style_map, primary_color: primary, bold_color: bold)
+          result = renderer.render(html_content)
+          Rails.logger.info "[WECHAT] apply_theme_styles via StyleRenderer theme=#{theme.name} primary=#{primary || 'theme-default'} bold=#{bold || 'theme-default'}"
+          return result
+        rescue => e
+          Rails.logger.error "[WECHAT] StyleRenderer failed: #{e.class}: #{e.message}, fallback to premailer"
+        end
+      end
+
+      # ===== 路径 2:premailer 通用 CSS 内联(兜底) =====
+      return ensure_block_wrap(html_content) if theme.css.blank?
 
       require 'premailer'
 

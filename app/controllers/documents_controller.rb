@@ -1,6 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_document, only: [:show, :edit, :update, :destroy, :duplicate, :sync_to_wechat]
+  before_action :set_document, only: [:show, :edit, :update, :destroy, :duplicate, :sync_to_wechat, :wechat_preview]
   before_action :authorize_document, only: [:edit, :update, :destroy, :duplicate, :sync_to_wechat]
 
   # 历史记录列表 API (仅 JSON)
@@ -38,8 +38,17 @@ class DocumentsController < ApplicationController
   end
 
   def edit
+    require Rails.root.join('app/services/wechat/theme_style_maps')
     @themes = Theme.available_for_user(Current.user)
-    @theme = @document.theme || Theme.builtin.first
+    # 强制使用"默认主题"(李笑来原版,已适配微信高保真)
+    # 用户层面不再感知"主题"概念,统一抽象为"配色方案"
+    @theme = Theme.builtin.find_by(name: '默认主题') ||
+             @document.theme ||
+             Theme.builtin.first
+    # 如果文档 theme_id 不是默认主题,静默矫正(不阻塞页面)
+    if @theme && @document.theme_id != @theme.id
+      @document.update_columns(theme_id: @theme.id) rescue nil
+    end
     @documents = Current.user.documents.history_entries.limit(50)
   end
 
@@ -161,6 +170,13 @@ class DocumentsController < ApplicationController
       }, status: :unprocessable_entity
     end
 
+    # 主题适配提示:仅 3 个内置主题对微信草稿做了高保真适配
+    require Rails.root.join('app/services/wechat/theme_style_maps')
+    current_theme_name = @document.theme&.name
+    theme_adapted = current_theme_name && Wechat::ThemeStyleMaps.supported?(current_theme_name)
+    adapted_notice = theme_adapted ? '' :
+      "（注:当前主题「#{current_theme_name || '无'}」未针对微信优化,样式可能打折。建议使用「默认主题 / 李笑来原版 / 知识库」）"
+
     begin
       # 封面图：如果前端传了，就用前端传的封面URL，没有的话找正文中第一个图片，还没有就报错
       cover_url = params[:cover_image_url] || extract_first_image_url(@document.content)
@@ -181,7 +197,7 @@ class DocumentsController < ApplicationController
       # 3. 将包含完整 HTML 图片替换逻辑的内容推到草稿箱
       draft_media_id = sync_service.push_draft(@document, thumb_media_id)
       
-      render json: { success: true, message: "文章已成功同步至微信公众平台草稿箱！媒体ID: #{draft_media_id}" }
+      render json: { success: true, message: "文章已成功同步至微信公众平台草稿箱!#{adapted_notice}媒体ID: #{draft_media_id}" }
     rescue Wechat::SyncService::SyncError => e
       render json: { success: false, message: "同步失败：#{e.message}" }, status: :unprocessable_entity
     rescue StandardError => e
@@ -190,8 +206,37 @@ class DocumentsController < ApplicationController
     end
   end
 
+  # 微信真实效果预览:复用同步渲染管道(Markdown->HTML->清洗锚点->主题内联),
+  # 但不触发微信图片上传,返回可直接渲染的 HTML 片段
+  def wechat_preview
+    # 用前端实时传过来的内容和主题,覆盖 DB 里的保存值(支持未保存的草稿态)
+    pseudo_content = params[:content].to_s
+    theme_id = params[:theme_id].presence
+    theme = theme_id ? Theme.find_by(id: theme_id) : @document.theme
+
+    # 构造一个轻量"伪文档"给 SyncService 用,避免改动 DB
+    pseudo_doc = Struct.new(:content, :theme, :title).new(pseudo_content, theme, @document.title)
+
+    sync_service = Wechat::SyncService.new(Current.user)
+    html = sync_service.render_preview_html(pseudo_doc)
+
+    require Rails.root.join('app/services/wechat/theme_style_maps')
+    theme_adapted = theme && Wechat::ThemeStyleMaps.supported?(theme.name)
+
+    render json: {
+      success: true,
+      html: html,
+      theme_adapted: theme_adapted,
+      theme_name: theme&.name,
+      primary_color: Current.user&.wx_primary_color.presence || theme&.wx_style_map&.dig('_default_primary') || '#1e6bb8',
+      bold_color: Current.user&.wx_bold_color.presence || theme&.wx_style_map&.dig('_default_bold') || Current.user&.wx_primary_color.presence || '#d63200'
+    }
+  rescue StandardError => e
+    Rails.logger.error("[WECHAT_PREVIEW] #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+    render json: { success: false, message: "预览渲染失败:#{e.message}" }, status: :unprocessable_entity
+  end
+
   def duplicate
-    # 创建副本
     @new_document = @document.dup
     @new_document.title = "#{@document.title} - 副本"
     @new_document.is_auto_save = false

@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     member do
       post :duplicate
       post :sync_to_wechat
+      post :wechat_preview
     end
     collection do
       delete :clear_history
@@ -59,6 +60,8 @@ Rails.application.routes.draw do
       patch :update_password
       get :wechat_settings
       patch :update_wechat_settings
+      patch :update_primary_color
+      patch :update_color_scheme
     end
   end
 

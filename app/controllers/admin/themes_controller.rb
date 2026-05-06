@@ -41,7 +41,7 @@ class Admin::ThemesController < Admin::BaseController
   def sync
     # 定义所有内置主题（与 seeds.rb 保持一致）
     themes_data = [
-      { name: "默认主题", files: ["basic.css", "custom-default.css", "code-github.css"] },
+      { name: "默认主题", files: ["basic.css", "lixiaolai-classic.css", "code-github.css"] },
       { name: "学术论文", files: ["basic.css", "academic-paper.css", "code-github.css"] },
       { name: "极光玻璃", files: ["basic.css", "aurora-glass.css", "code-github.css"] },
       { name: "包豪斯", files: ["basic.css", "bauhaus.css", "code-github.css"] },

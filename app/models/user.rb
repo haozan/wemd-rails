@@ -37,6 +37,11 @@ class User < ApplicationRecord
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 
+  # 微信公众号主色(用于内联主题样式中的强调色,链接/引用/加粗等)
+  WX_PRIMARY_COLOR_REGEX = /\A#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/
+  validates :wx_primary_color, format: { with: WX_PRIMARY_COLOR_REGEX, message: '必须是 #RRGGBB 格式的颜色' }, allow_blank: true
+  validates :wx_bold_color, format: { with: WX_PRIMARY_COLOR_REGEX, message: '必须是 #RRGGBB 格式的颜色' }, allow_blank: true
+
   validates :password, allow_nil: true, length: { minimum: MIN_PASSWORD }, if: :password_required?
   validates :password, confirmation: true, if: :password_required?
 

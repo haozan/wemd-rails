@@ -58,10 +58,42 @@ class ProfilesController < ApplicationController
     end
   end
 
+  # AJAX: 快速保存文章主色（编辑器工具栏用）
+  def update_primary_color
+    @user = current_user
+    color = params[:wx_primary_color].to_s.strip
+
+    if @user.update(wx_primary_color: color.presence)
+      render json: { ok: true, wx_primary_color: @user.wx_primary_color }
+    else
+      render json: { ok: false, error: @user.errors[:wx_primary_color].first || "颜色格式错误" }, status: :unprocessable_entity
+    end
+  end
+
+  # AJAX: 同时更新主色 + 加粗色(配色方案选择器专用)
+  def update_color_scheme
+    @user = current_user
+    primary = params[:primary_color].to_s.strip
+    bold    = params[:bold_color].to_s.strip
+
+    if @user.update(wx_primary_color: primary.presence, wx_bold_color: bold.presence)
+      render json: {
+        ok: true,
+        primary_color: @user.wx_primary_color,
+        bold_color: @user.wx_bold_color
+      }
+    else
+      render json: {
+        ok: false,
+        error: (@user.errors.full_messages.first || "颜色格式错误")
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def wechat_settings_params
-    params.require(:user).permit(:wechat_app_id, :wechat_app_secret)
+    params.require(:user).permit(:wechat_app_id, :wechat_app_secret, :wx_primary_color)
   end
 
   def user_params

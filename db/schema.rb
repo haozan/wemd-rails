@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_05_155612) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_06_015909) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -224,6 +224,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_05_155612) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "wx_style_map"
   end
 
   create_table "users", force: :cascade do |t|
@@ -239,6 +240,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_05_155612) do
     t.datetime "email_verification_code_expires_at"
     t.string "wechat_app_id"
     t.string "wechat_app_secret"
+    t.string "wx_primary_color", limit: 7, default: "#1e6bb8"
+    t.string "wx_bold_color"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
