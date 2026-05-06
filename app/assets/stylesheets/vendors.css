@@ -491,7 +491,7 @@
   .wx-preview-shell {
     min-height: 100%;
     background: #e5e7eb;                 /* 外部浅灰,凸显手机屏幕 */
-    border-radius: 4px;
+    border-radius: 0;
     padding: 24px 16px;                  /* 上下留白,避免手机贴边 */
     display: flex;
     justify-content: center;
@@ -504,7 +504,7 @@
     max-width: 375px;
     background: #ffffff;
     padding: 16px 14px;                  /* 手机内文章两边的标准留白 */
-    border-radius: 18px;                 /* 模拟圆角屏幕 */
+    border-radius: 0;                    /* 直角卡片 */
     box-shadow:
       0 0 0 1px rgba(0, 0, 0, 0.06),
       0 10px 30px rgba(0, 0, 0, 0.12),
