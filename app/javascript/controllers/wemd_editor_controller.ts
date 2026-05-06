@@ -27,6 +27,7 @@ export default class extends Controller<HTMLElement> {
   // Declare target types
   declare readonly formTarget: HTMLFormElement
   declare readonly titleInputTarget: HTMLInputElement
+  declare readonly hasTitleInputTarget: boolean
   declare readonly editorTarget: HTMLTextAreaElement
   declare readonly previewTarget: HTMLElement
   declare readonly previewContentTarget: HTMLElement
@@ -64,6 +65,9 @@ export default class extends Controller<HTMLElement> {
   // 微信真实效果预览模式（默认开启，直接显示公众号真实效果）
   private wechatPreviewMode: boolean = true
   private wechatPreviewInflight: AbortController | null = null
+
+  // 标题同步：记录上次从 Markdown 提取并同步的标题，用于冲突检测
+  private _lastSyncedTitle: string = ''
   
   // 撤销/重做历史记录
   private history: Array<{ title: string; content: string }> = []
@@ -80,7 +84,8 @@ export default class extends Controller<HTMLElement> {
     
     // 初始化历史记录
     this.saveToHistory()
-    
+
+    this.syncTitleFromMarkdown()
     this.updatePreview()
     this.setupAutoSave()
     
@@ -133,6 +138,7 @@ export default class extends Controller<HTMLElement> {
     }
 
     this.debounceTimer = window.setTimeout(() => {
+      this.syncTitleFromMarkdown()
       this.syncFootnotes()
       this.renderPreview()
       this.updateFootnoteNumber()
@@ -304,6 +310,31 @@ export default class extends Controller<HTMLElement> {
       }
     }
     window.addEventListener("wemd:color-scheme-changed", this._colorSchemeHandler)
+  }
+
+  /**
+   * 从 Markdown 第一个 # 一级标题同步到文档标题框
+   * 只在以下情况同步，避免覆盖用户手动输入：
+   *   1. 标题框为空
+   *   2. 标题框内容与上次从 Markdown 同步的值一致（用户未手动修改）
+   */
+  private syncTitleFromMarkdown(): void {
+    if (!this.hasTitleInputTarget) return
+
+    const markdown = this.editorTarget.value
+    // 提取第一个 # 一级标题（支持行首，忽略 ## 以上）
+    const match = markdown.match(/^#\s+(.+)$/m)
+    const extracted = match ? match[1].trim() : ''
+
+    const current = this.titleInputTarget.value.trim()
+
+    // 只有标题框为空，或内容等于上次同步值（未被手动改动），才覆盖
+    if (current === '' || current === this._lastSyncedTitle) {
+      if (extracted && extracted !== current) {
+        this.titleInputTarget.value = extracted
+        this._lastSyncedTitle = extracted
+      }
+    }
   }
 
   private csrfToken(): string {
