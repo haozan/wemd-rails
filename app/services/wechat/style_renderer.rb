@@ -63,6 +63,11 @@ module Wechat
       # 先处理代码块(Rouge 高亮,替换整块节点)
       highlight_code_blocks(doc)
 
+      # 扁平化 loose list: <li><p>..</p></li> → <li>..</li>
+      # 否则微信渲染器会给 <li> 和内部 <p> 各算一个块,
+      # 出现 "1.(空) 2.内容 3.(空) 4.内容" 的双重编号 bug
+      flatten_loose_list_items(doc)
+
       # 遍历 DOM,贴标签级样式
       doc.traverse do |node|
         next unless node.element?
@@ -160,6 +165,22 @@ module Wechat
         pre.add_child(new_code)
         merge_style(pre, style_for('pre'))
         pre['data-wx-highlighted'] = '1'
+      end
+    end
+
+    # 扁平化 loose list item: <li><p>foo</p></li> → <li>foo</li>
+    # loose list 在微信里会被双重渲染(<li> 自己一个 marker + 内部 <p> 新块)
+    # 导致 5 条变 10 条的双重编号 bug
+    def flatten_loose_list_items(doc)
+      doc.css('li').each do |li|
+        # 只含 <p> 子元素(允许文本节点为空白)时扁平化
+        child_elements = li.children.select(&:element?)
+        next if child_elements.empty?
+        next unless child_elements.all? { |c| c.name == 'p' }
+
+        # 多个 <p>: 用 <br><br> 连接(微信里 <li> 内不能有块级)
+        new_html = child_elements.map(&:inner_html).join('<br/><br/>')
+        li.inner_html = new_html
       end
     end
 
