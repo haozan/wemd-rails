@@ -16,6 +16,8 @@ class Document < ApplicationRecord
 
   # 在保存时设置 saved_at 时间戳
   before_save :set_saved_at, if: :will_save_change_to_content?
+  # 标题为空时从 content 提取（服务端兜底）
+  before_validation :fill_title_from_content, if: -> { title.blank? && content.present? }
 
   # 限制用户历史记录数量
   MAX_HISTORY_ENTRIES = 30
@@ -171,6 +173,12 @@ class Document < ApplicationRecord
   end
 
   private
+
+  def fill_title_from_content
+    # 优先取第一个 # 标题，否则取第一行文字（最多50字）
+    h1 = content.match(/^#\s+(.+)$/)&.captures&.first&.strip
+    self.title = h1.presence || content.lines.first&.strip&.slice(0, 50).presence || '无标题文档'
+  end
 
   def set_saved_at
     self.saved_at = Time.current

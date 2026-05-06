@@ -326,15 +326,18 @@ export default class extends Controller<HTMLElement> {
     // 提取第一个 # 一级标题
     const match = markdown.match(/^#\s+(.+)$/m)
     const extracted = match ? match[1].trim() : ''
+    // 降级：取 markdown 第一行非空文字（最多30字）
+    const fallback = markdown.trim().split('\n')[0]?.replace(/^#+\s*/, '').trim().slice(0, 30) || '无标题文档'
+    const title = extracted || fallback
 
     // 更新显示（只读 div）
     if (this.hasTitleDisplayTarget) {
-      this.titleDisplayTarget.textContent = extracted || '无标题文档'
+      this.titleDisplayTarget.textContent = title
     }
 
     // 更新 hidden input（表单提交时携带）
     if (this.hasTitleInputTarget) {
-      this.titleInputTarget.value = extracted
+      this.titleInputTarget.value = title
     }
   }
 
