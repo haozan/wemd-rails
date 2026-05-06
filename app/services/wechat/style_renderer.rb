@@ -174,6 +174,9 @@ module Wechat
 
         pre.inner_html = ''
         pre.add_child(new_code)
+        # 先清除 Rouge formatter 可能在 pre 上设置的 background-color，
+        # 再用 wx_style_map['pre'] 覆盖，避免 Rouge 主题背景色胜出。
+        pre.remove_attribute('style')
         merge_style(pre, style_for('pre'))
         pre['data-wx-highlighted'] = '1'
       end
