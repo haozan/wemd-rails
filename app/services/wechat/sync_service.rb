@@ -171,7 +171,9 @@ module Wechat
     # Markdown -> HTML (Commonmarker,关闭自动锚点)
     def markdown_to_html(content)
       require 'commonmarker'
-      Commonmarker.to_html(content.to_s, options: {
+      # 去掉开头的一级标题（# xxx），因为它已经作为文章标题填入了公众号标题栏，正文不应重复出现
+      stripped = content.to_s.sub(/\A\s*#[^#][^\n]*\n?/, '')
+      Commonmarker.to_html(stripped, options: {
         render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
         extension: {
           header_ids: nil  # 关闭 heading 自动锚点,微信草稿不允许 <a href="#..."> 链接
