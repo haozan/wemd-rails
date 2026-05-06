@@ -61,8 +61,8 @@ export default class extends Controller<HTMLElement> {
   private listMenuRef: HTMLElement | null = null
   private isSyncingScroll: boolean = false
 
-  // 微信真实效果预览模式
-  private wechatPreviewMode: boolean = false
+  // 微信真实效果预览模式（默认开启，直接显示公众号真实效果）
+  private wechatPreviewMode: boolean = true
   private wechatPreviewInflight: AbortController | null = null
   
   // 撤销/重做历史记录
