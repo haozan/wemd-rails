@@ -42,34 +42,34 @@ module Wechat
       # 段落:两端对齐 + 1.8 行高(原版最鲜明的排版特征)
       'p'      => 'font-size:16px;line-height:1.8;letter-spacing:0.1em;margin:1.5em 5px;color:#000;text-align:justify;',
 
-      # 标题:全部居中 + 青绿色(原版 Markdown Here Classic 特征)
-      'h1'     => "font-size:24px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #ddd;",
-      'h2'     => "font-size:20px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #eee;",
-      'h3'     => "font-size:18px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;",
-      'h4'     => "font-size:16px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;",
-      'h5'     => "font-size:16px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;",
-      'h6'     => "font-size:16px;font-weight:bold;color:#{LXL_GREEN};margin:1.5em 5px;padding:0.5em 1em;text-align:center;",
+      # 标题:全部居中 + {{PRIMARY}}(原版默认青绿,跟随用户配色方案)
+      'h1'     => 'font-size:24px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #ddd;',
+      'h2'     => 'font-size:20px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #eee;',
+      'h3'     => 'font-size:18px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h4'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h5'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h6'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
 
-      # strong:深橙红(用 {{BOLD}} 占位,用户配色方案可覆盖)
+      # strong:加粗色(默认深橙红,跟随用户配色方案)
       'strong' => 'font-weight:bold;color:{{BOLD}};',
 
-      # em:青绿色(与标题同色)
-      'em'     => "font-style:italic;color:#{LXL_GREEN};",
+      # em:与标题同色({{PRIMARY}})
+      'em'     => 'font-style:italic;color:{{PRIMARY}};',
       'del'    => 'font-style:italic;color:#000;text-decoration:line-through;',
 
-      # 链接:跟随主色(用户可切换)
+      # 链接:跟随主色
       'a'      => 'color:{{PRIMARY}};text-decoration:none;font-weight:bold;border-bottom:1px solid {{PRIMARY}};',
 
-      # 引用:2px 青绿左边框 + 灰色文字 + 透明背景 + 左缩进(原版特征)
-      'blockquote' => "display:block;border-left:2px solid #{LXL_GREEN};background:transparent;color:#777;padding:0 10px;margin:10px 5px 10px 1em;font-size:16px;",
+      # 引用:2px 主色左边框 + 灰色文字 + 透明背景 + 左缩进(原版特征)
+      'blockquote' => 'display:block;border-left:2px solid {{PRIMARY}};background:transparent;color:#777;padding:0 10px;margin:10px 5px 10px 1em;font-size:16px;',
 
       # 列表:原版使用空心圆点
       'ul'     => 'padding-left:15px;margin:10px 5px;color:#000;list-style-type:circle;',
       'ol'     => 'padding-left:15px;margin:10px 5px;color:#000;list-style-type:decimal;',
       'li'     => 'line-height:1.8;letter-spacing:0.1em;margin:10px;color:#010101;',
 
-      # 分隔线:深橙红(原版标志特征)
-      'hr'     => "height:0;margin:1.5em auto;border:none;border-top:1px solid #{LXL_ORANGE};",
+      # 分隔线:加粗色(原版标志特征,默认深橙红)
+      'hr'     => 'height:0;margin:1.5em auto;border:none;border-top:1px solid {{BOLD}};',
 
       # 行内代码:跟随主色
       'code_inline' => 'font-size:14px;padding:2px 4px;border-radius:2px;margin:0 2px;color:{{PRIMARY}};background-color:rgba(27,31,35,0.05);font-family:Roboto,"Courier New",Consolas,Inconsolata,Courier,monospace;word-break:break-all;',
@@ -80,11 +80,11 @@ module Wechat
 
       'img'    => 'display:block;margin:12px auto;max-width:100%;',
 
-      # 表格:青绿表头(原版特征)
+      # 表格:主色表头(原版青绿特征,跟随用户配色)
       'table'  => 'display:table;border-collapse:collapse;border-spacing:0;text-align:left;margin:10px auto;border:0;',
-      'thead'  => "background-color:#{LXL_GREEN};",
+      'thead'  => 'background-color:{{PRIMARY}};',
       'tr'     => 'border:0;border-top:1px solid #CCC;background-color:#fff;',
-      'th'     => "font-size:16px;border:1px solid #{LXL_GREEN};padding:5px 10px;text-align:left;font-weight:bold;color:#eee;background-color:#{LXL_GREEN};",
+      'th'     => 'font-size:16px;border:1px solid {{PRIMARY}};padding:5px 10px;text-align:left;font-weight:bold;color:#eee;background-color:{{PRIMARY}};',
       'td'     => 'font-size:16px;border:1px solid #CCC;padding:5px 10px;text-align:left;'
     }.freeze
 
@@ -134,6 +134,7 @@ module Wechat
     # 加粗色用于 <strong>(偏暖/高饱和), 让"重点文字"跳出来
     # ============================================================
     COLOR_SCHEMES = [
+      { id: 'lxl_classic',  name: '青绿 · 深橙红(李笑来原版)', primary: LXL_GREEN,  bold: LXL_ORANGE },
       { id: 'blue_red',     name: '经典蓝 · 朱砂红',   primary: '#1e6bb8', bold: '#d63200' },
       { id: 'navy_orange',  name: '藏青 · 暖橙',       primary: '#1e3a8a', bold: '#ea580c' },
       { id: 'teal_magenta', name: '青碧 · 玫红',       primary: '#0f766e', bold: '#db2777' },
