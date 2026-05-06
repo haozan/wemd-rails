@@ -64,6 +64,14 @@
               <span class="text-sm font-medium text-purple-700 dark:text-purple-300">重新初始化主题</span>
             <% end %>
 
+            <%= button_to admin_sync_wx_style_maps_dashboard_path, method: :post, class: "flex items-center justify-center p-4 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-lg transition-colors w-full", form: { data: { turbo_confirm: "确定要同步微信样式吗？会用最新代码覆盖内置主题的 wx_style_map。" } } do %>
+              <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h2.05A2.5 2.5 0 0119 9.45V15a1 1 0 01-1 1h-.05a2.5 2.5 0 00-4.9 0H13a1 1 0 01-1-1V8a1 1 0 011-1h1z"/>
+              </svg>
+              <span class="text-sm font-medium text-rose-700 dark:text-rose-300">同步微信样式 (wx_style_map)</span>
+            <% end %>
+
           </div>
         </div>
       </div>

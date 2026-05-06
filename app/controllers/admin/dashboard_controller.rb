@@ -59,4 +59,36 @@ class Admin::DashboardController < Admin::BaseController
   rescue => e
     redirect_to admin_root_path, alert: "主题初始化失败: #{e.message}"
   end
+
+  # 只同步微信草稿渲染用的 wx_style_map (jsonb), 不碰 CSS 预览
+  # 用于快速上线 wx_style_map 的代码变更, 执行快、风险低
+  def sync_wx_style_maps
+    require Rails.root.join('app/services/wechat/theme_style_maps')
+    updated = []
+    missing = []
+    Wechat::ThemeStyleMaps::BY_NAME.each do |name, map|
+      theme = Theme.builtin.find_by(name: name)
+      if theme
+        theme.update_column(:wx_style_map, map.stringify_keys)
+        updated << name
+      else
+        missing << name
+      end
+    end
+
+    AdminOplog.create!(
+      administrator: current_admin,
+      action: 'update',
+      resource_type: 'Theme',
+      details: "同步 wx_style_map: 已更新 #{updated.join('、')}#{missing.any? ? "; 未找到: #{missing.join('、')}" : ''}",
+      ip_address: request.remote_ip,
+      user_agent: request.user_agent
+    )
+
+    msg = "已同步 #{updated.size} 个主题的微信样式: #{updated.join('、')}"
+    msg += "; ⚠ 未找到: #{missing.join('、')}" if missing.any?
+    redirect_to admin_root_path, notice: msg
+  rescue => e
+    redirect_to admin_root_path, alert: "微信样式同步失败: #{e.message}"
+  end
 end

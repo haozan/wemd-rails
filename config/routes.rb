@@ -105,6 +105,7 @@ Rails.application.routes.draw do
     delete 'logout', to: 'sessions#destroy', as: :logout
     resource :account, only: [:edit, :update]
     post 'dashboard/reinitialize_themes', to: 'dashboard#reinitialize_themes', as: :reinitialize_themes_dashboard
+    post 'dashboard/sync_wx_style_maps', to: 'dashboard#sync_wx_style_maps', as: :sync_wx_style_maps_dashboard
 
     # Mount GoodJob dashboard
     mount GoodJob::Engine => 'good_job', :constraints => AdminConstraint.new

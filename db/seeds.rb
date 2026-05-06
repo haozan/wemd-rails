@@ -29,14 +29,15 @@ themes_data = [
 ]
 
 themes_data.each do |theme_data|
-  Theme.find_or_create_by!(name: theme_data[:name], is_builtin: true) do |theme|
-    # 合并多个主题文件（basic.css + 主题特定样式 + code-github.css）
-    css_content = theme_data[:files].map do |file|
-      File.read(Rails.root.join('app/assets/themes', file))
-    end.join("\n\n")
-    
-    theme.css = css_content
-  end
+  # 合并多个主题文件（basic.css + 主题特定样式 + code-github.css）
+  css_content = theme_data[:files].map do |file|
+    File.read(Rails.root.join('app/assets/themes', file))
+  end.join("\n\n")
+
+  # find_or_create + 每次都强制更新 CSS(保证线上主题与代码同步)
+  theme = Theme.find_or_initialize_by(name: theme_data[:name], is_builtin: true)
+  theme.css = css_content
+  theme.save!
 end
 
 # 同步 wx_style_map(jsonb):真源在 Wechat::ThemeStyleMaps::BY_NAME,始终以最新 Ruby 常量为准
