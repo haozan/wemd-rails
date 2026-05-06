@@ -99,6 +99,9 @@ export default class extends Controller<HTMLElement> {
     this.setupKeyboardShortcuts()
     this.setupScrollSync()
     this.startClock()
+
+    // 微信预览永远开启,启动颜色变化监听
+    this.watchPrimaryColorChange()
   }
 
   disconnect(): void {
@@ -189,8 +192,7 @@ export default class extends Controller<HTMLElement> {
    * 微信效果预览: 调用后端 /documents/:id/wechat_preview
    */
   private async renderWechatPreview(): Promise<void> {
-    const toggle = this.hasWechatModeToggleTarget ? this.wechatModeToggleTarget : null
-    const url = toggle?.dataset.wechatPreviewUrl
+    const url = this.previewTarget.dataset.wechatPreviewUrl
     if (!url) {
       console.warn('[WeMD] wechat_preview URL not found')
       return

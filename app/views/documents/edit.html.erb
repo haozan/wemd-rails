@@ -134,13 +134,6 @@
               <%= lucide_icon "cloud-upload", class: "w-5 h-5 md:w-6 md:h-6" %>
               <span>一键同步草稿箱</span>
             </button>
-            <button type="button"
-                    class="btn-outline border-primary text-primary hover:bg-primary/5 whitespace-nowrap p-2 md:p-2.5 <%= 'hidden' if @document.new_record? %>"
-                    data-wemd-editor-target="copyButton"
-                    data-action="click->wemd-editor#copyToWechat"
-                    title="复制到公众号后台（备用）">
-              <%= lucide_icon "copy", class: "w-5 h-5 md:w-6 md:h-6" %>
-            </button>
           </div>
         </div>
       </div>
@@ -281,22 +274,19 @@
               <span class="hidden text-xs font-normal text-muted-foreground ml-2" data-wemd-editor-target="previewBadge"></span>
             </h3>
 
-            <!-- 预览模式切换 -->
-            <label class="flex items-center gap-2 cursor-pointer select-none" title="预览微信公众号后台的真实效果">
-              <span class="text-xs text-muted-foreground">微信效果</span>
-              <input type="checkbox"
-                     checked
-                     class="sr-only peer"
-                     data-wemd-editor-target="wechatModeToggle"
-                     data-action="change->wemd-editor#toggleWechatMode"
-                     data-wechat-preview-url="<%= wechat_preview_document_path(@document) %>" />
-              <span class="relative inline-block w-9 h-5 bg-muted rounded-full transition peer-checked:bg-primary">
-                <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition peer-checked:translate-x-4"></span>
-              </span>
-            </label>
+            <!-- 复制到公众号后台（备用） -->
+            <button type="button"
+                    class="btn-outline border-primary text-primary hover:bg-primary/5 whitespace-nowrap p-2 <%= 'hidden' if @document.new_record? %>"
+                    data-wemd-editor-target="copyButton"
+                    data-action="click->wemd-editor#copyToWechat"
+                    title="复制到公众号后台（备用）">
+              <%= lucide_icon "copy", class: "w-4 h-4" %>
+            </button>
           </div>
 
-          <div class="wemd-preview-content" data-wemd-editor-target="preview previewContent">
+          <div class="wemd-preview-content"
+               data-wemd-editor-target="preview previewContent"
+               data-wechat-preview-url="<%= wechat_preview_document_path(@document) %>">
             <!-- Markdown 预览内容将通过 JS 渲染到这里 -->
           </div>
         </div>
