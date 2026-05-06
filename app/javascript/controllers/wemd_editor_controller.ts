@@ -258,7 +258,8 @@ export default class extends Controller<HTMLElement> {
         if (data.bold_color && data.bold_color !== data.primary_color) {
           parts.push(`加粗 ${data.bold_color}`)
         }
-        if (!data.theme_adapted && data.theme_name) parts.push('⚠️ 未适配')
+        // 只有一个主题(李笑来原版)且已适配,不再显示"未适配"提示
+        // if (!data.theme_adapted && data.theme_name) parts.push('⚠️ 未适配')
         this.previewBadgeTarget.textContent = parts.length ? `[${parts.join(' · ')}]` : ''
         this.previewBadgeTarget.classList.remove('hidden')
       }

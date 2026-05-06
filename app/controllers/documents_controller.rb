@@ -212,7 +212,9 @@ class DocumentsController < ApplicationController
     # 用前端实时传过来的内容和主题,覆盖 DB 里的保存值(支持未保存的草稿态)
     pseudo_content = params[:content].to_s
     theme_id = params[:theme_id].presence
-    theme = theme_id ? Theme.find_by(id: theme_id) : @document.theme
+    theme = (theme_id ? Theme.find_by(id: theme_id) : nil) ||
+            @document.theme ||
+            Theme.builtin.first
 
     # 构造一个轻量"伪文档"给 SyncService 用,避免改动 DB
     pseudo_doc = Struct.new(:content, :theme, :title).new(pseudo_content, theme, @document.title)
@@ -221,7 +223,7 @@ class DocumentsController < ApplicationController
     html = sync_service.render_preview_html(pseudo_doc)
 
     require Rails.root.join('app/services/wechat/theme_style_maps')
-    theme_adapted = theme && Wechat::ThemeStyleMaps.supported?(theme.name)
+    theme_adapted = !!(theme && Wechat::ThemeStyleMaps.supported?(theme.name))
 
     render json: {
       success: true,
