@@ -19,9 +19,15 @@ fi
 echo "If running the rails server then create or migrate existing database"
 
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
-  echo "Running db:prepare..."
-  ./bin/rails db:prepare
-  echo "db:prepare done."
+  if [ "${SKIP_DB_PREPARE}" == "true" ]; then
+    echo "SKIP_DB_PREPARE=true, skipping db:prepare"
+  else
+    echo "Running db:prepare (set SKIP_DB_PREPARE=true to skip)..."
+    timeout 60 ./bin/rails db:prepare || {
+      echo "!!! db:prepare failed or timed out after 60s, continuing anyway..."
+    }
+    echo "db:prepare done."
+  fi
 fi
 
 echo "Starting: $@"
