@@ -62,11 +62,11 @@
                data-color-picker-primary-value="<%= current_primary %>"
                data-color-picker-bold-value="<%= current_bold %>">
             <button type="button"
-                    class="flex items-center gap-1.5 px-2 h-9 rounded border border-border hover:border-primary/50 transition-colors bg-background"
+                    class="btn-outline p-2 md:p-2.5 flex items-center gap-1.5"
                     data-action="click->color-picker#toggle"
                     title="配色方案(主色 + 加粗色)">
               <!-- 双色小指示块:左主色,右加粗色 -->
-              <span class="inline-flex w-6 h-5 rounded overflow-hidden border border-border/60">
+              <span class="inline-flex w-5 h-5 rounded overflow-hidden border border-border/60">
                 <span class="w-1/2 h-full" data-color-picker-target="primarySwatch"
                       style="background:<%= current_primary %>;"></span>
                 <span class="w-1/2 h-full" data-color-picker-target="boldSwatch"
