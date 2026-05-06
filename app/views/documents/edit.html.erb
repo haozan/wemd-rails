@@ -126,7 +126,7 @@
           </div>
 
           <!-- Copy to WeChat Button (hidden for new documents) -->
-          <div class="flex gap-2">
+          <div class="flex gap-2 items-center">
             <button type="button"
                     class="btn-primary text-base md:text-lg whitespace-nowrap <%= 'hidden' if @document.new_record? %>"
                     data-wemd-editor-target="syncButton"
@@ -134,6 +134,11 @@
               <%= lucide_icon "cloud-upload", class: "w-5 h-5 md:w-6 md:h-6" %>
               <span>一键同步草稿箱</span>
             </button>
+            <%= link_to wechat_settings_profile_path,
+                  class: "btn-outline p-2 md:p-2.5",
+                  title: "公众号配置" do %>
+              <%= lucide_icon "settings", class: "w-5 h-5 md:w-6 md:h-6" %>
+            <% end %>
           </div>
         </div>
       </div>
