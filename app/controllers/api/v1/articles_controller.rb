@@ -50,10 +50,22 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
       thumb_media_id = sync_service.upload_material_image(cover_url)
       draft_media_id = sync_service.push_draft(pseudo_doc, thumb_media_id)
 
+      # 6. 推送成功后，在红中文章库存一份（API 路径同步可见到 Web 文章目录）
+      document = current_user.documents.build(
+        title: title,
+        content: markdown,
+        theme: theme,
+        is_auto_save: false
+      )
+      saved_to_library = document.save
+      Document.cleanup_old_entries(current_user) if saved_to_library
+
       render json: {
         ok: true,
         draft_media_id: draft_media_id,
         wechat_draft_url: 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=77',
+        document_id: saved_to_library ? document.friendly_id : nil,
+        document_url: saved_to_library ? edit_document_url(document) : nil,
         message: '已推送到微信公众号草稿箱，请前往后台预览/发布'
       }
     rescue Wechat::SyncService::SyncError => e
