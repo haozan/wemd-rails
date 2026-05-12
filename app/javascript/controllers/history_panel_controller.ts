@@ -480,17 +480,16 @@ export default class extends Controller<HTMLElement> {
     const savedAt = this.formatRelativeTime(entry.saved_at)
     
     return `
-      <div class="history-entry group relative ${isActive ? 'is-active' : ''} 
-                  rounded-md cursor-pointer hover:bg-muted/60 px-3 py-2"
+      <div class="history-entry group ${isActive ? 'is-active' : ''}"
            data-action="click->history-panel#restore"
            data-document-id="${entry.id}">
         <div class="flex items-center gap-2">
-          <h4 class="text-sm ${isActive ? 'font-semibold text-foreground' : 'font-medium text-foreground'} truncate flex-1 min-w-0">
+          <h4 class="text-foreground truncate flex-1 min-w-0">
             ${this.escapeHtml(title)}
           </h4>
           <div class="entry-actions flex items-center gap-0.5 flex-shrink-0">
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-surface"
+                    class="text-muted-foreground hover:text-primary transition-colors rounded hover:bg-surface"
                     data-action="click->history-panel#rename"
                     data-document-id="${entry.id}"
                     title="重命名">
@@ -500,7 +499,7 @@ export default class extends Controller<HTMLElement> {
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-surface"
+                    class="text-muted-foreground hover:text-primary transition-colors rounded hover:bg-surface"
                     data-action="click->history-panel#duplicate"
                     data-document-id="${entry.id}"
                     title="复制">
@@ -510,7 +509,7 @@ export default class extends Controller<HTMLElement> {
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-destructive transition-colors p-1 rounded hover:bg-surface"
+                    class="text-muted-foreground hover:text-destructive transition-colors rounded hover:bg-surface"
                     data-action="click->history-panel#delete"
                     data-document-id="${entry.id}"
                     title="删除">
@@ -521,10 +520,10 @@ export default class extends Controller<HTMLElement> {
             </button>
           </div>
         </div>
-        
-        <div class="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+
+        <div class="entry-meta flex items-center gap-1.5">
           <span class="flex-shrink-0">${savedAt}</span>
-          ${themeName ? `<span class="truncate opacity-75">· ${this.escapeHtml(themeName)}</span>` : ''}
+          ${themeName ? `<span class="truncate">· ${this.escapeHtml(themeName)}</span>` : ''}
         </div>
       </div>
     `
