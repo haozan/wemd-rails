@@ -33,7 +33,8 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
 
     # 3. 决定 author（默认覆盖 user.name 给 SyncService 用）
     if params[:author].present?
-      current_user.define_singleton_method(:name) { params[:author].to_s }
+      author_name = params[:author].to_s
+      current_user.define_singleton_method(:name) { author_name }
     end
 
     # 4. 决定封面 URL
@@ -59,7 +60,7 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
       render_error(:wechat_api_error, e.message, status: :unprocessable_entity)
     rescue => e
       Rails.logger.error("[API push_to_wechat] #{e.class}: #{e.message}\n#{e.backtrace.first(8).join("\n")}")
-      render_error(:internal_error, '系统错误，请稍后重试', status: :internal_server_error)
+      render_error(:internal_error, "系统错误：#{e.class}: #{e.message}", status: :internal_server_error)
     end
   end
 
