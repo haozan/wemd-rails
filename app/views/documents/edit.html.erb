@@ -296,7 +296,7 @@
   <% end %>
 
   <!-- History Panel Sidebar (常驻左侧，可折叠) -->
-  <aside class="history-sidebar fixed top-16 left-0 bottom-0 bg-surface border-r border-border z-30 flex flex-col"
+  <aside class="history-sidebar absolute top-0 left-0 bottom-0 bg-surface border-r border-border z-40 flex flex-col"
          data-history-panel-target="sidebar">
     <!-- Sidebar Header -->
     <div class="sidebar-inner flex items-center justify-between border-b border-border bg-surface px-5 py-3">
@@ -347,9 +347,9 @@
     </div>
   </aside>
 
-  <!-- 折叠态展开按钮（fixed 浮在左上） -->
+  <!-- 折叠态展开按钮（absolute 浮在左上） -->
   <button type="button"
-          class="history-expand-btn fixed top-20 left-3 z-30 hidden items-center justify-center w-9 h-9 rounded-md bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          class="history-expand-btn absolute top-3 left-3 z-40 hidden items-center justify-center w-9 h-9 rounded-md bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           data-history-panel-target="expandBtn"
           data-action="click->history-panel#toggle"
           title="展开文章目录">

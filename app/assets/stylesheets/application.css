@@ -244,9 +244,11 @@
   .wemd-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
     background: hsl(var(--color-surface));
+    position: relative;
   }
 
   /* 确保 form 能正确传递高度 */
