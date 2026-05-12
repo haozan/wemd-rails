@@ -3,6 +3,8 @@ require 'json'
 require 'uri'
 require 'down'
 require 'net/http/post/multipart'
+require 'marcel'
+require 'image_processing/mini_magick'
 
 module Wechat
   class SyncService
@@ -45,13 +47,12 @@ module Wechat
     # 这个接口不占用公众号每天的素材配额，专门用来传正文图片的。
     def upload_image_for_article(image_url)
       uri = URI("#{API_URL}/media/uploadimg?access_token=#{access_token}")
-      
-      # 使用 Down 下载图片到临时文件
-      tempfile = Down.download(image_url)
-      
+
+      tempfile, content_type, filename = download_and_normalize(image_url)
+
       request = Net::HTTP::Post::Multipart.new(
         uri.path + "?#{uri.query}",
-        { "media" => UploadIO.new(tempfile, tempfile.content_type, tempfile.original_filename) }
+        { "media" => UploadIO.new(tempfile, content_type, filename) }
       )
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -74,12 +75,12 @@ module Wechat
     # 上传永久素材图片作为封面（草稿一定要用 MediaID）
     def upload_material_image(image_url)
       uri = URI("#{API_URL}/material/add_material?access_token=#{access_token}&type=image")
-      
-      tempfile = Down.download(image_url)
-      
+
+      tempfile, content_type, filename = download_and_normalize(image_url)
+
       request = Net::HTTP::Post::Multipart.new(
         uri.path + "?#{uri.query}",
-        { "media" => UploadIO.new(tempfile, tempfile.content_type, tempfile.original_filename) }
+        { "media" => UploadIO.new(tempfile, content_type, filename) }
       )
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -97,6 +98,46 @@ module Wechat
       result["media_id"]
     rescue Down::Error => e
       raise SyncError, "封面图片下载失败: #{e.message} (#{image_url})"
+    end
+
+    # 下载图片并规范化为微信支持的格式
+    # 微信只接受 jpg/jpeg/png/gif/bmp，遇到 webp/avif/heic 等格式自动转 jpg
+    # 返回 [tempfile, content_type, filename]
+    WECHAT_ALLOWED_MIME = {
+      'image/jpeg' => 'jpg',
+      'image/png'  => 'png',
+      'image/gif'  => 'gif',
+      'image/bmp'  => 'bmp'
+    }.freeze
+
+    def download_and_normalize(image_url)
+      tempfile = Down.download(image_url, max_size: 10 * 1024 * 1024)
+
+      # 用 marcel 嗅探真实 MIME（不信任 server 给的 content_type，更不信文件名扩展名）
+      real_mime = Marcel::MimeType.for(tempfile, name: tempfile.original_filename)
+      Rails.logger.info("[WECHAT_UPLOAD] url=#{image_url} detected_mime=#{real_mime} server_ct=#{tempfile.content_type}")
+
+      if WECHAT_ALLOWED_MIME.key?(real_mime)
+        ext = WECHAT_ALLOWED_MIME[real_mime]
+        filename = "image_#{Time.now.to_i}.#{ext}"
+        return [tempfile, real_mime, filename]
+      end
+
+      # 不在白名单（webp/avif/heic 等）→ 转 jpg
+      Rails.logger.info("[WECHAT_UPLOAD] converting #{real_mime} to jpg")
+      jpg_tempfile = Tempfile.new(['wechat_cover', '.jpg'], binmode: true)
+      ImageProcessing::MiniMagick
+        .source(tempfile.path)
+        .convert('jpg')
+        .saver(quality: 88)
+        .call(destination: jpg_tempfile.path)
+
+      tempfile.close
+      tempfile.unlink
+
+      [jpg_tempfile, 'image/jpeg', "image_#{Time.now.to_i}.jpg"]
+    rescue ImageProcessing::Error, MiniMagick::Error => e
+      raise SyncError, "图片格式转换失败（#{e.message}），请将封面替换为 jpg/png 格式后重试"
     end
 
     # 同步整个文档到微信草稿箱

@@ -7,6 +7,14 @@ ENV RAILS_ENV="production" \
     NODE_ENV="production" \
     PORT="3000"
 
+# Install ImageMagick for image_processing gem (微信封面/正文图格式转换 webp→jpg)
+# 兼容 debian/ubuntu (apt) 和 alpine (apk)
+USER root
+RUN (command -v apt-get >/dev/null && apt-get update -qq && apt-get install -y --no-install-recommends imagemagick && rm -rf /var/lib/apt/lists/*) \
+    || (command -v apk >/dev/null && apk add --no-cache imagemagick) \
+    || echo "WARN: failed to install imagemagick, image conversion may fail at runtime"
+USER ruby
+
 # Check and install only missing gems (if Gemfile changed)
 # bundle check returns 0 if all gems are satisfied, otherwise install
 COPY --chown=ruby:ruby Gemfile Gemfile.lock ./
