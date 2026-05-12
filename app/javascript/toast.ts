@@ -21,9 +21,14 @@ function showToast(
   message: string,
   type: 'success' | 'error' | 'info' | 'warning' | 'danger' = 'info',
   position: 'top-right' | 'top-center' | 'top-left' = 'top-right',
-  duration: number = 3000 // 0 means no auto-close
+  duration?: number // undefined = 按类型自动；0 = 不自动关闭
 ): void {
   const container = createToastContainer(position)
+
+  // 根据类型决定默认时长：错误/警告类信息长，给 8 秒；其它 3 秒
+  const effectiveDuration = duration ?? (
+    (type === 'error' || type === 'danger' || type === 'warning') ? 8000 : 3000
+  )
 
   // Normalize type (danger -> error for alert styling)
   const alertType = (type === 'error' || type === 'danger') ? 'danger' : type
@@ -65,10 +70,10 @@ function showToast(
   })
 
   // Auto-close after duration (if duration > 0)
-  if (duration > 0) {
+  if (effectiveDuration > 0) {
     setTimeout(() => {
       removeToast(toastElement, position)
-    }, duration)
+    }, effectiveDuration)
   }
 }
 

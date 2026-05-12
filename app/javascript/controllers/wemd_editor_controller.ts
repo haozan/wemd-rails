@@ -787,7 +787,7 @@ export default class extends Controller<HTMLElement> {
         if (data.need_config) {
           setTimeout(() => {
             window.location.href = "/profile/wechat_settings"
-          }, 2000)
+          }, 5000)
         }
       }
     } catch (error) {
