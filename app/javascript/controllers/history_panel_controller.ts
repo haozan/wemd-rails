@@ -385,59 +385,105 @@ export default class extends Controller<HTMLElement> {
       this.listTarget.classList.remove('hidden')
       this.emptyStateTarget.classList.add('hidden')
       
-      const html = this.filteredHistory.map(entry => this.renderEntry(entry)).join('')
+      // 按时间分组
+      const groups = this.groupByTime(this.filteredHistory)
+      const html = groups.map(g => {
+        const items = g.entries.map(e => this.renderEntry(e)).join('')
+        return `<div class="history-group-label">${g.label}</div>${items}`
+      }).join('')
       this.listTarget.innerHTML = html
     }
+  }
+
+  private groupByTime(entries: HistoryEntry[]): { label: string; entries: HistoryEntry[] }[] {
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+    const startOfYesterday = startOfToday - 86400000
+    const startOfWeek = startOfToday - 6 * 86400000
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+
+    const buckets: Record<string, HistoryEntry[]> = {
+      '今天': [],
+      '昨天': [],
+      '本周': [],
+      '本月': [],
+      '更早': []
+    }
+
+    for (const entry of entries) {
+      const t = new Date(entry.saved_at).getTime()
+      if (t >= startOfToday) buckets['今天'].push(entry)
+      else if (t >= startOfYesterday) buckets['昨天'].push(entry)
+      else if (t >= startOfWeek) buckets['本周'].push(entry)
+      else if (t >= startOfMonth) buckets['本月'].push(entry)
+      else buckets['更早'].push(entry)
+    }
+
+    return Object.entries(buckets)
+      .filter(([_, list]) => list.length > 0)
+      .map(([label, list]) => ({ label, entries: list }))
+  }
+
+  private formatRelativeTime(dateStr: string): string {
+    const t = new Date(dateStr).getTime()
+    const diff = Date.now() - t
+    const min = Math.floor(diff / 60000)
+    if (min < 1) return '刚刚'
+    if (min < 60) return `${min} 分钟前`
+    const hr = Math.floor(min / 60)
+    if (hr < 24) return `${hr} 小时前`
+    const day = Math.floor(hr / 24)
+    if (day < 7) return `${day} 天前`
+    const d = new Date(dateStr)
+    const now = new Date()
+    if (d.getFullYear() === now.getFullYear()) {
+      return `${d.getMonth() + 1}/${d.getDate()}`
+    }
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`
   }
 
   private renderEntry(entry: HistoryEntry): string {
     const isActive = entry.id === this.currentDocumentIdValue
     const title = entry.title || '未命名文章'
-    const themeName = entry.theme?.name || '未命名主题'
-    const savedAt = new Date(entry.saved_at).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    const themeName = entry.theme?.name || ''
+    const savedAt = this.formatRelativeTime(entry.saved_at)
     
     return `
-      <div class="history-entry group ${isActive ? 'bg-primary/10 border-primary' : 'bg-surface border-border hover:border-primary/50'} 
-                  border rounded-lg p-4 transition-all cursor-pointer"
+      <div class="history-entry group relative ${isActive ? 'is-active' : ''} 
+                  rounded-md cursor-pointer hover:bg-muted/60 px-3 py-2"
            data-action="click->history-panel#restore"
            data-document-id="${entry.id}">
-        <div class="flex items-start justify-between mb-2">
-          <h4 class="text-sm font-semibold text-foreground line-clamp-2 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-sm ${isActive ? 'font-semibold text-foreground' : 'font-medium text-foreground'} truncate flex-1 min-w-0">
             ${this.escapeHtml(title)}
           </h4>
-          <div class="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+          <div class="entry-actions flex items-center gap-0.5 flex-shrink-0">
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors p-1"
+                    class="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-surface"
                     data-action="click->history-panel#rename"
                     data-document-id="${entry.id}"
                     title="重命名">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-primary transition-colors p-1"
+                    class="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-surface"
                     data-action="click->history-panel#duplicate"
                     data-document-id="${entry.id}"
                     title="复制">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </button>
             <button type="button"
-                    class="text-muted-foreground hover:text-destructive transition-colors p-1"
+                    class="text-muted-foreground hover:text-destructive transition-colors p-1 rounded hover:bg-surface"
                     data-action="click->history-panel#delete"
                     data-document-id="${entry.id}"
                     title="删除">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -445,14 +491,13 @@ export default class extends Controller<HTMLElement> {
           </div>
         </div>
         
-        <div class="flex items-center justify-between text-xs text-muted-foreground">
-          <span>${savedAt}</span>
-          <span class="badge badge-sm badge-secondary">${this.escapeHtml(themeName)}</span>
+        <div class="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+          <span class="flex-shrink-0">${savedAt}</span>
+          ${themeName ? `<span class="truncate opacity-75">· ${this.escapeHtml(themeName)}</span>` : ''}
         </div>
       </div>
     `
   }
-
   private showLoading(): void {
     this.loadingStateTarget.classList.remove('hidden')
     this.listTarget.classList.add('hidden')

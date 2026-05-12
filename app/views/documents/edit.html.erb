@@ -300,9 +300,9 @@
                 transform -translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col"
          data-history-panel-target="sidebar">
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between border-b border-border bg-surface" style="padding: 1rem 3.5rem;">
-      <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-        <%= lucide_icon "folder", class: "w-5 h-5" %>
+    <div class="flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+      <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+        <%= lucide_icon "folder", class: "w-4 h-4" %>
         文章目录
       </h2>
       <div class="flex items-center gap-2">
@@ -316,7 +316,7 @@
     </div>
 
     <!-- Search Bar -->
-    <div class="border-b border-border bg-surface" style="padding: 1rem 3.5rem;">
+    <div class="border-b border-border bg-surface px-5 py-3">
       <div class="relative">
         <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
         <input type="text"
@@ -329,7 +329,7 @@
     </div>
 
     <!-- History List -->
-    <div class="flex-1 overflow-y-auto" style="padding: 1rem 3.5rem;">
+    <div class="flex-1 overflow-y-auto px-2 py-2">
       <!-- Loading State -->
       <div class="text-center py-12" data-history-panel-target="loadingState">
         <p class="text-muted-foreground">正在加载...</p>
@@ -344,7 +344,7 @@
       </div>
 
       <!-- List Container -->
-      <div class="space-y-3 hidden" data-history-panel-target="list">
+      <div class="hidden" data-history-panel-target="list">
         <!-- 文章列表项将通过 JS 渲染到这里 -->
       </div>
     </div>
@@ -370,16 +370,45 @@
 <style>
 /* History Sidebar Styles */
 .history-sidebar {
-  width: 400px;
+  width: 360px;
   max-width: 90vw;
 }
 
 .history-entry {
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
-.history-entry:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+.history-entry .entry-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.history-entry:hover .entry-actions,
+.history-entry:focus-within .entry-actions {
+  opacity: 1;
+}
+
+.history-entry.is-active {
+  background-color: hsl(var(--color-primary) / 0.08);
+}
+
+.history-entry.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background-color: hsl(var(--color-primary));
+  border-radius: 0 2px 2px 0;
+}
+
+.history-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--color-muted-foreground));
+  padding: 12px 12px 6px;
 }
 </style>
