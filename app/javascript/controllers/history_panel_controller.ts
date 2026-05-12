@@ -19,7 +19,8 @@ export default class extends Controller<HTMLElement> {
     "list",
     "searchInput",
     "emptyState",
-    "loadingState"
+    "loadingState",
+    "expandBtn"
   ]
 
   static values = {
@@ -31,13 +32,24 @@ export default class extends Controller<HTMLElement> {
   declare readonly searchInputTarget: HTMLInputElement
   declare readonly emptyStateTarget: HTMLElement
   declare readonly loadingStateTarget: HTMLElement
+  declare readonly expandBtnTarget: HTMLElement
+  declare readonly hasExpandBtnTarget: boolean
   declare readonly currentDocumentIdValue: string
 
   private history: HistoryEntry[] = []
   private filteredHistory: HistoryEntry[] = []
-  private isOpen: boolean = false
+  private isCollapsed: boolean = false
+  private readonly STORAGE_KEY = "wemd-sidebar-collapsed"
 
   connect(): void {
+    // 恢复折叠状态
+    try {
+      this.isCollapsed = localStorage.getItem(this.STORAGE_KEY) === "1"
+    } catch (_) {
+      this.isCollapsed = false
+    }
+    this.applyCollapsedState()
+
     this.loadHistory()
     
     // 监听自动保存事件，刷新列表以更新主题标签
@@ -54,23 +66,42 @@ export default class extends Controller<HTMLElement> {
     this.loadHistory()
   }
 
-  // 切换侧边栏显示/隐藏
+  // 切换侧边栏折叠/展开
   toggle(): void {
-    this.isOpen = !this.isOpen
-    
-    if (this.isOpen) {
-      this.sidebarTarget.classList.remove("-translate-x-full")
-      this.sidebarTarget.classList.add("translate-x-0")
-    } else {
-      this.sidebarTarget.classList.remove("translate-x-0")
-      this.sidebarTarget.classList.add("-translate-x-full")
+    this.isCollapsed = !this.isCollapsed
+    try {
+      localStorage.setItem(this.STORAGE_KEY, this.isCollapsed ? "1" : "0")
+    } catch (_) {}
+    this.applyCollapsedState()
+  }
+
+  // 关闭侧边栏（兼容旧 API：折叠）
+  close(): void {
+    if (!this.isCollapsed) {
+      this.toggle()
     }
   }
 
-  // 关闭侧边栏
-  close(): void {
-    if (this.isOpen) {
-      this.toggle()
+  // 应用折叠状态到 DOM
+  private applyCollapsedState(): void {
+    const container = this.element.classList.contains("wemd-container")
+      ? this.element
+      : this.element.closest(".wemd-container") as HTMLElement | null
+
+    if (this.isCollapsed) {
+      this.sidebarTarget.classList.add("is-collapsed")
+      container?.classList.add("sidebar-collapsed")
+      if (this.hasExpandBtnTarget) {
+        this.expandBtnTarget.classList.remove("hidden")
+        this.expandBtnTarget.classList.add("flex")
+      }
+    } else {
+      this.sidebarTarget.classList.remove("is-collapsed")
+      container?.classList.remove("sidebar-collapsed")
+      if (this.hasExpandBtnTarget) {
+        this.expandBtnTarget.classList.add("hidden")
+        this.expandBtnTarget.classList.remove("flex")
+      }
     }
   }
 

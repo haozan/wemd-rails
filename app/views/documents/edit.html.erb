@@ -1,5 +1,5 @@
 <!-- WeMD 编辑器页面 -->
-<div class="wemd-container" 
+<div class="wemd-container with-sidebar" 
      data-controller="wemd-editor image-upload history-panel"
      data-wemd-editor-themes-value="<%= @themes.to_json(only: [:id, :name, :css]) %>"
      data-history-panel-current-document-id-value="<%= @document.friendly_id %>"
@@ -295,28 +295,25 @@
     </main>
   <% end %>
 
-  <!-- History Panel Sidebar -->
-  <aside class="history-sidebar fixed top-16 left-0 bottom-0 w-96 bg-surface border-r border-border shadow-xl 
-                transform -translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col"
+  <!-- History Panel Sidebar (常驻左侧，可折叠) -->
+  <aside class="history-sidebar fixed top-16 left-0 bottom-0 bg-surface border-r border-border z-30 flex flex-col"
          data-history-panel-target="sidebar">
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+    <div class="sidebar-inner flex items-center justify-between border-b border-border bg-surface px-5 py-3">
       <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
         <%= lucide_icon "folder", class: "w-4 h-4" %>
         文章目录
       </h2>
-      <div class="flex items-center gap-2">
-        <button type="button"
-                class="text-muted-foreground hover:text-foreground transition-colors"
-                data-action="click->history-panel#close"
-                title="关闭">
-          <%= lucide_icon "x", class: "w-5 h-5" %>
-        </button>
-      </div>
+      <button type="button"
+              class="text-muted-foreground hover:text-foreground transition-colors"
+              data-action="click->history-panel#toggle"
+              title="折叠">
+        <%= lucide_icon "panel-left-close", class: "w-5 h-5" %>
+      </button>
     </div>
 
     <!-- Search Bar -->
-    <div class="border-b border-border bg-surface px-5 py-3">
+    <div class="sidebar-inner border-b border-border bg-surface px-5 py-3">
       <div class="relative">
         <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
         <input type="text"
@@ -329,7 +326,7 @@
     </div>
 
     <!-- History List -->
-    <div class="flex-1 overflow-y-auto px-2 py-2">
+    <div class="sidebar-inner flex-1 overflow-y-auto px-2 py-2">
       <!-- Loading State -->
       <div class="text-center py-12" data-history-panel-target="loadingState">
         <p class="text-muted-foreground">正在加载...</p>
@@ -350,9 +347,14 @@
     </div>
   </aside>
 
-  <!-- Sidebar Overlay -->
-  <div class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity duration-300"
-       data-action="click->history-panel#close"></div>
+  <!-- 折叠态展开按钮（fixed 浮在左上） -->
+  <button type="button"
+          class="history-expand-btn fixed top-20 left-3 z-30 hidden items-center justify-center w-9 h-9 rounded-md bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          data-history-panel-target="expandBtn"
+          data-action="click->history-panel#toggle"
+          title="展开文章目录">
+    <%= lucide_icon "panel-left-open", class: "w-5 h-5" %>
+  </button>
 
   <!-- Hidden file input for image upload -->
   <input type="file" 
@@ -370,8 +372,43 @@
 <style>
 /* History Sidebar Styles */
 .history-sidebar {
-  width: 360px;
+  width: 280px;
   max-width: 90vw;
+  transition: width 0.25s ease;
+}
+
+.history-sidebar.is-collapsed {
+  width: 0;
+  border-right-width: 0;
+  overflow: hidden;
+}
+
+.history-sidebar .sidebar-inner {
+  transition: opacity 0.15s ease;
+}
+
+.history-sidebar.is-collapsed .sidebar-inner {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 主内容区域为侧栏让位 */
+.wemd-container.with-sidebar > form {
+  padding-left: 280px;
+  transition: padding-left 0.25s ease;
+}
+
+.wemd-container.with-sidebar.sidebar-collapsed > form {
+  padding-left: 0;
+}
+
+@media (max-width: 768px) {
+  .wemd-container.with-sidebar > form {
+    padding-left: 0;
+  }
+  .history-sidebar {
+    box-shadow: 0 10px 30px hsl(0 0% 0% / 0.15);
+  }
 }
 
 .history-entry {
