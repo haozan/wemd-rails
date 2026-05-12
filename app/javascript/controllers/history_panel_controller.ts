@@ -150,8 +150,8 @@ export default class extends Controller<HTMLElement> {
     // 先保存当前编辑器内容
     await this.saveCurrentDocument()
     
-    // 直接跳转到目标文档的编辑页面
-    window.location.href = `/documents/${documentId}/edit`
+    // 走 Turbo Drive 局部导航，避免整页刷新（白屏 + 重新下载所有 JS/CSS）
+    window.Turbo.visit(`/documents/${documentId}/edit`)
   }
   
   /**
@@ -392,8 +392,8 @@ export default class extends Controller<HTMLElement> {
 
   // 新建文章
   createNew(): void {
-    // 直接跳转到 /documents/new，后端会创建文档并重定向到编辑页
-    window.location.href = '/documents/new'
+    // 走 Turbo Drive 局部导航，避免整页刷新
+    window.Turbo.visit('/documents/new')
   }
 
   // 私有方法
