@@ -140,6 +140,11 @@
                   title: "公众号配置" do %>
               <%= lucide_icon "settings", class: "w-5 h-5 md:w-6 md:h-6" %>
             <% end %>
+            <%= link_to api_tokens_profile_path,
+                  class: "btn-outline p-2 md:p-2.5",
+                  title: "API Token 配置（给青狮龙虾等外部 AI 调用）" do %>
+              <%= lucide_icon "key-round", class: "w-5 h-5 md:w-6 md:h-6" %>
+            <% end %>
           </div>
         </div>
       </div>
