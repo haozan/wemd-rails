@@ -462,6 +462,13 @@
   font-weight: 600;
 }
 
+/* 加载中：点击后跳转过程中的视觉反馈，避免侧栏折叠的快闪 */
+.history-entry.is-loading {
+  background-color: hsl(var(--color-muted) / 0.85);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 /* entry 标题与元信息字号 */
 .history-entry h4 {
   font-size: 13px;

@@ -141,8 +141,11 @@ export default class extends Controller<HTMLElement> {
     
     if (!documentId) return
     
-    // 立即关闭侧边栏，避免跳转前闪烁
-    this.close()
+    // 点击的是当前文档，无需跳转
+    if (documentId === this.currentDocumentIdValue) return
+    
+    // 标记目标项为加载中（视觉反馈），不折叠侧栏避免快闪
+    button.classList.add('is-loading')
     
     // 先保存当前编辑器内容
     await this.saveCurrentDocument()
