@@ -92,6 +92,7 @@ Rails.application.routes.draw do
       get 'health', to: 'health#index'
 
       # Personal-API-Token endpoints (供 QingClaw 等外部 skill 调用)
+      get  'articles/wechat_config_status', to: 'articles#wechat_config_status'
       post 'articles/push_to_wechat', to: 'articles#push_to_wechat'
       post 'uploads', to: 'uploads#create'
     end

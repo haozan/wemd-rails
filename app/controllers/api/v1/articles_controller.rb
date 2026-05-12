@@ -1,6 +1,60 @@
 require 'ostruct'
 
 class Api::V1::ArticlesController < Api::V1::TokenBaseController
+  # GET /api/v1/articles/wechat_config_status
+  #
+  # 配置自检接口，给外部 skill 跑一次"全链路 dry-run"用：
+  #   - token 是否有效（能进 controller 就有效）
+  #   - 用户是否在红中绑定了公众号 AppID/AppSecret
+  #   - 拿 access_token 是否成功（验证 AppSecret + IP 白名单）
+  #
+  # 返回：
+  #   { ok: true,  configured: true,  access_token_ok: true }
+  #   { ok: true,  configured: false, hint: "未填 AppID/AppSecret，前往 ..." }
+  #   { ok: false, configured: true,  access_token_ok: false, error: "...", hint: "..." }
+  def wechat_config_status
+    sync_service = Wechat::SyncService.new(current_user)
+
+    unless sync_service.ready?
+      return render json: {
+        ok: true,
+        configured: false,
+        access_token_ok: false,
+        user_name: current_user.name,
+        hint: '尚未绑定微信公众号 AppID/AppSecret。请前往 https://hongzhongai.com/profile（账号设置 → 微信公众号配置）填写后重试。'
+      }
+    end
+
+    begin
+      token = sync_service.access_token
+      render json: {
+        ok: true,
+        configured: true,
+        access_token_ok: token.present?,
+        user_name: current_user.name,
+        message: '微信公众号配置正常，可以推送草稿'
+      }
+    rescue Wechat::SyncService::SyncError => e
+      render json: {
+        ok: false,
+        configured: true,
+        access_token_ok: false,
+        user_name: current_user.name,
+        error: e.message,
+        hint: hint_for_wechat_error(e.message)
+      }, status: :ok
+    rescue => e
+      Rails.logger.error("[API wechat_config_status] #{e.class}: #{e.message}")
+      render json: {
+        ok: false,
+        configured: true,
+        access_token_ok: false,
+        error: "#{e.class}: #{e.message}",
+        hint: '红中后端异常，请稍后重试或联系管理员'
+      }, status: :ok
+    end
+  end
+
   # POST /api/v1/articles/push_to_wechat
   #
   # Headers:
@@ -111,5 +165,21 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
 
   def render_error(code, message, status: :unprocessable_entity)
     render json: { ok: false, error: code.to_s, message: message }, status: status
+  end
+
+  # 把微信常见错误翻译成"用户能照做的提示"
+  def hint_for_wechat_error(msg)
+    case msg
+    when /40001|AppSecret 错误|AccessToken 无效/
+      'AppSecret 填错了。前往 https://hongzhongai.com/profile 重新填一次（注意复制时不要带空格）'
+    when /40013|AppID 不合法/
+      'AppID 不合法。前往 https://hongzhongai.com/profile 检查公众号 AppID'
+    when /40164|IP 未在.*白名单/
+      '红中服务器 IP 没加到公众号白名单。登录 mp.weixin.qq.com → 开发 → 基本配置 → IP 白名单，添加红中部署机器的出口 IP。'
+    when /41004|AppSecret 缺少/
+      '没填 AppSecret。前往 https://hongzhongai.com/profile 补上。'
+    else
+      "微信接口报错：#{msg}。请检查公众号配置或联系管理员。"
+    end
   end
 end
