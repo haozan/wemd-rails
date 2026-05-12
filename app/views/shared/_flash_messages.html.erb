@@ -1,4 +1,10 @@
+<%
+  # 仅渲染消息类 flash，过滤掉数据传递用的 key（如 plain_token）
+  message_keys = %i[notice success alert error danger warning tips info]
+%>
 <% flash.each do |key, value| %>
+  <% next unless message_keys.include?(key.to_sym) %>
+  <% next if value.blank? %>
   <%
     is_tips = key.to_sym == :tips
     toast_type = case key.to_sym
