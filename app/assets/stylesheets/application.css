@@ -271,6 +271,12 @@
     justify-content: space-between;
     gap: 1rem;
     width: 100%; /* 全宽显示，与顶部导航栏一致 */
+    min-height: var(--wemd-header-height, 80px);
+  }
+  @media (min-width: 768px) {
+    .wemd-header {
+      min-height: var(--wemd-header-height-md, 88px);
+    }
   }
 
   .wemd-main {

@@ -356,15 +356,17 @@
   transition: width 0.25s ease;
 }
 
-/* sidebar-header 高度精确对齐右侧 wemd-header（同样的 0.75rem 上下 padding + 内容居中）*/
+/* sidebar-header 高度精确对齐右侧 wemd-header
+   wemd-header 内容是两行（标题 + 时间），实测高度约 80px(mobile) / 88px(desktop)
+   两边都用 min-height 兜底，确保等高 */
 .history-sidebar .sidebar-header {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-  min-height: 65px; /* 与 wemd-header 一致：一键同步按钮 ~41px + py-3 24px = 65px */
+  min-height: var(--wemd-header-height, 80px);
 }
 @media (min-width: 768px) {
   .history-sidebar .sidebar-header {
-    min-height: 73px; /* desktop 按钮更大 ~49px + 24px = 73px */
+    min-height: var(--wemd-header-height-md, 88px);
   }
 }
 
