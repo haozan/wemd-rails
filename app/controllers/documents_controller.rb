@@ -165,7 +165,7 @@ class DocumentsController < ApplicationController
     unless sync_service.ready?
       return render json: { 
         success: false, 
-        message: "尚未配置微信公众号参数，请先前往『账号设置 -> 微信公众号配置』进行配置。",
+        message: "尚未配置微信公众号。请点击页面右上角「一键同步草稿箱」旁的齿轮 ⚙️ 按钮，填入 AppID / AppSecret 并把红中服务器 IP 加入公众号白名单。",
         need_config: true
       }, status: :unprocessable_entity
     end
