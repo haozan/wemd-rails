@@ -282,7 +282,7 @@
   <!-- History Panel Sidebar (常驻左侧，可折叠) -->
   <aside class="history-sidebar absolute top-0 left-0 bottom-0 bg-surface border-r border-border z-40 flex flex-col"
          data-history-panel-target="sidebar">
-    <!-- Sidebar Header -->
+    <!-- Sidebar Header (高度对齐右侧 wemd-header) -->
     <div class="sidebar-inner sidebar-header flex items-center justify-between border-b border-border bg-surface px-5">
       <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
         <%= lucide_icon "folder", class: "w-4 h-4" %>
@@ -301,19 +301,6 @@
                 title="折叠">
           <%= lucide_icon "panel-left-close", class: "w-4 h-4" %>
         </button>
-      </div>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="sidebar-inner border-b border-border bg-surface px-5 py-3">
-      <div class="relative">
-        <%= lucide_icon "search", class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" %>
-        <input type="text"
-               placeholder="搜索文章..."
-               class="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg 
-                      text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-               data-history-panel-target="searchInput"
-               data-action="input->history-panel#search" />
       </div>
     </div>
 
@@ -369,10 +356,16 @@
   transition: width 0.25s ease;
 }
 
-/* Sidebar 内容紧凑：header 自然贴合标题，不强制高度 */
+/* sidebar-header 高度精确对齐右侧 wemd-header（同样的 0.75rem 上下 padding + 内容居中）*/
 .history-sidebar .sidebar-header {
-  padding-top: 0.875rem;
-  padding-bottom: 0.875rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  min-height: 65px; /* 与 wemd-header 一致：一键同步按钮 ~41px + py-3 24px = 65px */
+}
+@media (min-width: 768px) {
+  .history-sidebar .sidebar-header {
+    min-height: 73px; /* desktop 按钮更大 ~49px + 24px = 73px */
+  }
 }
 
 .history-sidebar.is-collapsed {

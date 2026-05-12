@@ -17,7 +17,6 @@ export default class extends Controller<HTMLElement> {
   static targets = [
     "sidebar",
     "list",
-    "searchInput",
     "emptyState",
     "loadingState",
     "expandBtn"
@@ -29,7 +28,6 @@ export default class extends Controller<HTMLElement> {
 
   declare readonly sidebarTarget: HTMLElement
   declare readonly listTarget: HTMLElement
-  declare readonly searchInputTarget: HTMLInputElement
   declare readonly emptyStateTarget: HTMLElement
   declare readonly loadingStateTarget: HTMLElement
   declare readonly expandBtnTarget: HTMLElement
@@ -128,18 +126,9 @@ export default class extends Controller<HTMLElement> {
     }
   }
 
-  // 搜索过滤
+  // 搜索过滤（搜索框已移除，保留方法签名以防外部调用）
   search(): void {
-    const keyword = this.searchInputTarget.value.trim().toLowerCase()
-    
-    if (!keyword) {
-      this.filteredHistory = this.history
-    } else {
-      this.filteredHistory = this.history.filter(entry => 
-        (entry.title || '未命名文章').toLowerCase().includes(keyword)
-      )
-    }
-    
+    this.filteredHistory = this.history
     this.renderHistory()
   }
 
