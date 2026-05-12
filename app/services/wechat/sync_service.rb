@@ -173,12 +173,48 @@ module Wechat
       require 'commonmarker'
       # 去掉开头的一级标题（# xxx），因为它已经作为文章标题填入了公众号标题栏，正文不应重复出现
       stripped = content.to_s.sub(/\A\s*#[^#][^\n]*\n?/, '')
+      # 修复 CommonMark 中文加粗/斜体识别 bug：
+      # 当 **xxx** 紧贴 CJK 标点（如 【**xx**】、（**xx**）、"**xx**"）时，
+      # CommonMark 规范判这些 ** 不是定界符（因为左侧不是 ASCII 标点/空白），
+      # 渲染出来就是裸的 ** 字面量。这里在调 Commonmarker 之前预处理。
+      stripped = preprocess_cjk_emphasis(stripped)
       Commonmarker.to_html(stripped, options: {
         render: { unsafe: true }, # 允许渲染行内 HTML 如 <img> <br>
         extension: {
           header_ids: nil  # 关闭 heading 自动锚点,微信草稿不允许 <a href="#..."> 链接
         }
       })
+    end
+
+    # CJK 标点紧贴的 **xxx** / *xxx* / __xxx__ 不被 CommonMark 识别为强调，
+    # 这里按行扫描（避开代码块），用正则把它们直接转成 <strong>/<em>。
+    # 处理顺序：先粗体（**/__），再斜体（*/_），避免吞字。
+    def preprocess_cjk_emphasis(text)
+      lines = text.split("\n", -1)
+      in_fence = false
+      lines.map! do |line|
+        # 跳过 ``` ~~~ 围栏代码块
+        if line.match?(/\A\s*(```|~~~)/)
+          in_fence = !in_fence
+          next line
+        end
+        next line if in_fence
+
+        # 把行内代码 `xxx` 临时占位，避免误伤
+        codes = []
+        line = line.gsub(/`+[^`\n]+?`+/) { |m| codes << m; "\x00CODE#{codes.size - 1}\x00" }
+
+        # **bold** / __bold__：内容里不能再含同种定界符
+        line = line.gsub(/\*\*([^\s*][^*\n]*?[^\s*]|\S)\*\*/) { "<strong>#{$1}</strong>" }
+        line = line.gsub(/__([^\s_][^_\n]*?[^\s_]|\S)__/)     { "<strong>#{$1}</strong>" }
+        # *italic* / _italic_：避免匹配 ** 残余（已替换走）和单字母列表标记
+        line = line.gsub(/(?<!\*)\*([^\s*][^*\n]*?[^\s*]|\S)\*(?!\*)/) { "<em>#{$1}</em>" }
+        line = line.gsub(/(?<!_)_([^\s_][^_\n]*?[^\s_]|\S)_(?!_)/)     { "<em>#{$1}</em>" }
+
+        # 还原占位的行内代码
+        line.gsub(/\x00CODE(\d+)\x00/) { codes[$1.to_i] }
+      end
+      lines.join("\n")
     end
 
     # 仅清洗锚点(预览用,不上传图片)
