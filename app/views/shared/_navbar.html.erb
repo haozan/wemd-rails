@@ -55,8 +55,17 @@ Additional Effects:
           </div>
         </div>
 
-        <!-- Right section: Theme toggle + User menu -->
-        <div class="hidden md:flex items-center space-x-4">
+        <!-- Right section: Settings + Theme toggle + User menu -->
+        <div class="hidden md:flex items-center space-x-2">
+          <% if current_user %>
+            <%= link_to "配置公众号同步", wechat_settings_profile_path,
+                  class: "btn-ghost btn-sm",
+                  title: "配置 AppID / AppSecret / IP 白名单" %>
+            <%= link_to "配置青狮龙虾AI", api_tokens_profile_path,
+                  class: "btn-ghost btn-sm",
+                  title: "生成 API Token 给青狮龙虾自动发文" %>
+          <% end %>
+
           <!-- Dark mode toggle -->
           <div data-controller="theme" data-theme-storage-key-value="global-isdark">
             <button type="button"
@@ -104,6 +113,10 @@ Additional Effects:
         <!-- Mobile navigation -->
         <div class="mb-6 space-y-1">
           <%= render 'shared/nav_links' %>
+          <% if current_user %>
+            <%= link_to "配置公众号同步", wechat_settings_profile_path, class: "block px-3 py-2 text-sm text-secondary hover:bg-surface rounded-lg" %>
+            <%= link_to "配置青狮龙虾AI", api_tokens_profile_path, class: "block px-3 py-2 text-sm text-secondary hover:bg-surface rounded-lg" %>
+          <% end %>
         </div>
 
         <!-- Mobile user menu -->
