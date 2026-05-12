@@ -34,6 +34,7 @@ class User < ApplicationRecord
   generates_token_for :password_reset, expires_in: 20.minutes
 
   has_many :sessions, dependent: :destroy
+  has_many :api_tokens, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 

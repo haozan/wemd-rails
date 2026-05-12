@@ -63,6 +63,9 @@ Rails.application.routes.draw do
       post :test_wechat_connection
       patch :update_primary_color
       patch :update_color_scheme
+      get  :api_tokens
+      post :create_api_token
+      delete 'api_tokens/:id', to: 'profiles#destroy_api_token', as: :destroy_api_token
     end
   end
 
@@ -87,6 +90,9 @@ Rails.application.routes.draw do
       put 'password', to: 'profiles#update_password'
 
       get 'health', to: 'health#index'
+
+      # Personal-API-Token endpoints (供 QingClaw 等外部 skill 调用)
+      post 'articles/push_to_wechat', to: 'articles#push_to_wechat'
     end
   end
 

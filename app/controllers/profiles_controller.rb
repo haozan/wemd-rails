@@ -120,6 +120,40 @@ class ProfilesController < ApplicationController
     end
   end
 
+  # ============== API Token 管理（供外部 skill 调用红中 API） ==============
+
+  def api_tokens
+    @user = current_user
+    @api_tokens = @user.api_tokens.order(created_at: :desc)
+    # 通过 flash 传递新生成的明文 token（只显示一次）
+    @plain_token = flash[:plain_token]
+    @plain_token_id = flash[:plain_token_id]
+  end
+
+  def create_api_token
+    name = params[:name].to_s.strip.presence || 'Untitled token'
+    record, plain = ApiToken.issue!(current_user, name: name)
+
+    flash[:plain_token] = plain
+    flash[:plain_token_id] = record.id
+    flash[:notice] = '✅ Token 已生成，请立即复制保存（关闭页面后不再显示）'
+    redirect_to api_tokens_profile_path
+  rescue => e
+    flash[:alert] = "Token 创建失败：#{e.message}"
+    redirect_to api_tokens_profile_path
+  end
+
+  def destroy_api_token
+    token = current_user.api_tokens.find_by(id: params[:id])
+    if token
+      token.destroy
+      flash[:notice] = '🗑 Token 已删除'
+    else
+      flash[:alert] = 'Token 不存在'
+    end
+    redirect_to api_tokens_profile_path
+  end
+
   private
 
   def wechat_settings_params

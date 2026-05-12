@@ -1,0 +1,113 @@
+<div class="container-sm py-12">
+  <div class="card-elevated">
+    <div class="card-body">
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-primary">API Token</h1>
+        <%= link_to "← 返回个人设置", profile_path, class: "btn-ghost text-sm" %>
+      </div>
+
+      <div class="bg-surface/50 rounded-lg p-5 border border-border mb-8 text-sm text-secondary leading-relaxed">
+        <p class="mb-2"><strong class="text-primary">用途：</strong>给外部 AI（如青狮龙虾 skill）调用红中排版 API，把 AI 写的文章自动推送到你的微信公众号草稿箱。</p>
+        <p class="mb-2"><strong class="text-primary">使用方式：</strong>在 HTTP 请求头里加 <code class="bg-background px-2 py-0.5 rounded">Authorization: Bearer &lt;token&gt;</code>。</p>
+        <p><strong class="text-warning">⚠️ 注意：</strong>Token 明文只在创建时显示一次，请立即复制保存。丢失只能删除重建。</p>
+      </div>
+
+      <% if @plain_token.present? %>
+        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-5 mb-6" data-controller="clipboard">
+          <h3 class="text-sm font-bold text-yellow-900 mb-2">🔑 新 Token 已生成（仅显示一次）</h3>
+          <div class="flex items-center gap-2">
+            <code class="flex-1 bg-white border border-yellow-200 rounded px-3 py-2 font-mono text-sm break-all" data-clipboard-target="source"><%= @plain_token %></code>
+            <button type="button" class="btn-primary text-sm whitespace-nowrap" data-action="click->clipboard#copy">复制</button>
+          </div>
+          <p class="text-xs text-yellow-800 mt-2">复制后请存到密码管理器或 skill 配置文件。刷新页面后此 token 不再显示。</p>
+        </div>
+      <% end %>
+
+      <!-- 创建新 Token -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-primary mb-3">生成新 Token</h2>
+        <%= form_with url: create_api_token_profile_path, method: :post, local: true, class: "flex gap-2" do |f| %>
+          <%= f.text_field :name,
+                placeholder: "Token 名称，如：QingClaw skill",
+                required: true,
+                maxlength: 50,
+                class: "flex-1 input" %>
+          <%= f.submit "生成 Token", class: "btn-primary whitespace-nowrap" %>
+        <% end %>
+      </div>
+
+      <!-- Token 列表 -->
+      <div>
+        <h2 class="text-lg font-semibold text-primary mb-3">已有 Token（<%= @api_tokens.size %>）</h2>
+        <% if @api_tokens.empty? %>
+          <p class="text-sm text-secondary py-8 text-center">暂无 Token，使用上方表单生成第一个。</p>
+        <% else %>
+          <div class="border border-border rounded-lg divide-y divide-border">
+            <% @api_tokens.each do |t| %>
+              <div class="p-4 flex items-center justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-primary truncate"><%= t.name %></div>
+                  <div class="text-xs text-secondary mt-1 font-mono">
+                    <%= t.token_prefix %>••••••••
+                  </div>
+                  <div class="text-xs text-secondary mt-1">
+                    创建于 <%= t.created_at.strftime("%Y-%m-%d %H:%M") %>
+                    <% if t.last_used_at %>
+                      · 最近使用 <%= time_ago_in_words(t.last_used_at) %>前
+                      <% if t.last_used_ip %>(<%= t.last_used_ip %>)<% end %>
+                    <% else %>
+                      · <span class="text-muted-foreground">从未使用</span>
+                    <% end %>
+                  </div>
+                </div>
+                <%= button_to "删除",
+                      destroy_api_token_profile_path(id: t.id),
+                      method: :delete,
+                      data: { turbo_confirm: "确认删除「#{t.name}」？外部调用将立即失效。" },
+                      class: "btn-ghost text-sm text-destructive hover:bg-destructive/10" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- 使用文档 -->
+      <details class="mt-8 border border-border rounded-lg">
+        <summary class="cursor-pointer px-4 py-3 font-medium text-primary hover:bg-surface/50">📖 API 文档：推送文章到微信草稿箱</summary>
+        <div class="p-4 border-t border-border text-sm space-y-3">
+          <div>
+            <div class="text-secondary mb-1">Endpoint：</div>
+            <code class="block bg-background border border-border rounded px-3 py-2 font-mono break-all">POST <%= request.base_url %>/api/v1/articles/push_to_wechat</code>
+          </div>
+          <div>
+            <div class="text-secondary mb-1">请求示例：</div>
+<pre class="bg-background border border-border rounded px-3 py-2 font-mono text-xs overflow-x-auto"><code>curl -X POST <%= request.base_url %>/api/v1/articles/push_to_wechat \
+  -H "Authorization: Bearer wemd_xxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "青狮龙虾｜律师如何用 AI 审合同",
+    "markdown": "# 标题\n\n正文 markdown，支持 ![图片](https://...)",
+    "cover_image_url": "https://your-cdn.com/cover.png",
+    "color_scheme_id": "claude_clay",
+    "author": "镐赞"
+  }'</code></pre>
+          </div>
+          <div>
+            <div class="text-secondary mb-1">参数说明：</div>
+            <ul class="list-disc pl-5 space-y-1 text-secondary">
+              <li><code>title</code> 必填，文章标题</li>
+              <li><code>markdown</code> 必填，Markdown 正文（首行 <code># 标题</code> 会自动剥除）</li>
+              <li><code>cover_image_url</code> 可选，公网图片 URL；不传则取正文第一张图</li>
+              <li><code>color_scheme_id</code> 可选，配色方案 id（如 <code>claude_clay</code> / <code>ink_vermilion</code> / <code>lxl_classic</code> 等）</li>
+              <li><code>author</code> 可选，文章署名，默认为账号昵称</li>
+            </ul>
+          </div>
+          <div>
+            <div class="text-secondary mb-1">成功响应：</div>
+            <pre class="bg-background border border-border rounded px-3 py-2 font-mono text-xs overflow-x-auto"><code>{"ok":true,"draft_media_id":"xxx","wechat_draft_url":"https://mp.weixin.qq.com/..."}</code></pre>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
