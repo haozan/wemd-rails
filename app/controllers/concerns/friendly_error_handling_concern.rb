@@ -35,7 +35,7 @@ module FriendlyErrorHandlingConcern
       @error_url = request.path
       @error_title = "Page Not Found"
       @error_description = "If you confirm this is missing implementation, please copy error details and send to chatbox."
-      render "shared/friendly_error", status: :not_found
+      render "shared/friendly_error", status: :not_found, formats: [:html]
     end
   end
 
@@ -62,7 +62,7 @@ module FriendlyErrorHandlingConcern
       @filtered_backtrace = filter_user_backtrace(exception.backtrace)
       @error_title = "Record Not Found"
       @error_description = exception.message
-      render "shared/friendly_error", status: :not_found
+      render "shared/friendly_error", status: :not_found, formats: [:html]
     else
       raise exception
     end
@@ -84,7 +84,7 @@ module FriendlyErrorHandlingConcern
       @filtered_backtrace = filter_user_backtrace(exception.backtrace)
       @error_title = "Validation Error"
       @error_description = exception.record.errors.full_messages.join(', ')
-      render "shared/friendly_error", status: :unprocessable_entity
+      render "shared/friendly_error", status: :unprocessable_entity, formats: [:html]
     else
       raise exception
     end
@@ -106,7 +106,7 @@ module FriendlyErrorHandlingConcern
       @filtered_backtrace = filter_user_backtrace(exception.backtrace)
       @error_title = "Parameter Missing"
       @error_description = exception.message
-      render "shared/friendly_error", status: :bad_request
+      render "shared/friendly_error", status: :bad_request, formats: [:html]
     else
       raise exception
     end
@@ -137,7 +137,7 @@ module FriendlyErrorHandlingConcern
       @filtered_backtrace = filter_user_backtrace(exception.backtrace)
       @error_title = "System Under Development"
       @error_description = "The system needs to be updated. Please refresh the page or try again later."
-      render "shared/friendly_error", status: :service_unavailable
+      render "shared/friendly_error", status: :service_unavailable, formats: [:html]
     else
       render json: {
         error: 'Database migration required',
