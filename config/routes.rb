@@ -93,6 +93,7 @@ Rails.application.routes.draw do
 
       # Personal-API-Token endpoints (供 QingClaw 等外部 skill 调用)
       post 'articles/push_to_wechat', to: 'articles#push_to_wechat'
+      post 'uploads', to: 'uploads#create'
     end
   end
 

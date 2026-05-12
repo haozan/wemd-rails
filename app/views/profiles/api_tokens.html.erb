@@ -106,6 +106,22 @@
             <div class="text-secondary mb-1">成功响应：</div>
             <pre class="bg-background border border-border rounded px-3 py-2 font-mono text-xs overflow-x-auto"><code>{"ok":true,"draft_media_id":"xxx","wechat_draft_url":"https://mp.weixin.qq.com/..."}</code></pre>
           </div>
+
+          <hr class="my-4 border-border">
+
+          <div>
+            <div class="text-secondary mb-1">📷 图床（封面图上传）：</div>
+            <code class="block bg-background border border-border rounded px-3 py-2 font-mono break-all">POST <%= request.base_url %>/api/v1/uploads</code>
+          </div>
+          <div>
+            <div class="text-secondary mb-1">curl 示例：</div>
+<pre class="bg-background border border-border rounded px-3 py-2 font-mono text-xs overflow-x-auto"><code>curl -X POST <%= request.base_url %>/api/v1/uploads \
+  -H "Authorization: Bearer wemd_xxxxxxxxxxxxxxxx" \
+  -F "file=@/path/to/cover.png"
+
+# 响应: {"ok":true,"url":"https://.../f/xxx","filename":"...","size":12345}
+# 拿到的 url 可直接传给 push_to_wechat 的 cover_image_url</code></pre>
+          </div>
         </div>
       </details>
     </div>
