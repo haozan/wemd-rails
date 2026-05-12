@@ -87,15 +87,15 @@ module Wechat
     # 配色方案 (主色 + 加粗色)
     # ============================================================
     COLOR_SCHEMES = [
-      { id: 'lxl_classic',  name: '青绿 · 深橙红(李笑来原版)', primary: LXL_GREEN,  bold: LXL_ORANGE },
-      { id: 'blue_red',     name: '经典蓝 · 朱砂红',   primary: '#1e6bb8', bold: '#d63200' },
-      { id: 'navy_orange',  name: '藏青 · 暖橙',       primary: '#1e3a8a', bold: '#ea580c' },
-      { id: 'teal_magenta', name: '青碧 · 玫红',       primary: '#0f766e', bold: '#db2777' },
-      { id: 'emerald_wine', name: '翡翠 · 酒红',       primary: '#059669', bold: '#9f1239' },
-      { id: 'black_red',    name: '近黑 · 正红',       primary: '#111827', bold: '#dc2626' },
-      { id: 'purple_amber', name: '紫罗兰 · 琥珀',     primary: '#6d28d9', bold: '#d97706' },
-      { id: 'slate_coral',  name: '石墨 · 珊瑚红',     primary: '#334155', bold: '#e11d48' },
-      { id: 'indigo_gold',  name: '靛蓝 · 金黄',       primary: '#4338ca', bold: '#ca8a04' }
+      { id: 'lxl_classic',     name: '青绿 · 深橙红（李笑来原版）', primary: LXL_GREEN,  bold: LXL_ORANGE },
+      { id: 'claude_clay',     name: '砖橙 · 深棕（Claude 经典）',  primary: '#CC785C',  bold: '#3D3929' },
+      { id: 'ink_vermilion',   name: '墨黑 · 朱砂（中式书卷）',     primary: '#1F2937',  bold: '#B91C1C' },
+      { id: 'forest_terracotta', name: '森绿 · 赤陶（自然大地）',   primary: '#365E48',  bold: '#B45309' },
+      { id: 'navy_mustard',    name: '藏青 · 芥末黄（学院风）',     primary: '#1E3A5F',  bold: '#A16207' },
+      { id: 'plum_sand',       name: '梅紫 · 沙金（典雅复古）',     primary: '#5B2A6B',  bold: '#A88B4A' },
+      { id: 'teal_rust',       name: '孔雀蓝 · 锈红（沉稳对比）',   primary: '#0F5E5A',  bold: '#9B3A1F' },
+      { id: 'graphite_amber',  name: '石墨灰 · 琥珀（极简专业）',   primary: '#374151',  bold: '#B45309' },
+      { id: 'cocoa_olive',     name: '可可棕 · 橄榄绿（莫兰迪）',   primary: '#6B4423',  bold: '#6B7A3A' }
     ].freeze
 
     COLOR_SCHEME_BY_ID = COLOR_SCHEMES.index_by { |s| s[:id] }.freeze
