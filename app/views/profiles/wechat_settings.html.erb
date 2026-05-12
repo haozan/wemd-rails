@@ -1,103 +1,136 @@
 <div class="container-sm py-12">
-  <div class="card-elevated">
-    <div class="card-body">
-      <h1 class="text-2xl font-bold text-primary mb-8 text-center">微信公众号同步配置</h1>
+  <div class="mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-primary">公众号同步配置</h1>
+    <p class="text-secondary mt-2">完成下面 3 步，就能一键同步到草稿箱</p>
+  </div>
 
-      <div class="bg-surface/50 rounded-lg p-5 border border-border mb-8">
-        <h3 class="text-sm font-bold text-primary mb-3">🛠️ 配置指南</h3>
-        <ol class="list-decimal pl-4 space-y-2 text-sm text-secondary">
-          <li>登录 <a href="https://developers.weixin.qq.com/platform" target="_blank" class="text-primary hover:underline">微信开发者平台</a>。</li>
-          <li>进入 <strong>我的服务</strong>，找到你的「公众号/服务号」，点击进入。</li>
-          <li>进入左侧菜单的 <strong>设置与开发 > 基本配置</strong>。</li>
-          <li>复制您的 <strong>AppID(开发者ID)</strong> 和 <strong>AppSecret(开发者密码)</strong> 到下方。</li>
-          <li>
-            <span class="text-warning font-semibold">【极其重要】</span>
-            向下滑动，在 <strong>IP白名单</strong> 中加入我们服务器的公网 IP。<br/>
-            如不配置，同步功能将无法使用！
-            
-            <div class="mt-2 mb-1 p-2 bg-background border border-border rounded flex items-center justify-between" data-controller="clipboard">
-              <div>
-                <span class="text-xs text-muted-foreground mr-2">服务器 IP:</span>
-                <code class="text-primary font-mono font-bold" data-clipboard-target="source">43.99.52.36</code>
+  <%= form_with model: @user, url: update_wechat_settings_profile_path, method: :patch, local: true, class: "space-y-6" do |form| %>
+
+    <!-- 步骤 1：把红中 IP 加入白名单 -->
+    <div class="card-elevated">
+      <div class="card-body">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">1</div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-bold text-primary mb-1">把红中服务器 IP 加入公众号白名单</h2>
+            <p class="text-sm text-secondary mb-3">
+              到 <a href="https://mp.weixin.qq.com" target="_blank" class="text-primary hover:underline font-medium">公众号后台</a> →
+              <strong>设置与开发 → 基本配置 → IP 白名单</strong>，把下面这个 IP 加进去。
+              <span class="text-warning font-semibold">不加白名单同步会失败。</span>
+            </p>
+
+            <div class="p-3 bg-surface border border-border rounded-lg flex items-center justify-between" data-controller="clipboard">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xs text-muted-foreground flex-shrink-0">服务器 IP</span>
+                <code class="text-primary font-mono font-bold text-base truncate" data-clipboard-target="source">43.99.52.36</code>
               </div>
-              <button type="button" class="btn-ghost flex items-center px-2 py-1 h-auto text-xs" data-action="click->clipboard#copy">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+              <button type="button" class="btn-secondary text-xs px-3 py-1.5 flex-shrink-0" data-action="click->clipboard#copy">
+                <%= lucide_icon "copy", class: "w-3.5 h-3.5 mr-1" %>
                 复制
               </button>
             </div>
-          </li>
-        </ol>
-      </div>
-
-      <%= form_with model: @user, url: update_wechat_settings_profile_path, method: :patch, local: true, class: "space-y-6" do |form| %>
-        
-        <div>
-          <%= form.label :wechat_app_id, "AppID", class: "form-label required" %>
-          <%= form.text_field :wechat_app_id, class: "input-field w-full", placeholder: "例如: wx1234567890abcdef" %>
-        </div>
-
-        <div>
-          <%= form.label :wechat_app_secret, "AppSecret", class: "form-label required" %>
-          <%= form.text_field :wechat_app_secret, class: "input-field w-full", placeholder: "只有在配置时才需要输入" %>
-          <% if @user.wechat_app_secret.present? %>
-            <div class="form-help text-success mt-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block -mt-1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> 您已保存过 AppSecret，不修改请留空或保持原样。
-            </div>
-          <% end %>
-        </div>
-
-        <div class="pt-6">
-          <div class="flex justify-end space-x-3">
-            <%= link_to "返回", new_document_path, class: "btn-ghost" %>
-            <button type="button" id="test-wechat-btn" class="btn-secondary px-6">测试连接</button>
-            <%= form.submit "保存配置", class: "btn-primary px-8" %>
           </div>
-          <div id="test-wechat-result" class="mt-3 text-sm hidden text-right"></div>
         </div>
-
-      <% end %>
-
-      <script>
-        document.getElementById('test-wechat-btn').addEventListener('click', function() {
-          const btn = this;
-          const result = document.getElementById('test-wechat-result');
-          const appId = document.querySelector('input[name="user[wechat_app_id]"]').value.trim();
-          const appSecret = document.querySelector('input[name="user[wechat_app_secret]"]').value.trim();
-
-          btn.disabled = true;
-          btn.textContent = '测试中…';
-          result.className = 'mt-3 text-sm text-right text-secondary';
-          result.textContent = '';
-
-          fetch('<%= test_wechat_connection_profile_path %>', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ app_id: appId, app_secret: appSecret })
-          })
-          .then(r => r.json())
-          .then(data => {
-            result.classList.remove('hidden');
-            if (data.ok) {
-              result.className = 'mt-3 text-sm text-right text-success';
-            } else {
-              result.className = 'mt-3 text-sm text-right text-destructive';
-            }
-            result.textContent = data.message;
-          })
-          .catch(() => {
-            result.classList.remove('hidden');
-            result.className = 'mt-3 text-sm text-right text-destructive';
-            result.textContent = '请求失败，请检查网络';
-          })
-          .finally(() => {
-            btn.disabled = false;
-            btn.textContent = '测试连接';
-          });
-        });
-      </script>
+      </div>
     </div>
-  </div>
+
+    <!-- 步骤 2：填 AppID + AppSecret -->
+    <div class="card-elevated">
+      <div class="card-body">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">2</div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-bold text-primary mb-1">填入 AppID 和 AppSecret</h2>
+            <p class="text-sm text-secondary mb-4">
+              在公众号后台 <strong>设置与开发 → 基本配置</strong> 页面可以拿到这两个值。
+            </p>
+
+            <div class="space-y-4">
+              <div>
+                <%= form.label :wechat_app_id, "AppID（开发者 ID）", class: "form-label required" %>
+                <%= form.text_field :wechat_app_id, class: "input-field w-full", placeholder: "wx1234567890abcdef" %>
+              </div>
+
+              <div>
+                <%= form.label :wechat_app_secret, "AppSecret（开发者密码）", class: "form-label required" %>
+                <%= form.text_field :wechat_app_secret, class: "input-field w-full", placeholder: @user.wechat_app_secret.present? ? "已保存，不改请留空" : "首次配置时复制粘贴" %>
+                <% if @user.wechat_app_secret.present? %>
+                  <p class="form-help text-success mt-2 flex items-center gap-1.5">
+                    <%= lucide_icon "check-circle", class: "w-4 h-4" %>
+                    已保存过 AppSecret，不改请留空。
+                  </p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步骤 3：测试 + 保存 -->
+    <div class="card-elevated">
+      <div class="card-body">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">3</div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-bold text-primary mb-1">测试连接，确认无误后保存</h2>
+            <p class="text-sm text-secondary mb-4">
+              建议先点「测试连接」验证 AppID / AppSecret / IP 白名单都对，再保存。
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" id="test-wechat-btn" class="btn-secondary">
+                <%= lucide_icon "plug-zap", class: "w-4 h-4 mr-1.5" %>
+                测试连接
+              </button>
+              <%= form.submit "保存配置", class: "btn-primary" %>
+              <%= link_to "返回编辑器", new_document_path, class: "btn-ghost ml-auto" %>
+            </div>
+
+            <div id="test-wechat-result" class="mt-3 text-sm hidden"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <% end %>
+
+  <script>
+    document.getElementById('test-wechat-btn').addEventListener('click', function() {
+      const btn = this;
+      const result = document.getElementById('test-wechat-result');
+      const appId = document.querySelector('input[name="user[wechat_app_id]"]').value.trim();
+      const appSecret = document.querySelector('input[name="user[wechat_app_secret]"]').value.trim();
+
+      btn.disabled = true;
+      const originalHTML = btn.innerHTML;
+      btn.textContent = '测试中…';
+      result.className = 'mt-3 text-sm text-secondary';
+      result.textContent = '';
+
+      fetch('<%= test_wechat_connection_profile_path %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ app_id: appId, app_secret: appSecret })
+      })
+      .then(r => r.json())
+      .then(data => {
+        result.classList.remove('hidden');
+        result.className = 'mt-3 text-sm ' + (data.ok ? 'text-success' : 'text-destructive');
+        result.textContent = (data.ok ? '✓ ' : '✗ ') + data.message;
+      })
+      .catch(() => {
+        result.classList.remove('hidden');
+        result.className = 'mt-3 text-sm text-destructive';
+        result.textContent = '✗ 请求失败，请检查网络';
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      });
+    });
+  </script>
 </div>
