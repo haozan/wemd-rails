@@ -118,8 +118,8 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         ok: true,
         draft_media_id: draft_media_id,
         wechat_draft_url: 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=77',
-        document_id: saved_to_library ? document.friendly_id : nil,
-        document_url: saved_to_library ? edit_document_url(document) : nil,
+        document_id: saved_to_library ? document.id : nil,
+        document_url: saved_to_library ? edit_document_url(document.id) : nil,
         message: '已推送到微信公众号草稿箱，请前往后台预览/发布'
       }
     rescue Wechat::SyncService::SyncError => e
