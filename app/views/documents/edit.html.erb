@@ -369,16 +369,10 @@
   transition: width 0.25s ease;
 }
 
-/* 头部高度与 wemd-header 对齐（响应式） */
+/* Sidebar 内容紧凑：header 自然贴合标题，不强制高度 */
 .history-sidebar .sidebar-header {
-  min-height: 64px;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
-@media (min-width: 768px) {
-  .history-sidebar .sidebar-header {
-    min-height: 72px;
-  }
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
 }
 
 .history-sidebar.is-collapsed {
