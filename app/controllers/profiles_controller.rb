@@ -58,7 +58,37 @@ class ProfilesController < ApplicationController
     end
   end
 
-  # AJAX: 快速保存文章主色（编辑器工具栏用）
+  def test_wechat_connection
+    app_id     = params[:app_id].to_s.strip
+    app_secret = params[:app_secret].to_s.strip
+
+    # 如果 app_secret 留空，尝试用已保存的
+    if app_secret.blank?
+      app_secret = current_user.wechat_app_secret.to_s
+    end
+
+    if app_id.blank? || app_secret.blank?
+      render json: { ok: false, message: "AppID 和 AppSecret 不能为空" } and return
+    end
+
+    # 直接调微信接口，不经过缓存，确保每次都测最新配置
+    begin
+      url = URI("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=#{app_id}&secret=#{app_secret}")
+      response = Net::HTTP.get_response(url)
+      result   = JSON.parse(response.body)
+
+      if result["access_token"].present?
+        render json: { ok: true, message: "✅ 连接成功！配置正确。" }
+      else
+        errmsg = result["errmsg"] || "未知错误"
+        render json: { ok: false, message: "❌ 连接失败：#{errmsg}（请检查 AppID/AppSecret 是否正确，以及服务器 IP 是否已加入白名单）" }
+      end
+    rescue => e
+      render json: { ok: false, message: "请求失败：#{e.message}" }
+    end
+  end
+
+
   def update_primary_color
     @user = current_user
     color = params[:wx_primary_color].to_s.strip

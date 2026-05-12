@@ -49,11 +49,55 @@
         <div class="pt-6">
           <div class="flex justify-end space-x-3">
             <%= link_to "返回", new_document_path, class: "btn-ghost" %>
+            <button type="button" id="test-wechat-btn" class="btn-secondary px-6">测试连接</button>
             <%= form.submit "保存配置", class: "btn-primary px-8" %>
           </div>
+          <div id="test-wechat-result" class="mt-3 text-sm hidden text-right"></div>
         </div>
 
       <% end %>
+
+      <script>
+        document.getElementById('test-wechat-btn').addEventListener('click', function() {
+          const btn = this;
+          const result = document.getElementById('test-wechat-result');
+          const appId = document.querySelector('input[name="user[wechat_app_id]"]').value.trim();
+          const appSecret = document.querySelector('input[name="user[wechat_app_secret]"]').value.trim();
+
+          btn.disabled = true;
+          btn.textContent = '测试中…';
+          result.className = 'mt-3 text-sm text-right text-secondary';
+          result.textContent = '';
+
+          fetch('<%= test_wechat_connection_profile_path %>', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ app_id: appId, app_secret: appSecret })
+          })
+          .then(r => r.json())
+          .then(data => {
+            result.classList.remove('hidden');
+            if (data.ok) {
+              result.className = 'mt-3 text-sm text-right text-success';
+            } else {
+              result.className = 'mt-3 text-sm text-right text-destructive';
+            }
+            result.textContent = data.message;
+          })
+          .catch(() => {
+            result.classList.remove('hidden');
+            result.className = 'mt-3 text-sm text-right text-destructive';
+            result.textContent = '请求失败，请检查网络';
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.textContent = '测试连接';
+          });
+        });
+      </script>
     </div>
   </div>
 </div>

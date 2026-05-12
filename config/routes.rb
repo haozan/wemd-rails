@@ -60,6 +60,7 @@ Rails.application.routes.draw do
       patch :update_password
       get :wechat_settings
       patch :update_wechat_settings
+      post :test_wechat_connection
       patch :update_primary_color
       patch :update_color_scheme
     end
