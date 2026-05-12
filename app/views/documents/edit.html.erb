@@ -12,22 +12,6 @@
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <!-- Top Row: Icons + Title (Mobile & Desktop) -->
         <div class="flex items-center gap-4 flex-1">
-          <!-- History Panel Toggle -->
-          <button type="button" 
-                  class="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                  data-action="click->history-panel#toggle"
-                  title="文章目录">
-            <%= lucide_icon "folder", class: "w-5 h-5" %>
-          </button>
-          
-          <!-- New Document Button -->
-          <%= link_to new_document_path, 
-                      class: "text-muted-foreground hover:text-foreground transition-colors flex-shrink-0",
-                      title: "新建文章",
-                      data: { turbo: false } do %>
-            <%= lucide_icon "plus", class: "w-5 h-5" %>
-          <% end %>
-          
           <div class="flex-1 min-w-0">
             <%# 标题只读，由 markdown 里的 # 自动同步，不允许手动修改 %>
             <div class="text-xl font-semibold truncate text-foreground select-none"
@@ -299,17 +283,25 @@
   <aside class="history-sidebar absolute top-0 left-0 bottom-0 bg-surface border-r border-border z-40 flex flex-col"
          data-history-panel-target="sidebar">
     <!-- Sidebar Header -->
-    <div class="sidebar-inner flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+    <div class="sidebar-inner sidebar-header flex items-center justify-between border-b border-border bg-surface px-5">
       <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
         <%= lucide_icon "folder", class: "w-4 h-4" %>
         文章目录
       </h2>
-      <button type="button"
-              class="text-muted-foreground hover:text-foreground transition-colors"
-              data-action="click->history-panel#toggle"
-              title="折叠">
-        <%= lucide_icon "panel-left-close", class: "w-5 h-5" %>
-      </button>
+      <div class="flex items-center gap-1">
+        <%= link_to new_document_path,
+                    class: "text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-muted",
+                    title: "新建文章",
+                    data: { turbo: false } do %>
+          <%= lucide_icon "plus", class: "w-4 h-4" %>
+        <% end %>
+        <button type="button"
+                class="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-muted"
+                data-action="click->history-panel#toggle"
+                title="折叠">
+          <%= lucide_icon "panel-left-close", class: "w-4 h-4" %>
+        </button>
+      </div>
     </div>
 
     <!-- Search Bar -->
@@ -375,6 +367,18 @@
   width: 280px;
   max-width: 90vw;
   transition: width 0.25s ease;
+}
+
+/* 头部高度与 wemd-header 对齐（响应式） */
+.history-sidebar .sidebar-header {
+  min-height: 64px;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+@media (min-width: 768px) {
+  .history-sidebar .sidebar-header {
+    min-height: 72px;
+  }
 }
 
 .history-sidebar.is-collapsed {
