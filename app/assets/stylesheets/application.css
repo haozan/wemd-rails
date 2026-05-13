@@ -261,6 +261,8 @@
     body.documents-update-page,
     body.documents-create-page {
       height: 100vh;
+      min-height: 0 !important;  /* 覆盖 tailwind min-h-screen */
+      max-height: 100vh;
       overflow: hidden;
     }
     body.documents-edit-page > main,
@@ -268,6 +270,7 @@
     body.documents-update-page > main,
     body.documents-create-page > main {
       min-height: 0;
+      flex: 1 1 0;
       overflow: hidden;
     }
   }
