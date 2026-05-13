@@ -8,6 +8,9 @@ module.exports = {
     './app/views/**/*.{erb,html}'
   ],
   safelist: [
+    // body class names generated dynamically by body_class helper
+    // (controller_path + action_name) — tailwind static scan can't find them
+    { pattern: /^documents-(edit|new|update|create)-page$/ },
     { pattern: /^btn/ },
     { pattern: /^badge/ },
     { pattern: /^alert/ },
