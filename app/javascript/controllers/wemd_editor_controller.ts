@@ -68,6 +68,8 @@ export default class extends Controller<HTMLElement> {
   // 微信真实效果预览模式（默认开启，直接显示公众号真实效果）
   private wechatPreviewMode: boolean = true
   private wechatPreviewInflight: AbortController | null = null
+  // 上次成功渲染的微信预览内容指纹（content + theme_id），相同时跳过重复请求
+  private lastWechatPreviewKey: string = ''
 
   // 标题同步：记录上次从 Markdown 提取并同步的标题，用于冲突检测
   // _lastSyncedTitle 已废弃，标题完全由 markdown # 驱动，无需手动同步跟踪
@@ -145,7 +147,7 @@ export default class extends Controller<HTMLElement> {
       this.syncFootnotes()
       this.renderPreview()
       this.updateFootnoteNumber()
-    }, 300)
+    }, 600)
   }
 
   /**
@@ -207,6 +209,15 @@ export default class extends Controller<HTMLElement> {
       return
     }
 
+    const content = this.editorTarget.value
+    const themeId = this.themeSelectTarget.value
+
+    // 内容指纹：内容 + 主题都没变就直接跳过，避免无效请求 + 闪烁
+    const key = `${themeId}::${content}`
+    if (key === this.lastWechatPreviewKey && !this.wechatPreviewInflight) {
+      return
+    }
+
     // 取消上一次未完成的请求
     if (this.wechatPreviewInflight) {
       this.wechatPreviewInflight.abort()
@@ -214,15 +225,18 @@ export default class extends Controller<HTMLElement> {
     const controller = new AbortController()
     this.wechatPreviewInflight = controller
 
-    const content = this.editorTarget.value
-    const themeId = this.themeSelectTarget.value
-
     // 清空本地主题 CSS,避免和内联样式冲突
     const styleElement = document.getElementById('theme-styles')
     if (styleElement) styleElement.textContent = ''
 
-    // 显示加载占位
-    this.previewTarget.innerHTML = '<div class="text-sm text-muted-foreground p-4">⏳ 正在渲染微信效果...</div>'
+    // 注意：不再显示"⏳ 正在渲染微信效果..."占位
+    // 否则用户每打一个字都会看到预览区先白屏再恢复，体感像页面在刷新
+    // 改为：保持上一次的预览内容不变，等新结果到了再 in-place 替换
+    // 加载状态通过 previewBadge 的视觉提示传达（可选）
+    if (this.hasPreviewBadgeTarget) {
+      this.previewBadgeTarget.textContent = '⏳ 渲染中...'
+      this.previewBadgeTarget.classList.remove('hidden')
+    }
 
     try {
       const res = await fetch(url, {
@@ -250,6 +264,8 @@ export default class extends Controller<HTMLElement> {
           </div>
         </div>
       `
+      // 记录指纹，下一次相同内容直接跳过
+      this.lastWechatPreviewKey = key
 
       // 更新徽章提示
       if (this.hasPreviewBadgeTarget) {
