@@ -51,11 +51,15 @@ export default class extends Controller<HTMLElement> {
     this.loadHistory()
     
     // 监听自动保存事件，刷新列表以更新主题标签
-    window.addEventListener('document:autosaved', this.handleAutoSaved)
+    // 注意：不监听 document:autosaved。每次输入暂停 2s 都会触发 autosave，
+    // 如果 reload 整个列表（showLoading + fetch + renderHistory），用户会看到
+    // 左侧目录持续闪烁，体感"页面在刷新"。当前文档的 updated_at 改了也不影响
+    // 列表顺序（它就是顶部那条），无需重新拉取。
+    // window.addEventListener('document:autosaved', this.handleAutoSaved)
   }
 
   disconnect(): void {
-    window.removeEventListener('document:autosaved', this.handleAutoSaved)
+    // window.removeEventListener('document:autosaved', this.handleAutoSaved)
   }
   
   // 处理自动保存事件

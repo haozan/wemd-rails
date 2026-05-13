@@ -251,6 +251,27 @@
     position: relative;
   }
 
+  /* 编辑页锁定 viewport，避免页面级滚动
+     —— 让滚动只发生在 textarea 和预览区内部，
+        左右两边各自独立滚动，互不影响（同时被 setupScrollSync 联动）
+     —— 仅桌面端启用；移动端单栏布局不做约束，允许页面整体滚动 */
+  @media (min-width: 768px) {
+    body.documents-edit-page,
+    body.documents-new-page,
+    body.documents-update-page,
+    body.documents-create-page {
+      height: 100vh;
+      overflow: hidden;
+    }
+    body.documents-edit-page > main,
+    body.documents-new-page > main,
+    body.documents-update-page > main,
+    body.documents-create-page > main {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
   /* 确保 form 能正确传递高度 */
   .wemd-container > form {
     display: flex;
