@@ -1,171 +1,121 @@
 <!-- WeMD Markdown Editor Landing Page -->
 <div class="min-h-screen bg-gradient-to-br from-background via-surface to-muted">
-  <!-- Hero Section -->
+  <!-- Hero Section: 左文 + 右视频，首屏即见演示 -->
   <section class="relative overflow-hidden">
-    <!-- Decorative Background -->
     <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-40 md:pb-48">
-      <div class="text-center">
-        <!-- Logo & Title -->
-        <div class="inline-flex items-center justify-center mb-8 animate-float">
-          <%= image_tag 'icon-512.png', alt: '红中排版', class: 'w-20 h-20' %>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16 pb-16 md:pb-20">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+
+        <!-- 左：文案 + CTA -->
+        <div class="text-center lg:text-left">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-5 leading-tight">
+            律师营销自动化
+          </h1>
+
+          <p class="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
+            一句话指令，青狮龙虾 AI 帮你完成排版、配图、封面、推送草稿箱
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center">
+            <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4" do %>
+              <%= lucide_icon "sparkles", class: "w-5 h-5 mr-2" %>
+              开始创作
+            <% end %>
+            <span class="text-sm text-muted-foreground">
+              专为律师内容营销打造
+            </span>
+          </div>
         </div>
-        
-        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
-          律师营销自动化
-        </h1>
-        
-        <p class="text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto">
-          一句话指令，青狮龙虾 AI 一气呵成
-        </p>
-        <p class="text-base md:text-lg text-muted-foreground mb-12 max-w-3xl mx-auto">
-          公众号排版 · 封面生成 · 正文配图 · 一键推送草稿箱
-        </p>
-        
-        <!-- CTA Buttons -->
-        <div class="flex justify-center items-center relative z-10">
-          <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4" do %>
-            开始创作
-          <% end %>
-        </div>
-        
-        <p class="text-sm text-muted-foreground mt-6">
-          <%= lucide_icon "sparkles", class: "w-4 h-4 inline mr-1" %>
-          青狮龙虾 AI 驱动 · 专为律师内容营销打造
-        </p>
-      </div>
-    </div>
-  </section>
 
-  <!-- Demo Video Section -->
-  <section class="relative -mt-32 md:-mt-40 pb-20 z-10">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-8">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-          <%= lucide_icon "play-circle", class: "w-4 h-4" %>
-          90 秒看懂
-        </span>
-        <h2 class="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          一句话指令，AI 全自动发文
-        </h2>
-        <p class="text-muted-foreground">
-          看一遍就会，省下每周排版的 3 小时
-        </p>
-      </div>
+        <!-- 右：演示视频（首屏可见） -->
+        <div data-controller="inline-video"
+             data-inline-video-url-value="https://ipic.qinglion.com/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%8E%92%E7%89%88%E5%8F%91%E5%B8%83_%E5%AD%97%E5%B9%95_%E5%B0%81%E9%9D%A2-%E5%8E%8B%E7%BC%A9.mp4"
+             class="relative group">
+          <!-- 装饰光晕 -->
+          <div class="absolute -inset-1 bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 rounded-2xl blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
 
-      <div data-controller="inline-video"
-           data-inline-video-url-value="https://ipic.qinglion.com/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%8E%92%E7%89%88%E5%8F%91%E5%B8%83_%E5%AD%97%E5%B9%95_%E5%B0%81%E9%9D%A2-%E5%8E%8B%E7%BC%A9.mp4"
-           class="relative group">
-        <!-- Decorative glow -->
-        <div class="absolute -inset-1 bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 rounded-2xl blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
+          <!-- 16:9 容器 -->
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border bg-black"
+               style="aspect-ratio: 16 / 9;">
 
-        <!-- Aspect ratio wrapper (16:9) -->
-        <div class="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border bg-black"
-             style="aspect-ratio: 16 / 9;">
+            <button type="button"
+                    data-inline-video-target="trigger"
+                    data-action="click->inline-video#play"
+                    class="absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer group/btn"
+                    aria-label="播放演示视频">
+              <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-secondary/20"></div>
+              <div class="absolute inset-0 bg-grid-pattern opacity-[0.04]"></div>
 
-          <!-- Poster + play trigger (default state) -->
-          <button type="button"
-                  data-inline-video-target="trigger"
-                  data-action="click->inline-video#play"
-                  class="absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer group/btn"
-                  aria-label="播放演示视频">
-            <!-- Gradient backdrop -->
-            <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-secondary/20"></div>
-            <!-- Subtle grid overlay -->
-            <div class="absolute inset-0 bg-grid-pattern opacity-[0.04]"></div>
-
-            <!-- Big play button -->
-            <div class="relative z-10 flex flex-col items-center gap-4">
-              <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl ring-8 ring-primary/20 group-hover/btn:scale-110 group-hover/btn:ring-primary/30 transition-all duration-300">
-                <%= lucide_icon "play", class: "w-10 h-10 md:w-12 md:h-12 ml-1 fill-current" %>
+              <div class="relative z-10 flex flex-col items-center gap-3">
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl ring-8 ring-primary/20 group-hover/btn:scale-110 group-hover/btn:ring-primary/30 transition-all duration-300">
+                  <%= lucide_icon "play", class: "w-10 h-10 md:w-12 md:h-12 ml-1 fill-current" %>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm text-foreground text-xs md:text-sm font-medium shadow-sm">
+                  90 秒看懂 · 公众号排版发布演示
+                </span>
               </div>
-              <span class="text-sm md:text-base text-foreground/80 font-medium">
-                点击播放 · 公众号排版发布演示
-              </span>
-            </div>
-          </button>
+            </button>
 
-          <!-- Video container (lazy-injected on click) -->
-          <div data-inline-video-target="container" class="hidden absolute inset-0"></div>
+            <div data-inline-video-target="container" class="hidden absolute inset-0"></div>
+          </div>
         </div>
+
       </div>
     </div>
   </section>
-  <section class="py-20 bg-surface/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
+  <section class="py-16 md:py-20 bg-surface/50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-3">
           为什么选择红中排版？
         </h2>
-        <p class="text-lg text-muted-foreground">
-          从写稿到发文，全流程交给 AI——律师只管输出专业，营销交给青狮龙虾
+        <p class="text-base md:text-lg text-muted-foreground">
+          律师只管输出专业，营销交给青狮龙虾
         </p>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Feature 1 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "wand-sparkles", class: "w-6 h-6 text-primary" %>
+        <div class="card p-6 md:p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-primary/10 mb-4">
+            <%= lucide_icon "wand-sparkles", class: "w-5 h-5 text-primary" %>
           </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">AI 一句话发文</h3>
-          <p class="text-muted-foreground">
-            把草稿丢给青狮龙虾，自动排版、配图、推送公众号草稿箱，一条指令走完全程
+          <h3 class="text-lg font-semibold text-foreground mb-2">一句话发文</h3>
+          <p class="text-muted-foreground text-sm md:text-base">
+            草稿丢给青狮龙虾，自动排版、配图、推送公众号草稿箱，一条指令走完全程
           </p>
         </div>
-        
+
         <!-- Feature 2 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "image", class: "w-6 h-6 text-primary" %>
+        <div class="card p-6 md:p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-primary/10 mb-4">
+            <%= lucide_icon "image", class: "w-5 h-5 text-primary" %>
           </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">AI 生成封面图</h3>
-          <p class="text-muted-foreground">
-            根据文章主题自动生成符合律师调性的封面，告别每次发文都要找设计师
+          <h3 class="text-lg font-semibold text-foreground mb-2">封面与插图全自动</h3>
+          <p class="text-muted-foreground text-sm md:text-base">
+            自动生成符合律师调性的封面，识别金句、概念、对比节点，配同色系信息卡
           </p>
         </div>
-        
+
         <!-- Feature 3 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "layout-grid", class: "w-6 h-6 text-primary" %>
+        <div class="card p-6 md:p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-primary/10 mb-4">
+            <%= lucide_icon "palette", class: "w-5 h-5 text-primary" %>
           </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">AI 配正文插图</h3>
-          <p class="text-muted-foreground">
-            自动识别金句、概念、数据、对比节点，生成同色系信息卡，让长文不再单调
-          </p>
-        </div>
-        
-        <!-- Feature 4 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "send", class: "w-6 h-6 text-primary" %>
-          </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">一键推送草稿箱</h3>
-          <p class="text-muted-foreground">
-            排版好的文章直接进入公众号草稿箱，省去复制粘贴和反复调格式的烦恼
-          </p>
-        </div>
-        
-        <!-- Feature 5 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "palette", class: "w-6 h-6 text-primary" %>
-          </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">律师专属主题</h3>
-          <p class="text-muted-foreground">
+          <h3 class="text-lg font-semibold text-foreground mb-2">律师专属主题</h3>
+          <p class="text-muted-foreground text-sm md:text-base">
             内置多套面向律师场景的精排主题，专业、克制、不浮夸，第一眼就显信赖感
           </p>
         </div>
 
-        <!-- Feature 6 -->
-        <div class="card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-6">
-            <%= lucide_icon "folder", class: "w-6 h-6 text-primary" %>
+        <!-- Feature 4 -->
+        <div class="card p-6 md:p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-primary/10 mb-4">
+            <%= lucide_icon "folder", class: "w-5 h-5 text-primary" %>
           </div>
-          <h3 class="text-xl font-semibold text-foreground mb-3">文章目录沉淀</h3>
-          <p class="text-muted-foreground">
+          <h3 class="text-lg font-semibold text-foreground mb-2">内容资产沉淀</h3>
+          <p class="text-muted-foreground text-sm md:text-base">
             所有 AI 生成的文章自动归档，构建你的个人内容资产，案源越积越厚
           </p>
         </div>
@@ -174,22 +124,20 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="py-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div class="card-gradient p-12 rounded-2xl">
-        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          让 AI 成为你的内容营销搭档
+  <section class="py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="card-gradient p-10 md:p-12 rounded-2xl">
+        <h2 class="text-2xl md:text-3xl font-bold text-foreground mb-3">
+          每周 1 小时口述草稿，剩下交给 AI
         </h2>
-        <p class="text-lg text-muted-foreground mb-8">
-          每周 1 小时口述一份草稿，剩下的交给青狮龙虾——封面、配图、推送，全自动
+        <p class="text-base md:text-lg text-muted-foreground mb-8">
+          封面、配图、推送，全自动
         </p>
-        
-        <div class="flex justify-center">
-          <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4" do %>
-            <%= lucide_icon "rocket", class: "w-5 h-5 mr-2" %>
-            立即开启自动化
-          <% end %>
-        </div>
+
+        <%= link_to start_writing_path, class: "btn-primary text-lg px-8 py-4 inline-flex items-center" do %>
+          <%= lucide_icon "rocket", class: "w-5 h-5 mr-2" %>
+          立即开启自动化
+        <% end %>
       </div>
     </div>
   </section>
@@ -217,20 +165,6 @@
     linear-gradient(to right, currentColor 1px, transparent 1px),
     linear-gradient(to bottom, currentColor 1px, transparent 1px);
   background-size: 40px 40px;
-}
-
-/* Float Animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
 }
 
 /* Gradient Card */
