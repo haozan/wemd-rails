@@ -58,12 +58,35 @@ Additional Effects:
         <!-- Right section: Settings + Theme toggle + User menu -->
         <div class="hidden md:flex items-center space-x-2">
           <% if current_user %>
-            <%= link_to "配置公众号同步", wechat_settings_profile_path,
-                  class: "btn-ghost btn-sm",
-                  title: "配置 AppID / AppSecret / IP 白名单" %>
-            <%= link_to "配置青狮龙虾AI", api_tokens_profile_path,
-                  class: "btn-ghost btn-sm",
-                  title: "生成 API Token 给青狮龙虾自动发文" %>
+            <% video_url = "https://ipic.qinglion.com/%E7%BA%A2%E4%B8%AD%E6%8E%92%E7%89%88%E9%85%8D%E7%BD%AE_%E5%AD%97%E5%B9%95_%E5%B0%81%E9%9D%A2-%E5%8E%8B%E7%BC%A9.mp4" %>
+            <div class="flex items-center">
+              <%= link_to "配置公众号同步", wechat_settings_profile_path,
+                    class: "btn-ghost btn-sm",
+                    title: "配置 AppID / AppSecret / IP 白名单" %>
+              <button type="button"
+                      data-controller="video-modal"
+                      data-video-modal-url-value="<%= video_url %>"
+                      data-video-modal-title-value="配置公众号同步 · 演示视频"
+                      data-action="click->video-modal#open"
+                      class="ml-1 p-1.5 text-secondary hover:text-primary hover:bg-surface rounded-md transition-colors"
+                      title="点击观看配置演示视频">
+                <%= lucide_icon "play-circle", class: "w-4 h-4" %>
+              </button>
+            </div>
+            <div class="flex items-center">
+              <%= link_to "配置青狮龙虾AI", api_tokens_profile_path,
+                    class: "btn-ghost btn-sm",
+                    title: "生成 API Token 给青狮龙虾自动发文" %>
+              <button type="button"
+                      data-controller="video-modal"
+                      data-video-modal-url-value="<%= video_url %>"
+                      data-video-modal-title-value="配置青狮龙虾 AI · 演示视频"
+                      data-action="click->video-modal#open"
+                      class="ml-1 p-1.5 text-secondary hover:text-primary hover:bg-surface rounded-md transition-colors"
+                      title="点击观看配置演示视频">
+                <%= lucide_icon "play-circle", class: "w-4 h-4" %>
+              </button>
+            </div>
           <% end %>
 
           <!-- Dark mode toggle -->
