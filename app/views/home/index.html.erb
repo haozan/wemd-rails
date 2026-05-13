@@ -5,7 +5,7 @@
     <!-- Decorative Background -->
     <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-40 md:pb-48">
       <div class="text-center">
         <!-- Logo & Title -->
         <div class="inline-flex items-center justify-center mb-8 animate-float">
@@ -38,7 +38,60 @@
     </div>
   </section>
 
-  <!-- Features Section -->
+  <!-- Demo Video Section -->
+  <section class="relative -mt-32 md:-mt-40 pb-20 z-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-8">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <%= lucide_icon "play-circle", class: "w-4 h-4" %>
+          90 秒看懂
+        </span>
+        <h2 class="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          一句话指令，AI 全自动发文
+        </h2>
+        <p class="text-muted-foreground">
+          看一遍就会，省下每周排版的 3 小时
+        </p>
+      </div>
+
+      <div data-controller="inline-video"
+           data-inline-video-url-value="https://ipic.qinglion.com/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%8E%92%E7%89%88%E5%8F%91%E5%B8%83_%E5%AD%97%E5%B9%95_%E5%B0%81%E9%9D%A2-%E5%8E%8B%E7%BC%A9.mp4"
+           class="relative group">
+        <!-- Decorative glow -->
+        <div class="absolute -inset-1 bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 rounded-2xl blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
+
+        <!-- Aspect ratio wrapper (16:9) -->
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border bg-black"
+             style="aspect-ratio: 16 / 9;">
+
+          <!-- Poster + play trigger (default state) -->
+          <button type="button"
+                  data-inline-video-target="trigger"
+                  data-action="click->inline-video#play"
+                  class="absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer group/btn"
+                  aria-label="播放演示视频">
+            <!-- Gradient backdrop -->
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-secondary/20"></div>
+            <!-- Subtle grid overlay -->
+            <div class="absolute inset-0 bg-grid-pattern opacity-[0.04]"></div>
+
+            <!-- Big play button -->
+            <div class="relative z-10 flex flex-col items-center gap-4">
+              <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl ring-8 ring-primary/20 group-hover/btn:scale-110 group-hover/btn:ring-primary/30 transition-all duration-300">
+                <%= lucide_icon "play", class: "w-10 h-10 md:w-12 md:h-12 ml-1 fill-current" %>
+              </div>
+              <span class="text-sm md:text-base text-foreground/80 font-medium">
+                点击播放 · 公众号排版发布演示
+              </span>
+            </div>
+          </button>
+
+          <!-- Video container (lazy-injected on click) -->
+          <div data-inline-video-target="container" class="hidden absolute inset-0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
   <section class="py-20 bg-surface/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
