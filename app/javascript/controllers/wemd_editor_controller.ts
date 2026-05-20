@@ -326,6 +326,8 @@ export default class extends Controller<HTMLElement> {
 
     this._colorSchemeHandler = () => {
       if (this.wechatPreviewMode) {
+        // 配色变了，强制让指纹失效，否则 renderWechatPreview 的去重会跳过这次重渲染
+        this.lastWechatPreviewKey = ''
         this.renderPreview()
       }
     }
