@@ -73,17 +73,16 @@
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">3</div>
           <div class="flex-1 min-w-0">
-            <h2 class="text-lg font-bold text-primary mb-1">测试连接，确认无误后保存</h2>
+            <h2 class="text-lg font-bold text-primary mb-1">测试连接，通过即自动保存</h2>
             <p class="text-sm text-secondary mb-4">
-              建议先点「测试连接」验证 AppID / AppSecret / IP 白名单都对，再保存。
+              点击「测试连接」，验证 AppID / AppSecret / IP 白名单无误后自动保存。
             </p>
 
             <div class="flex flex-wrap items-center gap-3">
-              <button type="button" id="test-wechat-btn" class="btn-secondary">
+              <button type="button" id="test-wechat-btn" class="btn-primary">
                 <%= lucide_icon "plug-zap", class: "w-4 h-4 mr-1.5" %>
-                测试连接
+                测试并保存
               </button>
-              <%= form.submit "保存配置", class: "btn-primary" %>
               <%= link_to "返回编辑器", new_document_path, class: "btn-ghost ml-auto" %>
             </div>
 
@@ -121,6 +120,11 @@
         result.classList.remove('hidden');
         result.className = 'mt-3 text-sm ' + (data.ok ? 'text-success' : 'text-destructive');
         result.textContent = (data.ok ? '✓ ' : '✗ ') + data.message;
+        if (data.ok) {
+          btn.textContent = '保存中…';
+          btn.disabled = true;
+          btn.closest('form').submit();
+        }
       })
       .catch(() => {
         result.classList.remove('hidden');
