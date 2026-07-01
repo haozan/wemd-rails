@@ -245,6 +245,11 @@ module Wechat
         codes = []
         line = line.gsub(/`+[^`\n]+?`+/) { |m| codes << m; "\x00CODE#{codes.size - 1}\x00" }
 
+        # 把 URL（图片/链接）临时占位，避免 URL 里的 _ 被误判为 CJK 斜体
+        # 否则 Screenshot_20260507_163141.jpg → Screenshot<em>20260507</em>163141.jpg
+        urls = []
+        line = line.gsub(/(!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\))/) { |m| urls << m; "\x00URL#{urls.size - 1}\x00" }
+
         # **bold** / __bold__：内容里不能再含同种定界符
         line = line.gsub(/\*\*([^\s*][^*\n]*?[^\s*]|\S)\*\*/) { "<strong>#{$1}</strong>" }
         line = line.gsub(/__([^\s_][^_\n]*?[^\s_]|\S)__/)     { "<strong>#{$1}</strong>" }
@@ -252,7 +257,8 @@ module Wechat
         line = line.gsub(/(?<!\*)\*([^\s*][^*\n]*?[^\s*]|\S)\*(?!\*)/) { "<em>#{$1}</em>" }
         line = line.gsub(/(?<!_)_([^\s_][^_\n]*?[^\s_]|\S)_(?!_)/)     { "<em>#{$1}</em>" }
 
-        # 还原占位的行内代码
+        # 先还原 URL 占位，再还原行内代码
+        line = line.gsub(/\x00URL(\d+)\x00/) { urls[$1.to_i] }
         line.gsub(/\x00CODE(\d+)\x00/) { codes[$1.to_i] }
       end
       lines.join("\n")
