@@ -49,6 +49,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_REVISION=${{ github.sha }}
       
       # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see [Using artifact attestations to establish provenance for builds](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds).
       - name: Generate artifact attestation
@@ -58,14 +60,41 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
       - name: Trigger dokploy redeploy
+        if: github.event_name == 'push'
         env:
           DOKPLOY_DEPLOY_URL: ${{ secrets.DOKPLOY_DEPLOY_URL }}
         run: |
           if [ -n "$DOKPLOY_DEPLOY_URL" ]; then
             echo "🚀 Triggering dokploy redeploy..."
-            curl -X GET "$DOKPLOY_DEPLOY_URL"
+            curl --fail --show-error --silent "$DOKPLOY_DEPLOY_URL"
           else
             echo "⏭️  Skipping dokploy redeploy (DOKPLOY_DEPLOY_URL not set)"
           fi
-      
 
+      - name: Wait for production revision
+        if: github.event_name == 'push'
+        env:
+          APP_REVISION: ${{ github.sha }}
+          DOKPLOY_DEPLOY_URL: ${{ secrets.DOKPLOY_DEPLOY_URL }}
+          PRODUCTION_HEALTH_URL: https://hongzhongai.com/api/v1/health
+        run: |
+          if [ -z "$DOKPLOY_DEPLOY_URL" ]; then
+            echo "⏭️  Skipping production health check (DOKPLOY_DEPLOY_URL not set)"
+            exit 0
+          fi
+
+          for attempt in {1..90}; do
+            response="$(curl --fail --show-error --silent --max-time 10 "$PRODUCTION_HEALTH_URL" || true)"
+            deployed_revision="$(jq -r '.revision // empty' <<<"$response" 2>/dev/null || true)"
+
+            if [ "$deployed_revision" = "$APP_REVISION" ]; then
+              echo "✅ Production is serving revision $APP_REVISION"
+              exit 0
+            fi
+
+            echo "⏳ Waiting for production revision ($attempt/90; current: ${deployed_revision:-unavailable})"
+            sleep 10
+          done
+
+          echo "❌ Production did not serve revision $APP_REVISION within 15 minutes"
+          exit 1

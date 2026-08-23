@@ -4,7 +4,8 @@ class Api::V1::HealthController < Api::BaseController
       status: 'ok',
       message: 'API is running',
       timestamp: Time.current.iso8601,
-      version: '1.0.0'
+      version: '1.0.0',
+      revision: ENV.fetch('APP_REVISION', 'unknown')
     }
   end
 end
