@@ -511,8 +511,8 @@
       0 2px 8px rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
     /* 关键:让内部文字/图片按 375px 的视觉宽度渲染,更接近真机 */
-    font-size: 15px;
-    line-height: 1.7;
+    font-size: 17px;
+    line-height: 1.75;
   }
 
   /* 手机预览里的图片自适应不溢出 */

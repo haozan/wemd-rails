@@ -145,7 +145,7 @@ export default class extends Controller<HTMLElement> {
     const m = s.match(/rgb\((\d+)[\s,]+(\d+)[\s,]+(\d+)/i)
     if (!m) return s.toLowerCase().trim()
     const toHex = (n: string) => parseInt(n, 10).toString(16).padStart(2, "0")
-    return "#" + toHex(m[1]) + toHex(m[2]) + toHex(m[3])
+    return `#${toHex(m[1])}${toHex(m[2])}${toHex(m[3])}`
   }
 
   private _attachOutsideHandler() {

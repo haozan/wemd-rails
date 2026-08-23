@@ -16,6 +16,7 @@ import ThemeSyncController from "./theme_sync_controller"
 import ColorPickerController from "./color_picker_controller"
 import VideoModalController from "./video_modal_controller"
 import InlineVideoController from "./inline_video_controller"
+import TypographyProfileController from "./typography_profile_controller"
 
 const application = Application.start()
 
@@ -35,5 +36,6 @@ application.register("theme-sync", ThemeSyncController)
 application.register("color-picker", ColorPickerController)
 application.register("video-modal", VideoModalController)
 application.register("inline-video", InlineVideoController)
+application.register("typography-profile", TypographyProfileController)
 
 window.Stimulus = application

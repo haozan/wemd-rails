@@ -111,6 +111,7 @@ export default class extends Controller<HTMLElement> {
 
     // 微信预览永远开启,启动颜色变化监听
     this.watchPrimaryColorChange()
+    this.watchTypographyProfileChange()
   }
 
   disconnect(): void {
@@ -129,6 +130,12 @@ export default class extends Controller<HTMLElement> {
     document.removeEventListener('mousedown', this.handleOutsideClick)
     document.removeEventListener('keydown', this.handleKeyboardShortcut)
     this.editorTarget.removeEventListener('scroll', this.handleEditorScroll)
+    if (this._colorSchemeHandler) {
+      window.removeEventListener("wemd:color-scheme-changed", this._colorSchemeHandler)
+    }
+    if (this._typographyProfileHandler) {
+      window.removeEventListener("wemd:typography-profile-changed", this._typographyProfileHandler)
+    }
   }
 
 
@@ -273,6 +280,9 @@ export default class extends Controller<HTMLElement> {
         if (data.bold_color && data.bold_color !== data.primary_color) {
           parts.push(`加粗 ${data.bold_color}`)
         }
+        if (data.effective_typography) {
+          parts.push(`${data.effective_typography.name} ${data.effective_typography.body_font_size}`)
+        }
         // 只有一个主题(李笑来原版)且已适配,不再显示"未适配"提示
         // if (!data.theme_adapted && data.theme_name) parts.push('⚠️ 未适配')
         this.previewBadgeTarget.textContent = parts.length ? `[${parts.join(' · ')}]` : ''
@@ -315,6 +325,7 @@ export default class extends Controller<HTMLElement> {
   }
 
   private _colorSchemeHandler: ((e: Event) => void) | null = null
+  private _typographyProfileHandler: ((e: Event) => void) | null = null
   private watchPrimaryColorChange(): void {
     // 老的轮询方案不稳,改为监听 color_picker 派发的事件
     if (this._colorSchemeHandler) {
@@ -331,6 +342,18 @@ export default class extends Controller<HTMLElement> {
       }
     }
     window.addEventListener("wemd:color-scheme-changed", this._colorSchemeHandler)
+  }
+
+  private watchTypographyProfileChange(): void {
+    if (this._typographyProfileHandler) {
+      window.removeEventListener("wemd:typography-profile-changed", this._typographyProfileHandler)
+    }
+
+    this._typographyProfileHandler = () => {
+      this.lastWechatPreviewKey = ''
+      if (this.wechatPreviewMode) this.renderPreview()
+    }
+    window.addEventListener("wemd:typography-profile-changed", this._typographyProfileHandler)
   }
 
   /**
@@ -777,7 +800,7 @@ export default class extends Controller<HTMLElement> {
 
       // The ID is extracted from current URL if it's an existing document
       const currentUrl = window.location.pathname
-      const match = currentUrl.match(/\/documents\/([^\/]+)/)
+      const match = currentUrl.match(/\/documents\/([^/]+)/)
       
       if (!match) {
         throw new Error("无法获取文档 ID 请先保存文档！")

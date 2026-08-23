@@ -3,8 +3,8 @@
 
 /* 全局字体 */
 #wemd {
-  font-size: 16px;
-  line-height: 1.8em;
+  font-size: 17px;
+  line-height: 1.75;
   letter-spacing: 0.1em;
 }
 
@@ -172,16 +172,16 @@
 }
 
 #wemd h2 {
-  font-size: 20px !important;
+  font-size: 21px !important;
   border-bottom: 1px solid #eee !important;
 }
 
 #wemd h3 {
-  font-size: 18px !important;
+  font-size: 19px !important;
 }
 
 #wemd h4 {
-  font-size: 16px !important;
+  font-size: 17px !important;
 }
 
 /* 表格 */

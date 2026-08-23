@@ -197,7 +197,13 @@ class DocumentsController < ApplicationController
       # 3. 将包含完整 HTML 图片替换逻辑的内容推到草稿箱
       draft_media_id = sync_service.push_draft(@document, thumb_media_id)
       
-      render json: { success: true, message: "文章已成功同步至微信公众平台草稿箱!#{adapted_notice}媒体ID: #{draft_media_id}" }
+      typography = sync_service.effective_typography
+      render json: {
+        success: true,
+        message: "文章已成功同步至微信公众平台草稿箱！排版：#{typography[:name]} #{typography[:body_font_size]}。#{adapted_notice}",
+        draft_media_id: draft_media_id,
+        effective_typography: typography
+      }
     rescue Wechat::SyncService::SyncError => e
       render json: { success: false, message: "同步失败：#{e.message}" }, status: :unprocessable_entity
     rescue StandardError => e
@@ -231,7 +237,8 @@ class DocumentsController < ApplicationController
       theme_adapted: theme_adapted,
       theme_name: theme&.name,
       primary_color: Current.user&.wx_primary_color.presence || theme&.wx_style_map&.dig('_default_primary') || '#1e6bb8',
-      bold_color: Current.user&.wx_bold_color.presence || theme&.wx_style_map&.dig('_default_bold') || Current.user&.wx_primary_color.presence || '#d63200'
+      bold_color: Current.user&.wx_bold_color.presence || theme&.wx_style_map&.dig('_default_bold') || Current.user&.wx_primary_color.presence || '#d63200',
+      effective_typography: sync_service.effective_typography
     }
   rescue StandardError => e
     Rails.logger.error("[WECHAT_PREVIEW] #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")

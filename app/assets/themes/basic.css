@@ -1,10 +1,10 @@
 
 /* 全局属性 */
 #wemd {
-  font-size: 16px;
+  font-size: 17px;
   color: #000000;
   padding: 0 8px;
-  line-height: 1.6;
+  line-height: 1.75;
   word-spacing: 0px;
   letter-spacing: 0px;
   word-break: break-word;
@@ -15,9 +15,9 @@
 
 /* 段落 */
 #wemd p {
-  font-size: 16px;
+  font-size: 17px;
   margin: 0;
-  line-height: 26px;
+  line-height: 1.75;
   color: #000000;
 }
 
@@ -508,4 +508,3 @@
   margin-top: 4px;
   pointer-events: none;
 }
-

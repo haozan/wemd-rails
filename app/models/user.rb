@@ -42,6 +42,8 @@ class User < ApplicationRecord
   WX_PRIMARY_COLOR_REGEX = /\A#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/
   validates :wx_primary_color, format: { with: WX_PRIMARY_COLOR_REGEX, message: '必须是 #RRGGBB 格式的颜色' }, allow_blank: true
   validates :wx_bold_color, format: { with: WX_PRIMARY_COLOR_REGEX, message: '必须是 #RRGGBB 格式的颜色' }, allow_blank: true
+  validates :wx_typography_profile,
+            inclusion: { in: Wechat::TypographyProfiles.ids, message: '不是有效的排版档位' }
 
   validates :password, allow_nil: true, length: { minimum: MIN_PASSWORD }, if: :password_required?
   validates :password, confirmation: true, if: :password_required?

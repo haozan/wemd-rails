@@ -39,6 +39,28 @@
           <!-- 强制使用"默认主题"(李笑来原版),不再给用户切换入口(保留 hidden input 保证表单兼容) -->
           <%= f.hidden_field :theme_id, value: @theme&.id, data: { wemd_editor_target: "themeSelect" } %>
 
+          <!-- 排版档位：与真实预览、复制和草稿同步共用同一字号契约 -->
+          <% current_typography = Wechat::TypographyProfiles.fetch(current_user.wx_typography_profile) %>
+          <div class="relative flex items-center"
+               data-controller="typography-profile"
+               data-typography-profile-url-value="<%= update_typography_profile_profile_path %>">
+            <label for="wx-typography-profile" class="sr-only">公众号正文排版</label>
+            <select id="wx-typography-profile"
+                    class="btn-outline text-xs py-2 pl-3 pr-8"
+                    data-typography-profile-target="select"
+                    data-action="change->typography-profile#save"
+                    title="设置公众号正文的字号和行高">
+              <% Wechat::TypographyProfiles.all.each do |profile| %>
+                <option value="<%= profile[:id] %>" <%= 'selected' if profile[:id] == current_typography[:id] %>>
+                  <%= profile[:name] %> · <%= profile[:body_font_size] %>
+                </option>
+              <% end %>
+            </select>
+            <span class="hidden absolute right-0 top-full mt-1 text-xs whitespace-nowrap"
+                  aria-live="polite"
+                  data-typography-profile-target="status"></span>
+          </div>
+
           <!-- 配色方案选择器 (主色 + 加粗色) -->
           <% current_primary = current_user.wx_primary_color.presence || Wechat::ThemeStyleMaps::DEFAULT_SCHEME[:primary] %>
           <% current_bold    = current_user.wx_bold_color.presence    || Wechat::ThemeStyleMaps::DEFAULT_SCHEME[:bold] %>

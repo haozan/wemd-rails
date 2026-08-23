@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'nokogiri'
+require_relative 'typography_profiles'
 begin
   require 'rouge'
 rescue LoadError => e
@@ -49,11 +50,12 @@ module Wechat
       'pre'  => 'background:#f6f8fa;padding:16px;border-radius:6px;overflow-x:auto;margin:16px 0;font-family:Consolas,Monaco,Menlo,monospace;'
     }.freeze
 
-    def initialize(style_map, primary_color: nil, bold_color: nil)
+    def initialize(style_map, primary_color: nil, bold_color: nil, typography_profile: nil)
       @map = (style_map || {}).stringify_keys
       @code_theme = @map['_code_theme'] || 'github'
       @primary_color = normalize_color(primary_color) || @map['_default_primary'] || '#1e6bb8'
       @bold_color = normalize_color(bold_color) || @map['_default_bold'] || @primary_color
+      @typography_profile = TypographyProfiles.fetch(typography_profile)
     end
 
     # 主入口:接收 Commonmarker 产出的 HTML 字符串,返回内联样式后的 HTML
@@ -86,8 +88,38 @@ module Wechat
                    .gsub(/\s+(<\/(?:ol|ul)>)/) { $1 }
                    .gsub(/(<\/li>)\s+(<li[^>]*>)/) { "#{$1}#{$2}" }
 
-      root_style = substitute(@map['_root'] || 'font-size:15px;color:#333;line-height:1.75;')
+      root_style = append_style(
+        substitute(@map['_root'] || 'font-size:17px;color:#333;line-height:1.75;'),
+        TypographyProfiles.inline_style(@typography_profile[:id], '_root')
+      )
       %(<section class="wemd-article" style="#{root_style}">#{inner}</section>)
+    end
+
+    # 对已经被其他 CSS 内联器处理过的 HTML 只追加排版档位。
+    # 用于没有 wx_style_map 的旧主题，仍保证最终发布字号遵守同一契约。
+    def apply_typography(html)
+      doc = Nokogiri::HTML::DocumentFragment.parse(html, 'UTF-8')
+
+      doc.traverse do |node|
+        apply_typography_style(node) if node.element?
+      end
+
+      root = doc.at_css('section.wemd-article')
+      if root
+        merge_style(
+          root,
+          TypographyProfiles.inline_style(@typography_profile[:id], '_root'),
+          override: true
+        )
+        doc.to_html(encoding: 'UTF-8')
+      else
+        root_style = TypographyProfiles.inline_style(@typography_profile[:id], '_root')
+        %(<section class="wemd-article" style="#{root_style}">#{doc.to_html(encoding: 'UTF-8')}</section>)
+      end
+    end
+
+    def effective_typography
+      TypographyProfiles.public_payload(@typography_profile[:id])
     end
 
     private
@@ -116,8 +148,7 @@ module Wechat
       case tag
       when 'pre'
         # pre 已由 highlight_code_blocks 处理过则跳过重复贴
-        return if node['data-wx-highlighted']
-        merge_style(node, style_for('pre'))
+        merge_style(node, style_for('pre')) unless node['data-wx-highlighted']
       when 'code'
         # 行内 code (非代码块内的)
         unless node.parent&.name == 'pre'
@@ -137,13 +168,59 @@ module Wechat
         s = style_for(tag)
         merge_style(node, s) if s
       end
+
+      apply_typography_style(node)
     end
 
-    def merge_style(node, style_str)
+    def merge_style(node, style_str, override: false)
       return if style_str.to_s.empty?
       existing = node['style'].to_s.strip.chomp(';')
       new_val = style_str.to_s.strip.chomp(';')
-      node['style'] = [new_val, existing].reject(&:empty?).join(';')
+      existing = remove_overridden_properties(existing, new_val) if override
+      styles = override ? [existing, new_val] : [new_val, existing]
+      node['style'] = styles.reject(&:empty?).join(';')
+    end
+
+    def append_style(base_style, overriding_style)
+      base = base_style.to_s.strip.chomp(';')
+      override = overriding_style.to_s.strip.chomp(';')
+      base = remove_overridden_properties(base, override)
+      [base, override]
+        .reject(&:empty?).join(';')
+    end
+
+    def remove_overridden_properties(existing_style, overriding_style)
+      properties = overriding_style.scan(/(?:\A|;)\s*([\w-]+)\s*:/).flatten
+      properties.reduce(existing_style.to_s) do |style, property|
+        style
+          .gsub(/(?:\A|;)\s*#{Regexp.escape(property)}\s*:[^;]*(?=;|\z)/i, '')
+          .sub(/\A;+/, '')
+          .gsub(/;{2,}/, ';')
+      end
+    end
+
+    def apply_typography_style(node)
+      key = typography_key_for(node)
+      return unless key
+
+      style = TypographyProfiles.inline_style(@typography_profile[:id], key)
+      merge_style(node, style, override: true)
+    end
+
+    def typography_key_for(node)
+      tag = node.name.downcase
+      return 'footnote' if footnote_node?(node) && %w[p li div section].include?(tag)
+      return 'blockquote' if tag == 'blockquote' || (tag == 'p' && node.ancestors('blockquote').any?)
+      return node.parent&.name == 'pre' ? 'code_block' : 'code_inline' if tag == 'code'
+      return tag if %w[p ul ol li h1 h2 h3 h4 h5 h6 table th td figcaption].include?(tag)
+
+      nil
+    end
+
+    def footnote_node?(node)
+      ([node] + node.ancestors).any? do |candidate|
+        candidate['class'].to_s.split.any? { |name| name.start_with?('footnote') }
+      end
     end
 
     # 代码高亮:Rouge + 内联样式

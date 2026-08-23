@@ -73,7 +73,9 @@ export default class extends Controller<HTMLElement> {
     this.isCollapsed = !this.isCollapsed
     try {
       localStorage.setItem(this.STORAGE_KEY, this.isCollapsed ? "1" : "0")
-    } catch (_) {}
+    } catch (_) {
+      // 隐私模式或存储空间不可用时，仍保留本次页面内的折叠状态。
+    }
     this.applyCollapsedState()
   }
 

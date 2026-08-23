@@ -5,6 +5,7 @@ require 'down'
 require 'net/http/post/multipart'
 require 'marcel'
 require 'image_processing/mini_magick'
+require_relative 'typography_profiles'
 
 module Wechat
   class SyncService
@@ -12,14 +13,20 @@ module Wechat
 
     class SyncError < StandardError; end
 
-    def initialize(user)
+    def initialize(user, typography_profile: nil)
       @user = user
       @app_id = user.wechat_app_id
       @app_secret = user.wechat_app_secret
+      requested_profile = typography_profile.presence || user.try(:wx_typography_profile)
+      @typography_profile = TypographyProfiles.fetch(requested_profile)
     end
 
     def ready?
       @app_id.present? && @app_secret.present?
+    end
+
+    def effective_typography
+      TypographyProfiles.public_payload(@typography_profile[:id])
     end
 
     # 获取 Access Token，自带简单的缓存机制（官方建议缓存，有效期 2 小时）
@@ -318,7 +325,7 @@ module Wechat
     #   2. 否则 -> fallback 到 premailer 通用 CSS 内联(保真度一般)
     # 微信公众号草稿不支持 <style>/<link>/<class>,只认内联 style
     def apply_theme_styles(html_content, theme)
-      return ensure_block_wrap(html_content) if theme.blank?
+      return apply_typography_only(ensure_block_wrap(html_content)) if theme.blank?
 
       # ===== 路径 1:wx_style_map (新方案,推荐) =====
       if theme.respond_to?(:wx_style_map) && theme.wx_style_map.present?
@@ -326,7 +333,12 @@ module Wechat
           require Rails.root.join('app/services/wechat/style_renderer')
           primary = @user&.wx_primary_color.presence
           bold    = @user&.wx_bold_color.presence
-          renderer = Wechat::StyleRenderer.new(theme.wx_style_map, primary_color: primary, bold_color: bold)
+          renderer = Wechat::StyleRenderer.new(
+            theme.wx_style_map,
+            primary_color: primary,
+            bold_color: bold,
+            typography_profile: @typography_profile[:id]
+          )
           result = renderer.render(html_content)
           Rails.logger.info "[WECHAT] apply_theme_styles via StyleRenderer theme=#{theme.name} primary=#{primary || 'theme-default'} bold=#{bold || 'theme-default'}"
           return result
@@ -336,7 +348,7 @@ module Wechat
       end
 
       # ===== 路径 2:premailer 通用 CSS 内联(兜底) =====
-      return ensure_block_wrap(html_content) if theme.css.blank?
+      return apply_typography_only(ensure_block_wrap(html_content)) if theme.css.blank?
 
       require 'premailer'
 
@@ -375,10 +387,18 @@ module Wechat
       # 兜底：微信要求最外层有块级元素
       result = "<section>#{result}</section>" unless result.match?(/\A\s*<(p|div|section|h\d|ul|ol|blockquote|pre|table|figure)/)
       result = "<p>空草稿</p>" if result.to_s.strip.empty?
-      result
+      apply_typography_only(result)
     rescue => e
       Rails.logger.error "[WECHAT] apply_theme_styles failed: #{e.message}, fallback to raw html"
-      ensure_block_wrap(html_content)
+      apply_typography_only(ensure_block_wrap(html_content))
+    end
+
+    def apply_typography_only(html_content)
+      require Rails.root.join('app/services/wechat/style_renderer')
+      Wechat::StyleRenderer.new(
+        {},
+        typography_profile: @typography_profile[:id]
+      ).apply_typography(html_content)
     end
 
     # 不带主题时的最小包装

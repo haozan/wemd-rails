@@ -21,7 +21,7 @@ module Wechat
 
     # === 李笑来原版:Markdown Here Classic Style 高保真移植 ===
     # 关键特征:
-    #   - 行高 1.8em,字间距 0.1em
+    #   - 默认舒适阅读行高 1.75,字间距 0.1em
     #   - 段落 text-align: justify(两端对齐)
     #   - 标题全部居中 + {{PRIMARY}}(默认青绿)
     #   - H1/H2 带底部细线
@@ -31,18 +31,18 @@ module Wechat
     #   - ul 使用空心圆点(circle)
     #   - 表格 th = 主色底 + 白字
     DEFAULT = {
-      '_root'            => "font-size:16px;color:#000;line-height:1.8;letter-spacing:0.1em;word-break:break-word;font-family:Optima-Regular,Optima,PingFangSC-light,PingFangTC-light,'PingFang SC','Microsoft YaHei','微软雅黑','Segoe UI',Roboto,Helvetica,Arial,sans-serif;",
+      '_root'            => "font-size:17px;color:#000;line-height:1.75;letter-spacing:0.1em;word-break:break-word;font-family:Optima-Regular,Optima,PingFangSC-light,PingFangTC-light,'PingFang SC','Microsoft YaHei','微软雅黑','Segoe UI',Roboto,Helvetica,Arial,sans-serif;",
       '_code_theme'      => 'github',
       '_default_primary' => LXL_GREEN,
 
-      'p'      => 'font-size:16px;line-height:1.8;letter-spacing:0.1em;margin:1.5em 5px;color:#000;text-align:justify;',
+      'p'      => 'font-size:17px;line-height:1.75;letter-spacing:0.1em;margin:1.5em 5px;color:#000;text-align:justify;',
 
       'h1'     => 'font-size:24px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #ddd;',
-      'h2'     => 'font-size:20px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #eee;',
-      'h3'     => 'font-size:18px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
-      'h4'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
-      'h5'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
-      'h6'     => 'font-size:16px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h2'     => 'font-size:21px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;border-bottom:1px solid #eee;',
+      'h3'     => 'font-size:19px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h4'     => 'font-size:17px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h5'     => 'font-size:17px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
+      'h6'     => 'font-size:17px;font-weight:bold;color:{{PRIMARY}};margin:1.5em 5px;padding:0.5em 1em;text-align:center;',
 
       'strong' => 'font-weight:bold;color:{{BOLD}};',
       'em'     => 'font-style:italic;color:{{PRIMARY}};',
@@ -54,7 +54,7 @@ module Wechat
 
       'ul'     => 'padding-left:15px;margin:10px 5px;color:#000;list-style-type:circle;',
       'ol'     => 'padding-left:15px;margin:10px 5px;color:#000;list-style-type:decimal;',
-      'li'     => 'line-height:1.8;letter-spacing:0.1em;margin:10px;color:#010101;',
+      'li'     => 'font-size:17px;line-height:1.75;letter-spacing:0.1em;margin:10px;color:#010101;',
 
       'hr'     => 'height:0;margin:1.5em auto;border:none;border-top:1px solid {{BOLD}};',
 

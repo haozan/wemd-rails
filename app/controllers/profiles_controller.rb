@@ -120,6 +120,24 @@ class ProfilesController < ApplicationController
     end
   end
 
+  # AJAX: 更新公众号正文排版档位
+  def update_typography_profile
+    @user = current_user
+    profile_id = params[:typography_profile].to_s
+
+    if @user.update(wx_typography_profile: profile_id)
+      render json: {
+        ok: true,
+        effective_typography: Wechat::TypographyProfiles.public_payload(profile_id)
+      }
+    else
+      render json: {
+        ok: false,
+        error: (@user.errors[:wx_typography_profile].first || '排版档位无效')
+      }, status: :unprocessable_entity
+    end
+  end
+
   # ============== API Token 管理（供外部 skill 调用红中 API） ==============
 
   def api_tokens

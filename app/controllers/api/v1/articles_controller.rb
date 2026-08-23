@@ -1,6 +1,8 @@
 require 'ostruct'
 
 class Api::V1::ArticlesController < Api::V1::TokenBaseController
+  rescue_from Wechat::TypographyProfiles::UnknownProfile, with: :render_invalid_typography_profile
+
   # GET /api/v1/articles/wechat_config_status
   #
   # 配置自检接口，给外部 skill 跑一次"全链路 dry-run"用：
@@ -55,6 +57,41 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
     end
   end
 
+  # POST /api/v1/articles/preview
+  #
+  # 无副作用地返回最终将写入微信草稿的内联 HTML，供外部发布技能在推送前验收。
+  # Body 与 push_to_wechat 共用 markdown/theme/color_scheme/typography_profile 字段。
+  def preview
+    markdown = params[:markdown].to_s
+    return render_error(:invalid_params, '缺少 markdown') if markdown.blank?
+
+    apply_color_scheme!(params[:color_scheme_id]) if params[:color_scheme_id].present?
+    theme = resolve_theme(params[:theme_id])
+    pseudo_doc = OpenStruct.new(
+      content: markdown,
+      theme: theme,
+      title: params[:title].to_s.strip.presence || '排版预览'
+    )
+    sync_service = Wechat::SyncService.new(
+      current_user,
+      typography_profile: params[:typography_profile]
+    )
+
+    render json: {
+      ok: true,
+      html: sync_service.render_preview_html(pseudo_doc),
+      effective_typography: sync_service.effective_typography,
+      theme_name: theme&.name,
+      primary_color: current_user.wx_primary_color,
+      bold_color: current_user.wx_bold_color
+    }
+  rescue StandardError => e
+    raise if e.is_a?(Wechat::TypographyProfiles::UnknownProfile)
+
+    Rails.logger.error("[API preview] #{e.class}: #{e.message}\n#{e.backtrace.first(8).join("\n")}")
+    render_error(:preview_error, "预览渲染失败：#{e.message}", status: :unprocessable_entity)
+  end
+
   # POST /api/v1/articles/push_to_wechat
   #
   # Headers:
@@ -65,6 +102,7 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
   #   markdown:         String, 必填（正文 Markdown，可含 # 一级标题，会被自动剥除）
   #   cover_image_url:  String, 可选；不传则取正文第一张图
   #   color_scheme_id:  String, 可选；如 "claude_clay"，匹配 ThemeStyleMaps::COLOR_SCHEMES
+  #   typography_profile: String, 可选；compact_15 / standard_16 / readable_17（默认）
   #   author:           String, 可选；默认用 user.name
   #   theme_id:         Integer, 可选；不传用用户默认或第一个内置主题
   def push_to_wechat
@@ -73,7 +111,10 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
     return render_error(:invalid_params, '缺少 title') if title.blank?
     return render_error(:invalid_params, '缺少 markdown') if markdown.blank?
 
-    sync_service = Wechat::SyncService.new(current_user)
+    sync_service = Wechat::SyncService.new(
+      current_user,
+      typography_profile: params[:typography_profile]
+    )
     unless sync_service.ready?
       return render_error(:wechat_not_configured,
                           '当前账号未配置微信公众号 AppID/AppSecret，请前往「账号设置 → 微信公众号配置」填写')
@@ -120,6 +161,7 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         wechat_draft_url: 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=77',
         document_id: saved_to_library ? document.id : nil,
         document_url: saved_to_library ? edit_document_url(document.id) : nil,
+        effective_typography: sync_service.effective_typography,
         message: '已推送到微信公众号草稿箱，请前往后台预览/发布'
       }
     rescue Wechat::SyncService::SyncError => e
@@ -165,6 +207,13 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
 
   def render_error(code, message, status: :unprocessable_entity)
     render json: { ok: false, error: code.to_s, message: message }, status: status
+  end
+
+  def render_invalid_typography_profile(error)
+    render_error(
+      :invalid_typography_profile,
+      "不支持的 typography_profile：#{error.message}（允许：#{Wechat::TypographyProfiles.ids.join(', ')}）"
+    )
   end
 
   # 把微信常见错误翻译成"用户能照做的提示"

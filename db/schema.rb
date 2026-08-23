@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_12_093600) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_23_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -255,6 +255,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_12_093600) do
     t.string "wechat_app_secret"
     t.string "wx_primary_color", limit: 7, default: "#1e6bb8"
     t.string "wx_bold_color"
+    t.string "wx_typography_profile", default: "readable_17", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
