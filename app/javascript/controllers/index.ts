@@ -17,6 +17,7 @@ import ColorPickerController from "./color_picker_controller"
 import VideoModalController from "./video_modal_controller"
 import InlineVideoController from "./inline_video_controller"
 import TypographyProfileController from "./typography_profile_controller"
+import WechatConnectionController from "./wechat_connection_controller"
 
 const application = Application.start()
 
@@ -37,5 +38,6 @@ application.register("color-picker", ColorPickerController)
 application.register("video-modal", VideoModalController)
 application.register("inline-video", InlineVideoController)
 application.register("typography-profile", TypographyProfileController)
+application.register("wechat-connection", WechatConnectionController)
 
 window.Stimulus = application

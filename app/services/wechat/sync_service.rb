@@ -10,6 +10,7 @@ require_relative 'typography_profiles'
 module Wechat
   class SyncService
     API_URL = "https://api.weixin.qq.com/cgi-bin"
+    SERVER_IP = ENV.fetch('WECHAT_SERVER_IP', '43.99.52.36').freeze
 
     class SyncError < StandardError; end
 

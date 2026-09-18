@@ -4,7 +4,12 @@
     <p class="text-secondary mt-2">完成下面 3 步，就能一键同步到草稿箱</p>
   </div>
 
-  <%= form_with model: @user, url: update_wechat_settings_profile_path, method: :patch, local: true, class: "space-y-6" do |form| %>
+  <% wechat_connection_data = {
+       controller: "wechat-connection",
+       wechat_connection_url_value: test_wechat_connection_profile_path,
+       wechat_connection_autosave_delay_value: 4000
+     } %>
+  <%= form_with model: @user, url: update_wechat_settings_profile_path, method: :patch, local: true, class: "space-y-6", data: wechat_connection_data do |form| %>
 
     <!-- 步骤 1：填 AppID + AppSecret -->
     <div class="card-elevated">
@@ -13,20 +18,45 @@
           <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">1</div>
           <div class="flex-1 min-w-0">
             <h2 class="text-lg font-bold text-primary mb-1">填入 AppID 和 AppSecret</h2>
-            <p class="text-sm text-secondary mb-4">
-              到 <a href="https://developers.weixin.qq.com/platform" target="_blank" class="text-primary hover:underline font-medium">微信开发者平台</a> →
-              <strong>我的服务 → 选择你的公众号 → 设置与开发 → 基本配置</strong>，复制 AppID 和 AppSecret。
-            </p>
+            <div class="mb-5 rounded-xl border-2 border-primary bg-primary/5 p-4">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white dark:text-gray-900">
+                    <%= lucide_icon "rocket", class: "h-4 w-4" %>
+                  </div>
+                  <div>
+                    <p class="font-bold text-primary">先打开微信开发者平台</p>
+                    <p class="mt-1 text-sm text-secondary">请在新窗口完成公众号基本配置，再回到这里填写信息。</p>
+                  </div>
+                </div>
+                <a href="https://developers.weixin.qq.com/platform"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:opacity-90 sm:w-auto">
+                  打开微信开发者平台 <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+              <p class="mt-3 border-t border-primary/20 pt-3 text-sm text-secondary">
+                打开后依次点击
+                <strong class="text-primary">我的服务 → 选择你的公众号 → 设置与开发 → 基本配置</strong>，复制 AppID 和 AppSecret。
+              </p>
+            </div>
 
             <div class="space-y-4">
               <div>
                 <%= form.label :wechat_app_id, "AppID（开发者 ID）", class: "form-label required" %>
-                <%= form.text_field :wechat_app_id, class: "input-field w-full", placeholder: "wx1234567890abcdef" %>
+                <%= form.text_field :wechat_app_id,
+                                    class: "input-field w-full",
+                                    placeholder: "wx1234567890abcdef",
+                                    data: { wechat_connection_target: "appId" } %>
               </div>
 
               <div>
                 <%= form.label :wechat_app_secret, "AppSecret（开发者密码）", class: "form-label required" %>
-                <%= form.text_field :wechat_app_secret, class: "input-field w-full", placeholder: @user.wechat_app_secret.present? ? "已保存，不改请留空" : "首次配置时复制粘贴" %>
+                <%= form.text_field :wechat_app_secret,
+                                    class: "input-field w-full",
+                                    placeholder: @user.wechat_app_secret.present? ? "已保存，不改请留空" : "首次配置时复制粘贴",
+                                    data: { wechat_connection_target: "appSecret" } %>
                 <% if @user.wechat_app_secret.present? %>
                   <p class="form-help text-success mt-2 flex items-center gap-1.5">
                     <%= lucide_icon "check-circle", class: "w-4 h-4" %>
@@ -55,7 +85,7 @@
             <div class="p-3 bg-surface border border-border rounded-lg flex items-center justify-between" data-controller="clipboard">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="text-xs text-muted-foreground flex-shrink-0">服务器 IP</span>
-                <code class="text-primary font-mono font-bold text-base truncate" data-clipboard-target="source">43.99.52.36</code>
+                <code class="text-primary font-mono font-bold text-base truncate" data-clipboard-target="source"><%= Wechat::SyncService::SERVER_IP %></code>
               </div>
               <button type="button" class="btn-secondary text-xs px-3 py-1.5 flex-shrink-0" data-action="click->clipboard#copy">
                 <%= lucide_icon "copy", class: "w-3.5 h-3.5 mr-1" %>
@@ -73,20 +103,27 @@
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0 w-9 h-9 rounded-full bg-primary text-white dark:text-gray-900 font-bold flex items-center justify-center">3</div>
           <div class="flex-1 min-w-0">
-            <h2 class="text-lg font-bold text-primary mb-1">测试连接，通过即自动保存</h2>
+            <h2 class="text-lg font-bold text-primary mb-1">测试连接，确认后自动保存</h2>
             <p class="text-sm text-secondary mb-4">
-              点击「测试连接」，验证 AppID / AppSecret / IP 白名单无误后自动保存。
+              点击「测试并保存」后，成功结果会保留 4 秒供你确认，然后自动保存配置。
             </p>
 
             <div class="flex flex-wrap items-center gap-3">
-              <button type="button" id="test-wechat-btn" class="btn-primary">
+              <button type="button"
+                      class="btn-primary"
+                      data-wechat-connection-target="button"
+                      data-action="click->wechat-connection#test">
                 <%= lucide_icon "plug-zap", class: "w-4 h-4 mr-1.5" %>
                 测试并保存
               </button>
               <%= link_to "返回编辑器", new_document_path, class: "btn-ghost ml-auto" %>
             </div>
 
-            <div id="test-wechat-result" class="mt-3 text-sm hidden"></div>
+            <div data-wechat-connection-target="result"
+                 class="mt-4 hidden min-h-12 rounded-lg border border-border bg-surface px-3 py-3 text-sm font-medium"
+                 role="status"
+                 aria-live="polite"
+                 aria-atomic="true"></div>
           </div>
         </div>
       </div>
@@ -94,47 +131,4 @@
 
   <% end %>
 
-  <script>
-    document.getElementById('test-wechat-btn').addEventListener('click', function() {
-      const btn = this;
-      const result = document.getElementById('test-wechat-result');
-      const appId = document.querySelector('input[name="user[wechat_app_id]"]').value.trim();
-      const appSecret = document.querySelector('input[name="user[wechat_app_secret]"]').value.trim();
-
-      btn.disabled = true;
-      const originalHTML = btn.innerHTML;
-      btn.textContent = '测试中…';
-      result.className = 'mt-3 text-sm text-secondary';
-      result.textContent = '';
-
-      fetch('<%= test_wechat_connection_profile_path %>', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ app_id: appId, app_secret: appSecret })
-      })
-      .then(r => r.json())
-      .then(data => {
-        result.classList.remove('hidden');
-        result.className = 'mt-3 text-sm ' + (data.ok ? 'text-success' : 'text-destructive');
-        result.textContent = (data.ok ? '✓ ' : '✗ ') + data.message;
-        if (data.ok) {
-          btn.textContent = '保存中…';
-          btn.disabled = true;
-          btn.closest('form').submit();
-        }
-      })
-      .catch(() => {
-        result.classList.remove('hidden');
-        result.className = 'mt-3 text-sm text-destructive';
-        result.textContent = '✗ 请求失败，请检查网络';
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-      });
-    });
-  </script>
 </div>

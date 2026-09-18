@@ -11,11 +11,12 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
   #   - 拿 access_token 是否成功（验证 AppSecret + IP 白名单）
   #
   # 返回：
-  #   { ok: true,  configured: true,  access_token_ok: true }
-  #   { ok: true,  configured: false, hint: "未填 AppID/AppSecret，前往 ..." }
-  #   { ok: false, configured: true,  access_token_ok: false, error: "...", hint: "..." }
+  #   除兼容旧客户端的 configured/access_token_ok 外，还分别返回：
+  #   app_id_configured、app_secret_configured、app_id_ok、app_secret_ok、
+  #   ip_whitelist_ok、server_ip、configuration_ok。
   def wechat_config_status
     sync_service = Wechat::SyncService.new(current_user)
+    base_checks = wechat_configuration_checks
 
     unless sync_service.ready?
       return render json: {
@@ -23,6 +24,8 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         configured: false,
         access_token_ok: false,
         user_name: current_user.name,
+        configuration_ok: false,
+        **base_checks,
         hint: '尚未绑定微信公众号 AppID/AppSecret。请前往 https://hongzhongai.com/profile（账号设置 → 微信公众号配置）填写后重试。'
       }
     end
@@ -34,6 +37,11 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         configured: true,
         access_token_ok: token.present?,
         user_name: current_user.name,
+        **base_checks,
+        configuration_ok: token.present?,
+        app_id_ok: token.present?,
+        app_secret_ok: token.present?,
+        ip_whitelist_ok: token.present?,
         message: '微信公众号配置正常，可以推送草稿'
       }
     rescue Wechat::SyncService::SyncError => e
@@ -42,6 +50,9 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         configured: true,
         access_token_ok: false,
         user_name: current_user.name,
+        configuration_ok: false,
+        **base_checks,
+        **wechat_connection_checks_for(e.message),
         error: e.message,
         hint: hint_for_wechat_error(e.message)
       }, status: :ok
@@ -51,6 +62,8 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
         ok: false,
         configured: true,
         access_token_ok: false,
+        configuration_ok: false,
+        **base_checks,
         error: "#{e.class}: #{e.message}",
         hint: '红中后端异常，请稍后重试或联系管理员'
       }, status: :ok
@@ -173,6 +186,32 @@ class Api::V1::ArticlesController < Api::V1::TokenBaseController
   end
 
   private
+
+  def wechat_configuration_checks
+    {
+      app_id_configured: current_user.wechat_app_id.present?,
+      app_secret_configured: current_user.wechat_app_secret.present?,
+      app_id_ok: current_user.wechat_app_id.present? ? nil : false,
+      app_secret_ok: current_user.wechat_app_secret.present? ? nil : false,
+      ip_whitelist_ok: nil,
+      server_ip: Wechat::SyncService::SERVER_IP
+    }
+  end
+
+  # 微信 token 接口的错误码可以定位三项配置中的哪一项未通过；未知错误
+  # 保持 nil，避免把网络或微信服务异常误报成用户配置错误。
+  def wechat_connection_checks_for(message)
+    case message.to_s
+    when /40013|AppID 不合法/
+      { app_id_ok: false, app_secret_ok: nil, ip_whitelist_ok: nil }
+    when /40001|41004|AppSecret 错误|AppSecret 缺少|AccessToken 无效/
+      { app_id_ok: true, app_secret_ok: false, ip_whitelist_ok: nil }
+    when /40164|IP 未在.*白名单/
+      { app_id_ok: true, app_secret_ok: true, ip_whitelist_ok: false }
+    else
+      { app_id_ok: nil, app_secret_ok: nil, ip_whitelist_ok: nil }
+    end
+  end
 
   def apply_color_scheme!(scheme_id)
     require Rails.root.join('app/services/wechat/theme_style_maps')
